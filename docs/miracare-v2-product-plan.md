@@ -78,7 +78,7 @@ Codex must run a discovery pass first (read these files) and produce `docs/v2-ga
 ## 4. Module: AI Chat (the core)
 
 ### 4.1 Conversation engine — contract
-Everything in `docs/miracare-codex-handoff.md` applies verbatim: prompt ID `pmpt_6a29c7e353b88196a6e648b24c54849e0f6204e24d65c021` (default version), variables `brand_name`, `user_nickname`, `personal_context`, `recent_chat`, `product_catalog`, marker protocol `[[products: id1, id2]]`, `store:false`, regression suite. **Adapt this codebase to the model; never adapt the model to this codebase.** The existing Gemini conversation path is replaced for customer-facing chat.
+Everything in `docs/miracare-codex-handoff.md` applies verbatim: prompt ID `pmpt_6a29c7e353b88196a6e648b24c54849e0f6204e24d65c021` (current default version 3 after the V3-3 flip), variables `brand_name`, `user_nickname`, `personal_context`, `recent_chat`, `product_catalog`, marker protocol (`[[products: id1, id2, id3, id4]]`, `[[categories]]`, `[[order_status]]`), `store:false`, regression suite. See `docs/miracare-v3-chat-commerce-plan.md` §2.3 and §8 V3-3 for the v3 default-flip evidence. **Adapt this codebase to the model; never adapt the model to this codebase.** The existing Gemini conversation path is replaced for customer-facing chat.
 
 ### 4.2 Orchestrator (rewrite of `supabase/functions/mira-chat`)
 Per incoming message:
