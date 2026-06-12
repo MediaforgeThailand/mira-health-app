@@ -307,7 +307,19 @@ export type WearableIngestRequest = {
   storage_path: string;
 };
 
+export type WearableImportRow = {
+  customer_id: string;
+  file_path: string | null;
+  filename: string | null;
+  id: string;
+  imported_at: string;
+  metric_count: number;
+  source: 'apple_export' | 'healthkit' | 'manual';
+  tenant_id: string;
+};
+
 export type WearableIngestResponse = {
+  import: WearableImportRow;
   inserted: number;
   metrics: WearableMetricRow[];
 };
@@ -355,6 +367,7 @@ export type PdpaExportResponse = {
   orders: PdpaOrderExportRow[];
   pdpa_request_id: string;
   user_facts: UserFactRow[];
+  wearable_imports: WearableImportRow[];
   wearable_metrics: WearableMetricRow[];
 };
 
@@ -456,6 +469,7 @@ export type WearableMetricRow = {
   customer_id: string;
   day: string;
   id: string;
+  import_id: string | null;
   metric: 'active_energy_kcal' | 'avg_hr' | 'resting_hr' | 'sleep_minutes' | 'steps';
   source: 'apple_export' | 'healthkit' | 'manual';
   tenant_id: string;

@@ -262,9 +262,9 @@ Closes v2 audit C ❌ ("wearable facts have no spec-defined import entity/source
 
 ### DoD — R5
 
-- [ ] ❌ Migration + RLS + rls-check extension.
-- [ ] ❌ Ingest stamps `import_id`/`source_ref`; wearable tests green.
-- [ ] ❌ v2 audit C item flipped with evidence in `docs/miracare-v2-product-plan.md` §10.
+- [x] ✅ 2026-06-12 — Migration + RLS + rls-check extension landed; production project `xwixdxmemwcuoamcloty` has migration `20260612180000_wearable_imports.sql`; `npm run v2:schema-audit`, `npm run v2:pdpa-coverage-audit`, and `npm run v2:verify` green locally.
+- [x] ✅ 2026-06-12 — `wearable-ingest` stamps `wearable_metrics.import_id` + wearable fact `source_ref=<import id>`; `wearable-ingest` deployed to project `xwixdxmemwcuoamcloty`; wearable Deno tests green (`7 passed`, full `npm run v2:verify`: 108 Deno tests passed).
+- [x] ✅ 2026-06-12 — v2 audit C source-ref item flipped with R5 evidence in `docs/miracare-v2-product-plan.md` §10.
 
 ---
 

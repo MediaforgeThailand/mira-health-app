@@ -340,11 +340,11 @@ const demoLabReport: LabReportWithResults = {
 };
 
 const demoWearableMetrics: WearableMetricRow[] = [
-  { customer_id: 'demo-customer', day: '2026-06-09', id: 'demo-steps-1', metric: 'steps', source: 'apple_export', tenant_id: 'demo-tenant', value: 6840 },
-  { customer_id: 'demo-customer', day: '2026-06-10', id: 'demo-steps-2', metric: 'steps', source: 'apple_export', tenant_id: 'demo-tenant', value: 8320 },
-  { customer_id: 'demo-customer', day: '2026-06-11', id: 'demo-steps-3', metric: 'steps', source: 'apple_export', tenant_id: 'demo-tenant', value: 7600 },
-  { customer_id: 'demo-customer', day: '2026-06-11', id: 'demo-sleep-1', metric: 'sleep_minutes', source: 'apple_export', tenant_id: 'demo-tenant', value: 405 },
-  { customer_id: 'demo-customer', day: '2026-06-11', id: 'demo-hr-1', metric: 'avg_hr', source: 'apple_export', tenant_id: 'demo-tenant', value: 74 },
+  { customer_id: 'demo-customer', day: '2026-06-09', id: 'demo-steps-1', import_id: null, metric: 'steps', source: 'apple_export', tenant_id: 'demo-tenant', value: 6840 },
+  { customer_id: 'demo-customer', day: '2026-06-10', id: 'demo-steps-2', import_id: null, metric: 'steps', source: 'apple_export', tenant_id: 'demo-tenant', value: 8320 },
+  { customer_id: 'demo-customer', day: '2026-06-11', id: 'demo-steps-3', import_id: null, metric: 'steps', source: 'apple_export', tenant_id: 'demo-tenant', value: 7600 },
+  { customer_id: 'demo-customer', day: '2026-06-11', id: 'demo-sleep-1', import_id: null, metric: 'sleep_minutes', source: 'apple_export', tenant_id: 'demo-tenant', value: 405 },
+  { customer_id: 'demo-customer', day: '2026-06-11', id: 'demo-hr-1', import_id: null, metric: 'avg_hr', source: 'apple_export', tenant_id: 'demo-tenant', value: 74 },
 ];
 
 export const showcaseDemoHealthData: HealthDashboardData = {
