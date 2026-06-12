@@ -100,6 +100,14 @@ jobs:
   live-regression:
     runs-on: ubuntu-latest
     needs: verify
+    # All runs share one Supabase project and regression customer; the reset
+    # step in the regression scripts deletes that customer's chat sessions, so
+    # overlapping runs cause FK violations on chat_messages inserts. Serialize
+    # this job across the whole repo (no ref in the group) and queue instead of
+    # cancelling so reruns and new pushes both still execute.
+    concurrency:
+      group: miracare-live-regression
+      cancel-in-progress: false
     env:
       MIRA_DEMO_PROMPTPAY_ID: ${{ secrets.MIRA_DEMO_PROMPTPAY_ID }}
       SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
