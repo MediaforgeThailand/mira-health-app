@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mira.com/sitemap-index.xml

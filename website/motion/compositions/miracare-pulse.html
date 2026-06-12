@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #f4f9fa;
+      }
+
+      #root {
+        position: relative;
+        display: grid;
+        width: 1600px;
+        height: 900px;
+        place-items: center;
+        overflow: hidden;
+        background: radial-gradient(circle at 50% 46%, rgba(221, 245, 243, 0.95), transparent 55%), #f4f9fa;
+      }
+
+      svg {
+        width: 1180px;
+        height: 540px;
+      }
+
+      .ecg {
+        fill: none;
+        stroke: #0ea5a4;
+        stroke-width: 9;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-dasharray: 1650;
+        stroke-dashoffset: 1650;
+        animation: draw 8s linear infinite;
+      }
+
+      .bubble,
+      .ring {
+        fill: none;
+        stroke: #54cfa5;
+        stroke-width: 7;
+        opacity: 0;
+        animation: bloom 8s ease-in-out infinite;
+      }
+
+      .ring {
+        stroke: #3278c7;
+        transform-origin: 820px 260px;
+        animation-name: ringSweep;
+      }
+
+      .plus {
+        position: absolute;
+        color: rgba(14, 165, 164, 0.34);
+        font: 600 42px/1 system-ui, sans-serif;
+        animation: plusFloat 8s ease-in-out infinite;
+      }
+
+      .plus:nth-of-type(1) { top: 170px; left: 260px; }
+      .plus:nth-of-type(2) { top: 620px; left: 420px; animation-delay: -2s; }
+      .plus:nth-of-type(3) { top: 210px; right: 340px; animation-delay: -4s; }
+      .plus:nth-of-type(4) { bottom: 160px; right: 250px; animation-delay: -6s; }
+
+      @keyframes draw {
+        0% {
+          stroke-dashoffset: 1650;
+        }
+
+        62% {
+          stroke-dashoffset: 0;
+        }
+
+        100% {
+          stroke-dashoffset: 0;
+        }
+      }
+
+      @keyframes bloom {
+        0%,
+        44%,
+        100% {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+
+        58%,
+        78% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      @keyframes ringSweep {
+        0%,
+        44%,
+        100% {
+          opacity: 0;
+          stroke-dasharray: 480;
+          stroke-dashoffset: 480;
+          transform: rotate(-90deg);
+        }
+
+        68%,
+        82% {
+          opacity: 1;
+          stroke-dashoffset: 120;
+          transform: rotate(-90deg);
+        }
+      }
+
+      @keyframes plusFloat {
+        0%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.16;
+        }
+
+        50% {
+          transform: translateY(-24px);
+          opacity: 0.42;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="miracare-pulse" data-width="1600" data-height="900" data-start="0" data-duration="8">
+      <span class="plus">+</span><span class="plus">+</span><span class="plus">+</span><span class="plus">+</span>
+      <svg viewBox="0 0 1180 540" aria-hidden="true">
+        <path class="ecg" d="M40 280H240l42-88 62 214 80-246 64 120h160c42 0 78 31 78 70v42l58-52h94c50 0 90-40 90-90s-40-90-90-90h-106" />
+        <path class="bubble" d="M650 204h244c50 0 90 40 90 90s-40 90-90 90h-98l-70 64v-64h-76c-50 0-90-40-90-90s40-90 90-90Z" />
+        <circle class="ring" cx="820" cy="260" r="78" />
+      </svg>
+      <script src="../vendor/gsap.min.js"></script>
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        tl.to({}, { duration: 8 }, 0);
+        window.__timelines = window.__timelines || {};
+        window.__timelines["miracare-pulse"] = tl;
+      </script>
+    </div>
+  </body>
+</html>

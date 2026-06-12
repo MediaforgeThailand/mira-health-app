@@ -1,0 +1,139 @@
+---
+import MotionLoop from './MotionLoop.astro';
+---
+
+<section id="contact" class="cta-section section-dark grain">
+  <div class="cta-media" aria-hidden="true">
+    <MotionLoop name="hero-aurora" />
+  </div>
+  <div class="container cta-inner">
+    <div data-reveal>
+      <h2 class="section-title">อยากเห็น Mira ขายให้องค์กรคุณ?</h2>
+      <p class="section-sub">นัดดูเดโมสด 30 นาที — เห็นทั้งฝั่งลูกค้าและหลังบ้าน ด้วยข้อมูลตัวอย่างของธุรกิจแบบคุณ</p>
+      <div class="cta-mini">
+        <span>AI Chat</span>
+        <span>Referral</span>
+        <span>Back office</span>
+      </div>
+    </div>
+
+    <form class="contact-form glass-panel" data-contact-form data-mailto="hello@mira.com">
+      <label>
+        <span>ชื่อ</span>
+        <input name="name" autocomplete="name" required />
+      </label>
+      <label>
+        <span>องค์กร</span>
+        <input name="organization" autocomplete="organization" required />
+      </label>
+      <label>
+        <span>อีเมลหรือเบอร์ติดต่อ</span>
+        <input name="contact" autocomplete="email" required />
+      </label>
+      <label>
+        <span>ประเภทธุรกิจ</span>
+        <select name="businessType" required>
+          <option value="">เลือกประเภท</option>
+          <option>โรงพยาบาล</option>
+          <option>คลินิกความงาม</option>
+          <option>อื่น ๆ</option>
+        </select>
+      </label>
+      <button type="submit">ส่งคำขอนัดเดโม</button>
+    </form>
+  </div>
+</section>
+
+<style>
+  .cta-section {
+    position: relative;
+    padding: clamp(4.5rem, 8vw, 7rem) 0;
+    overflow: clip;
+  }
+
+  .cta-media {
+    position: absolute;
+    inset: 0;
+    opacity: 0.28;
+  }
+
+  .cta-inner {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(340px, 0.7fr);
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: center;
+  }
+
+  .section-title {
+    max-width: 780px;
+  }
+
+  .cta-mini {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .cta-mini span {
+    border: 1px solid var(--night-line);
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--muted-dark);
+    font-family: "Space Grotesk", sans-serif;
+    padding: 0.45rem 0.72rem;
+  }
+
+  .contact-form {
+    display: grid;
+    gap: 0.9rem;
+    border-radius: 28px;
+    padding: clamp(1.1rem, 2.6vw, 1.6rem);
+  }
+
+  label {
+    display: grid;
+    gap: 0.38rem;
+    color: var(--muted-dark);
+    font-size: 0.92rem;
+  }
+
+  input,
+  select {
+    width: 100%;
+    min-height: 48px;
+    border: 1px solid var(--night-line);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--canvas);
+    padding: 0.75rem 0.85rem;
+  }
+
+  select option {
+    background: var(--night);
+    color: var(--canvas);
+  }
+
+  button {
+    min-height: 50px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: linear-gradient(110deg, var(--teal), var(--mint));
+    color: var(--night);
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 180ms ease;
+  }
+
+  button:hover {
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 860px) {
+    .cta-inner {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

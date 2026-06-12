@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Mira Motion Compositions</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #06181c;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="mira-motion-index" data-composition-id="mira-motion-index" data-width="1920" data-height="1080" data-start="0" data-duration="12">
+      <div id="hero-aurora-host" data-composition-id="hero-aurora-host" data-composition-src="./compositions/hero-aurora.html" data-start="0" data-duration="12"></div>
+    </div>
+    <script src="./vendor/gsap.min.js"></script>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      tl.to({}, { duration: 12 }, 0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["mira-motion-index"] = tl;
+    </script>
+  </body>
+</html>

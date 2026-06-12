@@ -1,0 +1,53 @@
+---
+interface Props {
+  tone?: 'default' | 'mint' | 'amber' | 'rose' | 'dark';
+}
+
+const { tone = 'default' } = Astro.props;
+---
+
+<span class:list={['chip', `chip-${tone}`]}>
+  <slot />
+</span>
+
+<style>
+  .chip {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--ink);
+    font-family: "Space Grotesk", "Anuphan", sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.2;
+    padding: 0.45rem 0.78rem;
+  }
+
+  .chip-mint {
+    border-color: rgba(84, 207, 165, 0.45);
+    background: rgba(221, 245, 243, 0.92);
+    color: var(--teal-deep);
+  }
+
+  .chip-amber {
+    border-color: rgba(245, 184, 75, 0.48);
+    background: rgba(245, 184, 75, 0.16);
+    color: #7A5200;
+  }
+
+  .chip-rose {
+    border-color: rgba(229, 143, 162, 0.46);
+    background: rgba(251, 241, 243, 0.92);
+    color: #89465A;
+  }
+
+  .chip-dark {
+    border-color: var(--night-line);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--canvas);
+  }
+</style>

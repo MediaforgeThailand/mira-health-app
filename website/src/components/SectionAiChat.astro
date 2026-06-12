@@ -1,0 +1,99 @@
+---
+import Chip from './Chip.astro';
+import Section from './Section.astro';
+
+const features = [
+  {
+    icon: '✦',
+    title: 'แนะนำตรงใจ',
+    body: 'วิเคราะห์ความต้องการจากบทสนทนา แล้วเสนอสินค้าและบริการที่ใช่สำหรับลูกค้าคนนั้น',
+  },
+  {
+    icon: '→',
+    title: 'ปิดการขายในแชท',
+    body: 'สั่งซื้อ เลือกสาขา ชำระเงินผ่าน QR และยืนยันออเดอร์ โดยลูกค้าไม่ต้องหลุดออกจากบทสนทนาเลย',
+  },
+  {
+    icon: '↻',
+    title: 'ข้อมูลของคุณ ควบคุมได้',
+    body: 'เพิ่ม ลบ แก้สินค้าและราคาได้ตลอดเวลา ระบบอัปเดตให้ AI รู้ทันที ไม่ต้องรอใคร',
+  },
+];
+---
+
+<Section id="ai-chat" tone="light" class="ai-chat-section">
+  <div class="section-heading" data-reveal>
+    <p class="eyebrow">AI SALES CHAT</p>
+    <h2 class="section-title">ผู้ช่วยขายที่รู้จักสินค้าของคุณทุกชิ้น</h2>
+    <p class="section-sub">
+      ฝึกจากข้อมูลขององค์กรคุณ — แคตตาล็อก สาขา โปรโมชัน นโยบาย — Mira จึงตอบได้เหมือนพนักงานที่เก่งที่สุดของคุณ และปิดการขายในแชทได้จริง
+    </p>
+  </div>
+
+  <div class="feature-grid grid-3">
+    {features.map((feature) => (
+      <article class="feature-tile" data-reveal>
+        <span class="feature-icon" aria-hidden="true">{feature.icon}</span>
+        <h3>{feature.title}</h3>
+        <p>{feature.body}</p>
+      </article>
+    ))}
+  </div>
+
+  <div class="capability-strip" data-reveal>
+    <Chip tone="mint">ตอบลูกค้า 24/7</Chip>
+    <Chip tone="mint">1 แชท = แนะนำ → ชำระเงิน</Chip>
+    <Chip tone="mint">ส่วนแบ่งคำนวณอัตโนมัติ</Chip>
+  </div>
+</Section>
+
+<style>
+  .section-heading {
+    max-width: 860px;
+  }
+
+  .feature-grid {
+    margin-top: 2.25rem;
+  }
+
+  .feature-tile {
+    min-height: 260px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+    padding: clamp(1.2rem, 2.5vw, 1.65rem);
+  }
+
+  .feature-icon {
+    display: grid;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+    border-radius: 16px;
+    background: var(--teal-soft);
+    color: var(--teal-deep);
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+  }
+
+  h3 {
+    margin: 1.25rem 0 0;
+    font-size: clamp(1.35rem, 2.5vw, 1.9rem);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .feature-tile p {
+    margin: 0.85rem 0 0;
+    color: var(--ink-soft);
+  }
+
+  .capability-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+</style>

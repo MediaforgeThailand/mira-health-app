@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #fbf1f3;
+      }
+
+      #root {
+        position: relative;
+        display: grid;
+        width: 1600px;
+        height: 900px;
+        place-items: center;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 72% 32%, rgba(229, 143, 162, 0.26), transparent 40%),
+          #fbf1f3;
+      }
+
+      svg {
+        width: 1040px;
+        height: 620px;
+      }
+
+      .face {
+        fill: none;
+        stroke: #12343b;
+        stroke-width: 7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        opacity: 0.84;
+      }
+
+      .scan {
+        position: absolute;
+        top: 140px;
+        left: 420px;
+        width: 760px;
+        height: 8px;
+        border-radius: 99px;
+        background: linear-gradient(90deg, transparent, #e58fa2, transparent);
+        box-shadow: 0 0 38px rgba(229, 143, 162, 0.7);
+        animation: scan 8s ease-in-out infinite;
+      }
+
+      .dot {
+        fill: #e58fa2;
+        opacity: 0;
+        animation: dot 8s ease-in-out infinite;
+      }
+
+      .dot:nth-of-type(2) { animation-delay: 0.2s; }
+      .dot:nth-of-type(3) { animation-delay: 0.4s; }
+      .dot:nth-of-type(4) { animation-delay: 0.6s; }
+      .dot:nth-of-type(5) { animation-delay: 0.8s; }
+      .dot:nth-of-type(6) { animation-delay: 1s; }
+
+      .chip {
+        position: absolute;
+        right: 300px;
+        width: 132px;
+        height: 52px;
+        border: 1px solid rgba(229, 143, 162, 0.34);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.62);
+        animation: chipPulse 8s ease-in-out infinite;
+      }
+
+      .chip.one { top: 250px; }
+      .chip.two { top: 334px; animation-delay: -2.6s; }
+      .chip.three { top: 418px; animation-delay: -5.2s; }
+
+      .chip::before {
+        position: absolute;
+        top: 15px;
+        left: 18px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #e58fa2;
+        content: "";
+      }
+
+      .chip::after {
+        position: absolute;
+        top: 22px;
+        left: 54px;
+        width: 52px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(18, 52, 59, 0.18);
+        content: "";
+      }
+
+      @keyframes scan {
+        0%,
+        100% {
+          transform: translateY(0);
+          opacity: 0;
+        }
+
+        12%,
+        88% {
+          opacity: 1;
+        }
+
+        50% {
+          transform: translateY(430px);
+        }
+      }
+
+      @keyframes dot {
+        0%,
+        24%,
+        100% {
+          opacity: 0;
+          transform: scale(0.7);
+        }
+
+        42%,
+        76% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      @keyframes chipPulse {
+        0%,
+        100% {
+          transform: translateX(0);
+          opacity: 0.68;
+        }
+
+        50% {
+          transform: translateX(-16px);
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="mirabeauty-scan" data-width="1600" data-height="900" data-start="0" data-duration="8">
+      <span class="scan"></span>
+      <span class="chip one"></span><span class="chip two"></span><span class="chip three"></span>
+      <svg viewBox="0 0 1040 620" aria-hidden="true">
+        <path class="face" d="M470 84c-112 22-184 112-184 238 0 118 70 198 182 218 66 12 128-4 176-42 28-22 26-70-8-88l-70-38 44-46c22-24 22-62-2-84l-48-44c-24-22-56-62-90-114Z" />
+        <path class="face" d="M522 206c30-14 64-12 92 6M530 314c38 14 78 14 116 0M500 410c44 42 116 46 168 8" opacity="0.45" />
+        <circle class="dot" cx="548" cy="222" r="9" />
+        <circle class="dot" cx="634" cy="226" r="9" />
+        <circle class="dot" cx="592" cy="306" r="9" />
+        <circle class="dot" cx="530" cy="402" r="9" />
+        <circle class="dot" cx="662" cy="400" r="9" />
+      </svg>
+      <script src="../vendor/gsap.min.js"></script>
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        tl.to({}, { duration: 8 }, 0);
+        window.__timelines = window.__timelines || {};
+        window.__timelines["mirabeauty-scan"] = tl;
+      </script>
+    </div>
+  </body>
+</html>

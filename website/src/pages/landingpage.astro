@@ -1,0 +1,96 @@
+---
+import '../styles/tokens.css';
+import '../styles/base.css';
+import Nav from '../components/Nav.astro';
+import Hero from '../components/Hero.astro';
+import SectionAiChat from '../components/SectionAiChat.astro';
+import SectionAdmin from '../components/SectionAdmin.astro';
+import SectionReferral from '../components/SectionReferral.astro';
+import SectionChannels from '../components/SectionChannels.astro';
+import VerticalCare from '../components/VerticalCare.astro';
+import VerticalBeauty from '../components/VerticalBeauty.astro';
+import Cta from '../components/Cta.astro';
+import Footer from '../components/Footer.astro';
+
+const title = 'Mira — AI Chat ที่ขายเป็น | แพลตฟอร์ม AI Sales Chat + Referral สำหรับองค์กร';
+const description = 'Mira เปลี่ยนแชทให้เป็นยอดขายด้วย AI Sales Chat, Referral Program, หลังบ้าน และช่องทาง PWA, App, LINE OA สำหรับองค์กร';
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'MediaForge',
+    url: 'https://mira.com',
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Mira',
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web, iOS, Android, LINE',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'THB',
+      description: 'Demo by appointment',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'MediaForge',
+    },
+  },
+];
+---
+
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#06181C" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/fonts/anuphan-thai-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/anuphan-thai-600-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/space-grotesk-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content="/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content="/og.png" />
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />
+  </head>
+  <body>
+    <Nav />
+    <main>
+      <Hero />
+      <SectionAiChat />
+      <SectionAdmin />
+      <SectionReferral />
+      <SectionChannels />
+      <section class="verticals-intro section-shell section-light">
+        <div class="container" data-reveal>
+          <h2 class="section-title">หนึ่งแพลตฟอร์ม หลายอุตสาหกรรม</h2>
+          <p class="section-sub">แกนเดียวกัน — AI Chat + Referral + หลังบ้าน — ปรับโฉมและความสามารถให้เข้ากับธุรกิจของคุณ</p>
+        </div>
+      </section>
+      <VerticalCare />
+      <VerticalBeauty />
+      <Cta />
+    </main>
+    <Footer />
+    <script>
+      import '../scripts/motion';
+      import '../scripts/chat-sim';
+    </script>
+  </body>
+</html>
+
+<style>
+  .verticals-intro {
+    padding-bottom: clamp(2.5rem, 5vw, 4rem);
+  }
+</style>

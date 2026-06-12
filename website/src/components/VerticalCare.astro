@@ -1,0 +1,113 @@
+---
+import Chip from './Chip.astro';
+import MotionLoop from './MotionLoop.astro';
+---
+
+<section id="miracare" class="vertical-panel care" data-vertical-panel>
+  <div class="container vertical-inner">
+    <div class="vertical-copy" data-reveal>
+      <span class="vertical-badge">MiraCare · สำหรับโรงพยาบาล</span>
+      <h3>แพลตฟอร์มขายแพ็กเกจสุขภาพ ที่พูดภาษาโรงพยาบาล</h3>
+      <p>
+        ครบทั้งแกนหลักของ Mira โดย AI Chat และ CI ถูกปรับให้เหมาะกับบริบทโรงพยาบาลโดยเฉพาะ — โทนการสื่อสาร ความปลอดภัยของข้อมูล และเส้นทางนัดหมาย
+      </p>
+      <ul>
+        <li>แพ็กเกจตรวจสุขภาพและวัคซีน พร้อมนัดหมาย-เลือกสาขาในแชท</li>
+        <li>Referral สำหรับเครือข่ายผู้แนะนำของโรงพยาบาล</li>
+        <li>Health Dashboard <Chip tone="mint">ADD-ON</Chip> — ให้คนไข้เห็นผลตรวจและติดตามสุขภาพ แล้วกลับมาซื้อแพ็กเกจถัดไปเอง</li>
+      </ul>
+    </div>
+    <div class="vertical-visual" data-reveal>
+      <MotionLoop name="miracare-pulse" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .vertical-panel {
+    position: relative;
+    padding: clamp(4rem, 7vw, 6.5rem) 0;
+    overflow: clip;
+  }
+
+  .care {
+    background:
+      radial-gradient(circle at 8% 18%, rgba(84, 207, 165, 0.2), transparent 34%),
+      linear-gradient(180deg, var(--canvas), var(--teal-soft));
+  }
+
+  .vertical-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1fr);
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: center;
+  }
+
+  .vertical-badge {
+    display: inline-flex;
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+    color: var(--teal-deep);
+    font-weight: 600;
+    padding: 0.45rem 0.8rem;
+  }
+
+  h3 {
+    margin: 1.2rem 0 0;
+    font-size: clamp(1.9rem, 4vw, 3.25rem);
+    font-weight: 600;
+    line-height: 1.14;
+  }
+
+  p {
+    margin: 1rem 0 0;
+    color: var(--ink-soft);
+    font-size: 1.08rem;
+  }
+
+  ul {
+    display: grid;
+    gap: 0.8rem;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    position: relative;
+    padding-left: 1.3rem;
+  }
+
+  li::before {
+    position: absolute;
+    top: 0.72rem;
+    left: 0;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--teal);
+    content: "";
+  }
+
+  li :global(.chip) {
+    min-height: 26px;
+    margin-inline: 0.25rem;
+    padding: 0.2rem 0.52rem;
+  }
+
+  .vertical-visual {
+    aspect-ratio: 16 / 9;
+    border: 1px solid rgba(14, 165, 164, 0.2);
+    border-radius: 30px;
+    background: var(--canvas);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+  }
+
+  @media (max-width: 900px) {
+    .vertical-inner {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

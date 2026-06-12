@@ -1,0 +1,338 @@
+---
+import MotionLoop from './MotionLoop.astro';
+import Section from './Section.astro';
+import { referralSteps } from '../data/referral-steps';
+---
+
+<Section id="referral" tone="dark" class="referral-section">
+  <div class="section-heading" data-reveal>
+    <p class="eyebrow">REFERRAL ENGINE</p>
+    <h2 class="section-title">เปลี่ยนคนรู้จัก ให้กลายเป็นยอดขาย</h2>
+    <p class="section-sub">สร้างแคมเปญแนะนำได้ในไม่กี่นาที — ที่เหลือ Mira จัดการต่อจนจบ</p>
+  </div>
+
+  <div class="referral-pin" data-referral-pin>
+    <div class="referral-scene glass-panel" data-referral-scene>
+      <div class="progress-rail" aria-hidden="true">
+        <span data-referral-progress></span>
+      </div>
+      <div class="referral-steps">
+        {referralSteps.map((step, index) => (
+          <article class="referral-step" data-referral-step data-step-index={index}>
+            <span class:list={['step-glyph', step.glyph]} aria-hidden="true"></span>
+            <div>
+              <span class="step-number display-accent">0{index + 1}</span>
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+              {index === 3 && (
+                <strong class="commission-counter display-accent" data-commission-counter data-count-to="350">
+                  ฿0
+                </strong>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+      <div class="referral-panel" aria-hidden="true">
+        <span class="panel-chip">DRNOK2</span>
+        <span class="panel-chat"></span>
+        <span class="panel-card"></span>
+        <span class="panel-qr"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flywheel" data-reveal>
+    <div class="flywheel-media">
+      <MotionLoop name="referral-flywheel" />
+      <span>แนะนำ</span>
+      <span>ขาย</span>
+      <span>ส่วนแบ่ง</span>
+      <span>อยากแนะนำอีก</span>
+    </div>
+    <p>ยิ่งแนะนำ ยิ่งขาย · ยิ่งขายดี ยิ่งมีคนอยากแนะนำ</p>
+  </div>
+</Section>
+
+<style>
+  .section-heading {
+    max-width: 860px;
+  }
+
+  .referral-pin {
+    margin-top: 2.35rem;
+  }
+
+  .referral-scene {
+    position: relative;
+    display: grid;
+    min-height: 620px;
+    grid-template-columns: minmax(0, 0.95fr) minmax(320px, 0.8fr);
+    gap: clamp(1.5rem, 4vw, 3rem);
+    align-items: center;
+    border-radius: 28px;
+    padding: clamp(1.2rem, 3vw, 2rem);
+    overflow: hidden;
+  }
+
+  .progress-rail {
+    position: absolute;
+    top: 2rem;
+    bottom: 2rem;
+    left: clamp(1.4rem, 3vw, 2.2rem);
+    width: 2px;
+    border-radius: var(--radius-pill);
+    background: rgba(244, 249, 250, 0.1);
+  }
+
+  .progress-rail span {
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform: scaleY(0);
+    transform-origin: top;
+    border-radius: inherit;
+    background: linear-gradient(180deg, var(--teal), var(--mint));
+  }
+
+  .referral-steps {
+    display: grid;
+    gap: 0.9rem;
+    padding-left: clamp(1.4rem, 3vw, 2.2rem);
+  }
+
+  .referral-step {
+    display: grid;
+    grid-template-columns: 52px 1fr;
+    gap: 1rem;
+    align-items: start;
+    opacity: 0.45;
+    transform: translateX(0);
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+
+  .referral-step.is-active {
+    opacity: 1;
+    transform: translateX(8px);
+  }
+
+  .step-glyph {
+    display: grid;
+    width: 52px;
+    height: 52px;
+    place-items: center;
+    border: 1px solid var(--night-line);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .step-glyph::before {
+    display: block;
+    color: var(--mint);
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .step-glyph.link::before {
+    content: "↗";
+  }
+
+  .step-glyph.chat::before {
+    content: "••";
+  }
+
+  .step-glyph.cart::before {
+    content: "QR";
+    font-size: 0.78rem;
+  }
+
+  .step-glyph.percent::before {
+    content: "%";
+  }
+
+  .step-number {
+    display: block;
+    color: var(--mint);
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+  }
+
+  h3 {
+    margin: 0.2rem 0 0;
+    color: var(--canvas);
+    font-size: clamp(1.18rem, 2.3vw, 1.55rem);
+    line-height: 1.25;
+  }
+
+  .referral-step p {
+    margin: 0.45rem 0 0;
+    color: var(--muted-dark);
+  }
+
+  .commission-counter {
+    display: inline-flex;
+    margin-top: 0.65rem;
+    border-radius: var(--radius-pill);
+    background: rgba(84, 207, 165, 0.12);
+    color: var(--mint);
+    font-size: 1.3rem;
+    padding: 0.18rem 0.72rem;
+  }
+
+  .referral-panel {
+    position: relative;
+    min-height: 430px;
+    border: 1px solid var(--night-line);
+    border-radius: 26px;
+    background:
+      radial-gradient(circle at 24% 12%, rgba(84, 207, 165, 0.22), transparent 35%),
+      rgba(255, 255, 255, 0.04);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .referral-panel span {
+    position: absolute;
+    border-radius: var(--radius-lg);
+  }
+
+  .panel-chip {
+    top: 2rem;
+    left: 2rem;
+    border: 1px solid var(--night-line);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--mint);
+    font-family: "Space Grotesk", sans-serif;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .panel-chat {
+    top: 6.2rem;
+    left: 2rem;
+    width: 68%;
+    height: 90px;
+    background: linear-gradient(110deg, rgba(244, 249, 250, 0.16), rgba(84, 207, 165, 0.12));
+  }
+
+  .panel-card {
+    right: 2rem;
+    bottom: 7.4rem;
+    width: 62%;
+    height: 120px;
+    background: rgba(244, 249, 250, 0.12);
+  }
+
+  .panel-qr {
+    right: 2rem;
+    bottom: 2rem;
+    width: 78px;
+    height: 78px;
+    background:
+      linear-gradient(90deg, var(--canvas) 12px, transparent 0) 0 0 / 24px 24px,
+      linear-gradient(var(--canvas) 12px, transparent 0) 0 0 / 24px 24px,
+      var(--teal-deep);
+  }
+
+  .flywheel {
+    display: grid;
+    justify-items: center;
+    margin-top: clamp(3rem, 7vw, 5rem);
+    text-align: center;
+  }
+
+  .flywheel-media {
+    position: relative;
+    width: min(100%, 560px);
+    aspect-ratio: 1;
+  }
+
+  .flywheel-media :global(.motion-loop) {
+    border-radius: 50%;
+    overflow: hidden;
+  }
+
+  .flywheel-media span {
+    position: absolute;
+    border: 1px solid var(--night-line);
+    border-radius: var(--radius-pill);
+    background: rgba(6, 24, 28, 0.72);
+    color: var(--canvas);
+    font-weight: 600;
+    padding: 0.45rem 0.75rem;
+  }
+
+  .flywheel-media span:nth-of-type(1) {
+    top: 8%;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .flywheel-media span:nth-of-type(2) {
+    top: 50%;
+    right: 5%;
+    transform: translateY(-50%);
+  }
+
+  .flywheel-media span:nth-of-type(3) {
+    bottom: 8%;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .flywheel-media span:nth-of-type(4) {
+    top: 50%;
+    left: 3%;
+    transform: translateY(-50%);
+  }
+
+  .flywheel p {
+    margin: 1rem 0 0;
+    color: var(--muted-dark);
+    font-size: 1.08rem;
+  }
+
+  @media (max-width: 1023px) {
+    .referral-scene {
+      min-height: auto;
+      grid-template-columns: 1fr;
+    }
+
+    .progress-rail {
+      display: none;
+    }
+
+    .referral-steps {
+      padding-left: 0;
+    }
+
+    .referral-step {
+      opacity: 1;
+      transform: none;
+    }
+
+    .referral-panel {
+      min-height: 320px;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .referral-scene {
+      padding: 1rem;
+    }
+
+    .referral-step {
+      grid-template-columns: 44px 1fr;
+      gap: 0.75rem;
+    }
+
+    .step-glyph {
+      width: 44px;
+      height: 44px;
+      border-radius: 15px;
+    }
+
+    .flywheel-media span {
+      font-size: 0.78rem;
+    }
+  }
+</style>

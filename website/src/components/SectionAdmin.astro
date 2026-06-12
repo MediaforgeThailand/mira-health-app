@@ -1,0 +1,135 @@
+---
+import Section from './Section.astro';
+
+const cards = [
+  {
+    title: 'แคตตาล็อกสินค้า',
+    body: 'เพิ่ม ลบ แก้ราคา จัดหมวดหมู่ ได้ตลอดเวลา',
+    metric: '+24',
+    label: 'items',
+  },
+  {
+    title: 'คิวออเดอร์',
+    body: 'เห็นทุกออเดอร์ ตรวจสลิป ยืนยันโดยทีมของคุณ',
+    metric: '12',
+    label: 'today',
+  },
+  {
+    title: 'ผู้แนะนำ & ส่วนแบ่ง',
+    body: 'ตั้งกติกาส่วนแบ่งเอง ดูยอดของผู้แนะนำแต่ละคนได้ทันที',
+    metric: '฿350',
+    label: 'ตัวอย่าง',
+  },
+  {
+    title: 'แดชบอร์ดภาพรวม',
+    body: 'ยอดขาย ออเดอร์ และแคมเปญ ในหน้าจอเดียว',
+    metric: 'Live',
+    label: 'overview',
+  },
+];
+---
+
+<Section id="admin" tone="surface" class="admin-section">
+  <div class="admin-layout">
+    <div data-reveal>
+      <p class="eyebrow">BACK OFFICE</p>
+      <h2 class="section-title">หลังบ้านครบ จัดการได้เองทุกขั้นตอน</h2>
+      <p class="section-sub">ทุกอย่างที่ทีมคุณต้องใช้มาพร้อมกันตั้งแต่วันแรก — ไม่ต้องประกอบเอง</p>
+    </div>
+
+    <div class="admin-grid grid-2">
+      {cards.map((card, index) => (
+        <article class="admin-card" data-reveal data-float-card style={`--card-index: ${index}`}>
+          <div>
+            <span class="mock-label">{card.label}</span>
+            <strong>{card.metric}</strong>
+          </div>
+          <h3>{card.title}</h3>
+          <p>{card.body}</p>
+          <span class="mock-line" aria-hidden="true"></span>
+          <span class="mock-line short" aria-hidden="true"></span>
+        </article>
+      ))}
+    </div>
+  </div>
+</Section>
+
+<style>
+  .admin-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: center;
+  }
+
+  .admin-grid {
+    perspective: 1200px;
+  }
+
+  .admin-card {
+    min-height: 260px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background:
+      linear-gradient(180deg, rgba(221, 245, 243, 0.32), rgba(255, 255, 255, 0)),
+      var(--surface);
+    box-shadow: var(--shadow-soft);
+    padding: 1.2rem;
+  }
+
+  .admin-card > div {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .mock-label {
+    border-radius: var(--radius-pill);
+    background: var(--blue-soft);
+    color: var(--blue);
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+  }
+
+  strong {
+    color: var(--teal-deep);
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 1.25rem;
+  }
+
+  h3 {
+    margin: 1.6rem 0 0;
+    font-size: clamp(1.18rem, 2vw, 1.45rem);
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  p {
+    margin: 0.65rem 0 0;
+    color: var(--ink-soft);
+  }
+
+  .mock-line {
+    display: block;
+    width: 100%;
+    height: 10px;
+    margin-top: 1.25rem;
+    border-radius: var(--radius-pill);
+    background: var(--teal-soft);
+  }
+
+  .mock-line.short {
+    width: 58%;
+    margin-top: 0.55rem;
+    background: var(--blue-soft);
+  }
+
+  @media (max-width: 920px) {
+    .admin-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

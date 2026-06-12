@@ -1,0 +1,33 @@
+:root {
+  /* brand (mirrors MiraDesign) */
+  --ink: #12343B;
+  --ink-soft: #587177;
+  --muted: #8CA3A8;
+  --canvas: #F4F9FA;
+  --surface: #FFFFFF;
+  --line: #D8E8EA;
+  --teal: #0EA5A4;
+  --teal-deep: #087B7A;
+  --teal-soft: #DDF5F3;
+  --mint: #54CFA5;
+  --blue: #3278C7;
+  --blue-soft: #E6F0FB;
+  --amber: #F5B84B;
+  --coral: #EE6B6E;
+
+  /* marketing additions */
+  --night: #06181C;
+  --night-soft: #0B2429;
+  --night-line: rgba(244, 249, 250, 0.12);
+  --rose: #E58FA2;
+  --rose-soft: #FBF1F3;
+  --glow-teal: rgba(14, 165, 164, 0.35);
+
+  --muted-dark: #B9D0D4;
+  --shadow-soft: 0 10px 22px rgba(107, 146, 151, 0.12);
+  --shadow-glow: 0 24px 60px -28px var(--glow-teal);
+  --radius-sm: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --container: min(1120px, calc(100vw - 40px));
+}
