@@ -166,9 +166,9 @@ export async function recordFormAgeFact({ customerId, tenantId, orderId, age }: 
 
 ### 3.4 DoD — R2
 
-- [ ] ❌ Helper + both call sites; failures non-fatal; silent skip without consent.
-- [ ] ❌ Unit + e2e assertions green (incl. idempotency on resubmit).
-- [ ] ❌ `npm run v2:verify` green; no other `facts.ts` behavior changed.
+- [x] ✅ 2026-06-12 — `recordFormAgeFact` helper + chat/referrer call sites landed; writes are consent-gated, skip silently without consent, and `form_age_fact_failed` is catch/log only.
+- [x] ✅ 2026-06-12 — Unit coverage + live commerce e2e assertions green in GitHub Actions run 27427507379 (`live-regression` / `Commerce E2E suite`, job 81069178323), including user_form age fact, duplicate form-submit no-duplicate, and no assisted fact without consent.
+- [x] ✅ 2026-06-12 — `npm run v2:verify` green locally and GitHub Actions `verify` job 81069014024 green; `facts.ts` existing default source behavior remains covered.
 
 ---
 
