@@ -181,6 +181,10 @@ jobs:
         if: ${{ steps.gate.outputs.ready == 'true' }}
         run: npm run chat:regression
 
+      - name: Known-user chat proof
+        if: ${{ steps.gate.outputs.ready == 'true' }}
+        run: npm run chat:known-user
+
       - name: Commerce E2E suite
         if: ${{ steps.gate.outputs.ready == 'true' && steps.gate.outputs.commerce_ready == 'true' }}
         run: npm run v2:e2e-commerce

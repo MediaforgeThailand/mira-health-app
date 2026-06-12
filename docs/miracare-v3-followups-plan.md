@@ -281,7 +281,7 @@ Closes v2 audit E ❌ ("facts from a previous session used, not re-asked").
 
 ### DoD — R6
 
-- [ ] ❌ Known-user case green in the credentialed live job, evidence (run id) in PR + v2 plan §10-E flipped.
+- [x] ✅ 2026-06-12 — Known-user case green in credentialed GitHub Actions run 27431179529 (`live-regression` job 81081827964, "Known-user chat proof" step); PR evidence recorded and v2 plan §10-E flipped.
 
 ---
 
