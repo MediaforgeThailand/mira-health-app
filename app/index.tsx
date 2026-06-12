@@ -5,6 +5,7 @@ import type { ImageSourcePropType } from 'react-native';
 import { Image, ImageBackground, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { MiraDesign } from '@/constants/Design';
 import { showcaseModules, type ShowcaseModule, type ShowcaseModuleId } from '@/lib/showcase/registry';
 
 const logo = require('@/assets/images/mira-care-logo.png');
@@ -23,29 +24,39 @@ const moduleIcons = {
   referral: { android: 'link', ios: 'link', web: 'link' },
 } as const;
 
+const totalPages = showcaseModules.reduce((sum, module) => sum + module.pages.length, 0);
+
 export default function ProductOverviewScreen() {
   const { width } = useWindowDimensions();
-  const useTwoColumns = width >= 760;
+  const isWide = width >= 860;
+  const isCompact = width < 620;
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.container, isWide ? styles.containerWide : null]} showsVerticalScrollIndicator={false}>
         <View style={styles.topBar}>
           <Image resizeMode="contain" source={logo} style={styles.logo} />
-          <View style={styles.topBadge}>
-            <Text style={styles.topBadgeText}>No-login demo</Text>
+          <View style={styles.deckBadge}>
+            <SymbolView name={{ ios: 'play.rectangle.fill', android: 'play_circle', web: 'play_circle' }} size={18} tintColor={MiraDesign.color.primaryDeep} />
+            <Text style={styles.deckBadgeText}>Presenter</Text>
           </View>
         </View>
 
-        <View style={styles.titleBlock}>
-          <Text style={styles.kicker}>MiraCare product showcase</Text>
-          <Text style={[styles.title, !useTwoColumns ? styles.titleCompact : null]}>เลือกหมวดระบบ</Text>
-          <Text style={styles.subtitle}>ทุกหน้าที่อยู่ใน tour นี้เปิดดูได้ทันทีโดยไม่ต้องล็อกอิน ข้อมูลจริงจะเขียนได้เฉพาะเมื่อมีสิทธิ์.</Text>
+        <View style={[styles.hero, !isWide ? styles.heroStack : null]}>
+          <View style={styles.heroCopy}>
+            <Text style={styles.kicker}>SHOWCASE</Text>
+            <Text style={[styles.title, isCompact ? styles.titleCompact : null]}>เลือกฉากที่จะเปิด</Text>
+          </View>
+          <View style={styles.statsRail}>
+            <StatBlock value={showcaseModules.length} label="หมวด" />
+            <StatBlock value={totalPages} label="หน้า" />
+            <StatBlock value="0" label="login" />
+          </View>
         </View>
 
         <View style={styles.moduleGrid}>
           {showcaseModules.map((module, index) => (
-            <ModuleTile key={module.id} index={index} module={module} useTwoColumns={useTwoColumns} />
+            <ModuleTile key={module.id} index={index} isWide={isWide} module={module} />
           ))}
         </View>
       </ScrollView>
@@ -53,55 +64,59 @@ export default function ProductOverviewScreen() {
   );
 }
 
-function ModuleTile({ index, module, useTwoColumns }: { index: number; module: ShowcaseModule; useTwoColumns: boolean }) {
+function StatBlock({ label, value }: { label: string; value: number | string }) {
+  return (
+    <View style={styles.statBlock}>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
+
+function ModuleTile({ index, isWide, module }: { index: number; isWide: boolean; module: ShowcaseModule }) {
   const previewPages = module.pages.slice(0, 3);
 
   return (
     <Link href={{ pathname: '/showcase/[module]', params: { module: module.id } }} asChild>
-      <Pressable
-        style={StyleSheet.flatten([
-          styles.moduleTile,
-          useTwoColumns ? styles.moduleTileTwoColumn : styles.moduleTileSingleColumn,
-          { borderColor: module.accent },
-        ])}>
+      <Pressable style={StyleSheet.flatten([styles.moduleTile, isWide ? styles.moduleTileWide : styles.moduleTileStacked])}>
         <ImageBackground imageStyle={styles.tileImage} resizeMode="cover" source={moduleImages[module.id]} style={styles.tileImageWrap}>
-          <LinearGradient colors={['rgba(9, 16, 16, 0.10)', 'rgba(9, 16, 16, 0.82)']} style={styles.tileImageOverlay}>
-            <View style={[styles.moduleIcon, { backgroundColor: module.accent }]}>
-              <SymbolView name={moduleIcons[module.id]} size={23} tintColor="#07110F" />
+          <LinearGradient colors={['rgba(7, 17, 15, 0.02)', 'rgba(7, 17, 15, 0.82)']} style={styles.tileOverlay}>
+            <View style={styles.tileTop}>
+              <View style={[styles.moduleIcon, { backgroundColor: module.accent }]}>
+                <SymbolView name={moduleIcons[module.id]} size={26} tintColor={MiraDesign.color.ink} />
+              </View>
+              <View style={styles.tileIndex}>
+                <Text style={styles.tileIndexText}>{String(index + 1).padStart(2, '0')}</Text>
+              </View>
             </View>
-            <Text style={styles.moduleNumber}>{String(index + 1).padStart(2, '0')}</Text>
+
+            <View style={styles.tileBottom}>
+              <View style={styles.tileTitleLine}>
+                <Text numberOfLines={1} style={styles.moduleTitle}>
+                  {module.title}
+                </Text>
+                <View style={[styles.routeCount, { backgroundColor: module.accent }]}>
+                  <Text style={styles.routeCountText}>{module.pages.length}</Text>
+                </View>
+              </View>
+
+              <View style={styles.previewStrip}>
+                {previewPages.map((page) => (
+                  <View key={page.id} style={styles.previewChip}>
+                    <Text numberOfLines={1} style={styles.previewChipText}>
+                      {page.label}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.openRow}>
+                <Text style={[styles.openText, { color: module.accent }]}>เปิดหมวด</Text>
+                <SymbolView name={{ ios: 'arrow.up.right', android: 'open_in_new', web: 'open_in_new' }} size={18} tintColor={module.accent} />
+              </View>
+            </View>
           </LinearGradient>
         </ImageBackground>
-
-        <View style={styles.tileBody}>
-          <View style={styles.tileHeader}>
-            <View style={styles.tileCopy}>
-              <Text style={styles.moduleEyebrow}>{module.eyebrow}</Text>
-              <Text style={styles.moduleTitle}>{module.title}</Text>
-            </View>
-            <View style={[styles.countBadge, { backgroundColor: module.accent }]}>
-              <Text style={styles.countBadgeText}>{module.pages.length}</Text>
-            </View>
-          </View>
-
-          <Text style={styles.moduleBody}>{module.body}</Text>
-
-          <View style={styles.pathList}>
-            {previewPages.map((page) => (
-              <View key={page.path} style={styles.pathPreviewRow}>
-                <View style={[styles.pathDot, { backgroundColor: module.accent }]} />
-                <Text numberOfLines={1} style={styles.pathPreviewText}>
-                  {page.path}
-                </Text>
-              </View>
-            ))}
-          </View>
-
-          <View style={styles.tileFooter}>
-            <Text style={[styles.openText, { color: module.accent }]}>เปิดรายการ URL</Text>
-            <SymbolView name={{ ios: 'chevron.right', android: 'arrow_forward', web: 'arrow_forward' }} size={18} tintColor={module.accent} />
-          </View>
-        </View>
       </Pressable>
     </Link>
   );
@@ -109,183 +124,206 @@ function ModuleTile({ index, module, useTwoColumns }: { index: number; module: S
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: '#F5F8F7',
+    backgroundColor: MiraDesign.color.canvas,
     flex: 1,
   },
   container: {
-    gap: 22,
-    padding: 20,
-    paddingBottom: 42,
+    gap: MiraDesign.space.xl,
+    padding: MiraDesign.space.xl,
+    paddingBottom: 44,
+  },
+  containerWide: {
+    alignSelf: 'center',
+    maxWidth: 1180,
+    width: '100%',
   },
   topBar: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 14,
     justifyContent: 'space-between',
   },
   logo: {
-    height: 44,
-    width: 170,
+    height: 42,
+    width: 168,
   },
-  topBadge: {
-    backgroundColor: '#0D2A2E',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+  deckBadge: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
+    borderRadius: MiraDesign.radius.sm,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: MiraDesign.space.sm,
+    minHeight: 42,
+    paddingHorizontal: MiraDesign.space.md,
   },
-  topBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 12,
+  deckBadgeText: {
+    color: MiraDesign.color.ink,
+    fontSize: 13,
     fontWeight: '900',
     textTransform: 'uppercase',
   },
-  titleBlock: {
-    gap: 8,
-    maxWidth: 760,
-    paddingBottom: 2,
+  hero: {
+    alignItems: 'flex-end',
+    flexDirection: 'row',
+    gap: MiraDesign.space.lg,
+    justifyContent: 'space-between',
+  },
+  heroStack: {
+    alignItems: 'stretch',
+    flexDirection: 'column',
+  },
+  heroCopy: {
+    gap: MiraDesign.space.xs,
   },
   kicker: {
-    color: '#087B7A',
+    color: MiraDesign.color.primaryDeep,
     fontSize: 12,
     fontWeight: '900',
     textTransform: 'uppercase',
   },
   title: {
-    color: '#12343B',
-    fontSize: 42,
+    color: MiraDesign.color.ink,
+    fontSize: 44,
     fontWeight: '900',
-    lineHeight: 48,
+    lineHeight: 50,
   },
   titleCompact: {
     fontSize: 34,
     lineHeight: 40,
   },
-  subtitle: {
-    color: '#587177',
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  moduleGrid: {
+  statsRail: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
+    gap: MiraDesign.space.sm,
   },
-  moduleTile: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    borderWidth: 1,
-    minHeight: 360,
-    overflow: 'hidden',
-  },
-  moduleTileTwoColumn: {
-    width: '48.8%',
-  },
-  moduleTileSingleColumn: {
-    width: '100%',
-  },
-  tileImageWrap: {
-    height: 138,
-  },
-  tileImage: {
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
-  },
-  tileImageOverlay: {
-    alignItems: 'flex-end',
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 14,
-  },
-  moduleIcon: {
+  statBlock: {
     alignItems: 'center',
-    borderRadius: 8,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
+    borderRadius: MiraDesign.radius.sm,
+    borderWidth: 1,
+    minWidth: 78,
+    paddingHorizontal: MiraDesign.space.md,
+    paddingVertical: MiraDesign.space.sm,
   },
-  moduleNumber: {
-    color: '#FFFFFF',
-    fontSize: 14,
+  statValue: {
+    color: MiraDesign.color.ink,
+    fontSize: 24,
     fontWeight: '900',
+    lineHeight: 28,
   },
-  tileBody: {
-    flex: 1,
-    gap: 13,
-    padding: 16,
-  },
-  tileHeader: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: 12,
-    justifyContent: 'space-between',
-  },
-  tileCopy: {
-    flex: 1,
-    gap: 4,
-    minWidth: 0,
-  },
-  moduleEyebrow: {
-    color: '#587177',
+  statLabel: {
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '900',
     textTransform: 'uppercase',
   },
-  moduleTitle: {
-    color: '#12343B',
-    fontSize: 25,
-    fontWeight: '900',
-    lineHeight: 30,
-  },
-  countBadge: {
-    alignItems: 'center',
-    borderRadius: 8,
-    height: 36,
-    justifyContent: 'center',
-    width: 36,
-  },
-  countBadgeText: {
-    color: '#07110F',
-    fontSize: 14,
-    fontWeight: '900',
-  },
-  moduleBody: {
-    color: '#587177',
-    fontSize: 14,
-    lineHeight: 21,
-  },
-  pathList: {
-    gap: 8,
-  },
-  pathPreviewRow: {
-    alignItems: 'center',
-    backgroundColor: '#F1F6F6',
-    borderRadius: 8,
+  moduleGrid: {
     flexDirection: 'row',
-    gap: 8,
-    minHeight: 34,
-    paddingHorizontal: 10,
+    flexWrap: 'wrap',
+    gap: MiraDesign.space.lg,
   },
-  pathDot: {
-    borderRadius: 4,
-    height: 8,
-    width: 8,
+  moduleTile: {
+    borderRadius: MiraDesign.radius.sm,
+    minHeight: 330,
+    overflow: 'hidden',
   },
-  pathPreviewText: {
-    color: '#12343B',
+  moduleTileWide: {
+    width: '48.6%',
+  },
+  moduleTileStacked: {
+    width: '100%',
+  },
+  tileImageWrap: {
     flex: 1,
-    fontSize: 12,
+    minHeight: 330,
+  },
+  tileImage: {
+    borderRadius: MiraDesign.radius.sm,
+  },
+  tileOverlay: {
+    flex: 1,
+    justifyContent: 'space-between',
+    padding: MiraDesign.space.lg,
+  },
+  tileTop: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  moduleIcon: {
+    alignItems: 'center',
+    borderRadius: MiraDesign.radius.sm,
+    height: 48,
+    justifyContent: 'center',
+    width: 48,
+  },
+  tileIndex: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    borderColor: 'rgba(255, 255, 255, 0.34)',
+    borderRadius: MiraDesign.radius.sm,
+    borderWidth: 1,
+    height: 42,
+    justifyContent: 'center',
+    width: 50,
+  },
+  tileIndexText: {
+    color: MiraDesign.color.surface,
+    fontSize: 13,
     fontWeight: '900',
   },
-  tileFooter: {
+  tileBottom: {
+    gap: MiraDesign.space.md,
+  },
+  tileTitleLine: {
     alignItems: 'center',
-    borderTopColor: '#D8E8EA',
-    borderTopWidth: 1,
     flexDirection: 'row',
-    gap: 6,
-    justifyContent: 'flex-end',
-    marginTop: 'auto',
-    paddingTop: 12,
+    gap: MiraDesign.space.sm,
+    justifyContent: 'space-between',
+  },
+  moduleTitle: {
+    color: MiraDesign.color.surface,
+    flex: 1,
+    fontSize: 30,
+    fontWeight: '900',
+    lineHeight: 36,
+  },
+  routeCount: {
+    alignItems: 'center',
+    borderRadius: MiraDesign.radius.sm,
+    height: 38,
+    justifyContent: 'center',
+    width: 42,
+  },
+  routeCountText: {
+    color: MiraDesign.color.ink,
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  previewStrip: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: MiraDesign.space.sm,
+  },
+  previewChip: {
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    borderColor: 'rgba(255, 255, 255, 0.26)',
+    borderRadius: MiraDesign.radius.sm,
+    borderWidth: 1,
+    maxWidth: 176,
+    paddingHorizontal: MiraDesign.space.sm,
+    paddingVertical: MiraDesign.space.xs,
+  },
+  previewChipText: {
+    color: MiraDesign.color.surface,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  openRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: MiraDesign.space.sm,
   },
   openText: {
     fontSize: 13,
