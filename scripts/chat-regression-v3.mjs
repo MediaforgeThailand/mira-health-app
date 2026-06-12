@@ -25,8 +25,8 @@ if (!supabaseUrl || !anonKey || !jwt) {
   );
 }
 
-if (process.env.MIRA_PROMPT_VERSION !== '3') {
-  console.warn('chat-regression-v3: MIRA_PROMPT_VERSION is not 3 in this process. Ensure the target Edge Function/staging env is pinned to prompt version 3.');
+if (process.env.MIRA_PROMPT_VERSION) {
+  console.warn('chat-regression-v3: local MIRA_PROMPT_VERSION is set. R3 default-flip proof should target a deployed Edge Function with no prompt-version secret.');
 }
 
 const endpoint = `${supabaseUrl.replace(/\/$/, '')}/functions/v1/chat-orchestrator`;

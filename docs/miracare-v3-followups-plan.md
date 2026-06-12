@@ -187,10 +187,10 @@ This phase has a hard ordering dependency on the OWNER. Codex must NOT start ste
 
 ### DoD — R3
 
-- [ ] ❌ Owner confirmed default = v3 in Platform.
+- [x] ✅ 2026-06-13 — Owner confirmed default = v3 in Platform in the Codex thread.
 - [ ] ❌ `chat:regression:v3` 10/10 against default (no env pin) + commerce e2e green, evidence in PR.
 - [ ] ❌ Handoff doc v3 draft merged by owner; v2 plan §4 annotated; v3 plan V3-3 boxes ticked.
-- [ ] ❌ Owner removed the staging env pin (checklist acknowledged).
+- [x] ✅ 2026-06-13 — Owner removed the staging env pin; `supabase secrets list --project-ref xwixdxmemwcuoamcloty` no longer lists `MIRA_PROMPT_VERSION`.
 
 ---
 

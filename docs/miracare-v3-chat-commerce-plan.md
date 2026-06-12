@@ -359,7 +359,7 @@ DoD: ✅ 2026-06-12 E2E script extended in `scripts/e2e-commerce.mjs` for produc
 
 **V3-3 — Default flip + docs.**
 Owner flips default to v3 → rerun suite on default → update handoff doc → remove env pin.
-DoD: ❌ suite green on default; ❌ handoff doc updated; ❌ `docs/miracare-v2-product-plan.md` §4 annotated pointing here.
+DoD: ✅ 2026-06-13 owner confirmed Platform default = v3 and removed the staging `MIRA_PROMPT_VERSION` env pin; ❌ suite green on default pending R3 live-regression evidence; ✅ 2026-06-13 handoff doc v3 draft updated; ✅ 2026-06-13 `docs/miracare-v2-product-plan.md` §4 annotated pointing here.
 
 **V3-4 — LINE renderer.**
 `lineCards.ts`, postback mapping, conversational-form path kept for LINE, deterministic tests. Live sandbox regression stays blocked on credentials (tracked in v2 plan §11).
