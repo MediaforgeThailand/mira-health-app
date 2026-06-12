@@ -130,12 +130,29 @@ assert(
     edgeFunctionSource.includes('products: productRows.map(toChatProduct)'),
 );
 assert('fact extractor is service-role internal only', factExtractorSource.includes('assertInternalServiceRoleAuthorization') && factExtractorSource.includes("req.headers.get('authorization')"));
-assert('prototype fallback has no canned numbered compactTips', !prototypePanelSource.includes('compactTips'));
-assert('prototype fallback uses shared natural helper', prototypePanelSource.includes('createNaturalHealthFallbackAnswer') && !prototypePanelSource.includes('function createNaturalDemoText'));
+assert('prototype has no canned numbered compactTips', !prototypePanelSource.includes('compactTips'));
+assert(
+  'prototype uses live Supabase chat only',
+  prototypePanelSource.includes('aiChatConfigStatus.hasSupabaseProxy') &&
+    prototypePanelSource.includes('askAiWithRag({ messages: nextMessages, question })') &&
+    !prototypePanelSource.includes('createNaturalHealthFallbackAnswer') &&
+    !prototypePanelSource.includes('createSmallTalkAnswer') &&
+    !prototypePanelSource.includes('createDemoAnswer') &&
+    !prototypePanelSource.includes('mockProducts'),
+);
 assert('customer chatbot route is removed', !chatbotScreenExists);
 assert(
   'chat client adapts backend UI cards',
-  miraChatSource.includes('apiCardsToUiCards(result.cards') && miraChatSource.includes('productsToUiCards(result.products)'),
+  miraChatSource.includes('apiCardsToUiCards(result.cards') &&
+    miraChatSource.includes('productsToUiCards(result.products)') &&
+    miraChatSource.includes('apiCategoryGridToUiCard') &&
+    miraChatSource.includes('apiOrderStatusToUiCard'),
+);
+assert(
+  'prototype renders backend category cards',
+  prototypePanelSource.includes('CategoryGridCard') &&
+    prototypePanelSource.includes("card.type === 'category_grid'") &&
+    prototypePanelSource.includes("type: 'browse_category'"),
 );
 assert('offline fallback has no numbered RAG list template', !miraChatSource.includes('ragMatches.slice(0, 2).map'));
 assert('offline fallback avoids repeated latest-checkup prompt', !miraChatSource.includes('ตรวจล่าสุดเมื่อไหร่คะ ถ้าจำไม่ได้ตอบคร่าวๆ ได้เลย'));

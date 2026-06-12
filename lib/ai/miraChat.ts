@@ -519,13 +519,49 @@ function apiProductGridToUiCard(card: Extract<ChatCard, { type: 'product_grid' }
   };
 }
 
+function apiCategoryGridToUiCard(card: Extract<ChatCard, { type: 'category_grid' }>): ChatUiCard | null {
+  if (card.categories.length === 0) {
+    return null;
+  }
+
+  return {
+    categories: card.categories,
+    id: `categories-${card.categories.map((category) => category.key).join('-')}`,
+    title: 'หมวดสินค้า',
+    type: 'category_grid',
+  };
+}
+
+function apiOrderStatusToUiCard(card: Extract<ChatCard, { type: 'order_status' }>): ChatUiCard {
+  return {
+    id: `orders-${card.orders.map((order) => order.id).join('-') || 'empty'}`,
+    orders: card.orders,
+    title: 'สถานะคิว',
+    type: 'order_status',
+  };
+}
+
 function apiCardsToUiCards(cards: ChatCard[] | null | undefined, fallback: ChatUiCard[] = []): ChatUiCard[] {
   if (!Array.isArray(cards) || cards.length === 0) {
     return fallback;
   }
 
   const uiCards = cards
-    .map((card): ChatUiCard | null => (card.type === 'product_grid' ? apiProductGridToUiCard(card) : null))
+    .map((card): ChatUiCard | null => {
+      if (card.type === 'product_grid') {
+        return apiProductGridToUiCard(card);
+      }
+
+      if (card.type === 'category_grid') {
+        return apiCategoryGridToUiCard(card);
+      }
+
+      if (card.type === 'order_status') {
+        return apiOrderStatusToUiCard(card);
+      }
+
+      return null;
+    })
     .filter((card): card is ChatUiCard => Boolean(card));
 
   return uiCards.length > 0 ? uiCards : fallback;
@@ -767,6 +803,8 @@ function parseUiCards(value: unknown): ChatUiCard[] {
     const candidate = item as Record<string, unknown>;
     return (
       candidate.type === 'product_grid' ||
+      candidate.type === 'category_grid' ||
+      candidate.type === 'order_status' ||
       candidate.type === 'branch_location' ||
       candidate.type === 'checkout_draft' ||
       candidate.type === 'memory_saved'

@@ -1,6 +1,5 @@
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
@@ -20,31 +19,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, LinearGradient as SvgGradient, Path, Rect, Stop } from 'react-native-svg';
 
-import { aiChatConfigStatus, askAiWithRag, createSmallTalkAnswer, DEFAULT_USER_NICKNAME, type ChatMessage } from '@/lib/ai/miraChat';
-import {
-  type ChatContextAssessment,
-  createProductBranch,
-  toChatProductCard,
-  type ChatBranchCard,
-  type ChatProductCard,
-  type ChatUiCard,
-} from '@/lib/ai/healthChatTypes';
-import {
-  classifyProductRequest as classifyPrototypeProductRequest,
-  createNaturalHealthFallbackAnswer,
-  createPrototypeContextAssessment as createPrototypePolicyContextAssessment,
-  enforceConversationStyle as enforcePrototypePolicyConversationStyle,
-  hasBlockedConversationStyle as hasPrototypeBlockedConversationStyle,
-  hasProductGridCard as hasPrototypeProductGridCard,
-  inferActiveProductRequestKind as inferPrototypeActiveProductRequestKind,
-  sanitizeAssistantDisplayText,
-  type PrototypePolicyMessage,
-} from '@/lib/ai/prototypeConversationPolicy';
+import { aiChatConfigStatus, askAiWithRag, DEFAULT_USER_NICKNAME, type ChatMessage } from '@/lib/ai/miraChat';
+import type { ChatUiCard } from '@/lib/ai/healthChatTypes';
 import { useAuthSession } from '@/lib/auth/useAuthSession';
-import { loadActiveHospitalProducts } from '@/lib/marketplace/hospitalProducts';
-import { localHealthKnowledge } from '@/lib/rag/healthKnowledge';
-import { retrieveRagContext } from '@/lib/rag/retriever';
-import { healthPackages } from '@/services/mockBackend';
+import type { OrderPanelState } from '@/lib/types/api';
 
 const logo = require('@/assets/images/mira-care-logo.png');
 const logoMark = require('@/assets/images/mira-care-mark.png');
@@ -53,124 +31,30 @@ const prototypeUserNickname = DEFAULT_USER_NICKNAME;
 const VOICE_INPUT_DISABLED_MESSAGE = 'Voice input is paused until openai-transcribe is deployed.';
 
 type PrototypeChatMessage = ChatMessage & {
+  order?: OrderPanelState;
   uiCards?: ChatUiCard[];
 };
 
-function createMessage(role: ChatMessage['role'], content: string, sources?: ChatMessage['sources'], uiCards?: ChatUiCard[]): PrototypeChatMessage {
+function createMessage(
+  role: ChatMessage['role'],
+  content: string,
+  sources?: ChatMessage['sources'],
+  uiCards?: ChatUiCard[],
+  order?: OrderPanelState,
+): PrototypeChatMessage {
   return {
     id: `${role}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     role,
     content,
     createdAt: new Date().toISOString(),
+    order,
     sources,
     uiCards,
   };
 }
 
-function toPrototypePolicyMessages(messages: PrototypeChatMessage[]): PrototypePolicyMessage[] {
-  return messages
-    .filter((message): message is PrototypeChatMessage & { role: 'assistant' | 'user' } => message.role === 'assistant' || message.role === 'user')
-    .map((message) => ({
-      content: message.content,
-      role: message.role,
-    }));
-}
-
-function withProductGridCard(cards: ChatUiCard[] | undefined, sourceProducts: ChatProductCard[]) {
-  if (hasPrototypeProductGridCard(cards)) {
-    return cards ?? [];
-  }
-
-  const productSource = sourceProducts.length ? sourceProducts : mockProducts();
-  return [...(cards ?? []), productGridCard(productSource)];
-}
-
-function cleanProductAssistantText(text: string) {
-  const trimmed = text.trim();
-
-  if (!trimmed || trimmed.length > 120 || /^\s*\d+[.)]/m.test(trimmed) || hasPrototypeBlockedConversationStyle(trimmed)) {
-    return 'ได้ค่ะคุณบอส ดูแพ็กเกจนี้ก่อนได้เลย ถ้าอยากให้ช่วยเลือกให้เข้ากับตัวคุณมากขึ้น ค่อยบอกอายุเพิ่มได้ค่ะ';
-  }
-
-  return trimmed;
-}
-
 function formatProductMoney(amount: number) {
   return `${amount.toLocaleString('th-TH')} THB`;
-}
-
-function mockProducts(): ChatProductCard[] {
-  return healthPackages.map((item) => ({
-    bookingNote: 'Call center will confirm the best slot after payment.',
-    category: item.category,
-    description: item.bestFor,
-    duration: item.duration,
-    hospitalAddress: item.location,
-    hospitalMapQuery: item.hospital,
-    hospitalName: item.hospital,
-    id: item.id,
-    includes: item.includes,
-    priceAmount: item.price.amount,
-    productImagePreviewUri: null,
-    reason: item.aiReason,
-    ragChunkId: null,
-    tags: item.tags,
-    title: item.title,
-  }));
-}
-
-function productGridCard(products: ChatProductCard[]): ChatUiCard {
-  return {
-    id: `product-grid-${Date.now()}`,
-    products: products.slice(0, 4),
-    title: 'แพ็กเกจที่น่าดู',
-    type: 'product_grid',
-  };
-}
-
-function branchLocationCard(product: ChatProductCard): ChatUiCard {
-  return {
-    branches: [createProductBranch(product)],
-    id: `branch-location-${product.id}`,
-    product,
-    title: 'เลือกสาขา',
-    type: 'branch_location',
-  };
-}
-
-function createDemoAnswer(question: string) {
-  const smallTalkAnswer = createSmallTalkAnswer(question);
-
-  if (smallTalkAnswer) {
-    return {
-      content: smallTalkAnswer,
-      sources: [],
-    };
-  }
-
-  const matches = retrieveRagContext(question, localHealthKnowledge, { limit: 2, maxContextChars: 1000 });
-
-  if (matches.length === 0) {
-    return {
-      content: createNaturalHealthFallbackAnswer(question, { hasMatches: false, userNickname: prototypeUserNickname }),
-      sources: [],
-    };
-  }
-
-  return {
-    content: createNaturalHealthFallbackAnswer(question, { hasMatches: true, userNickname: prototypeUserNickname }),
-    sources: matches.map((match) => ({
-      category: match.category,
-      id: match.id,
-      riskLevel: match.riskLevel,
-      score: match.score,
-      source: match.source,
-      sourceUrl: match.sourceUrl,
-      summary: match.summary,
-      title: match.title,
-      topic: match.topic,
-    })),
-  };
 }
 
 function usePressScale() {
@@ -405,7 +289,7 @@ function ChatAvatar() {
   );
 }
 
-function ProductGridCard({ card, onSelectProduct }: { card: Extract<ChatUiCard, { type: 'product_grid' }>; onSelectProduct: (productId: string) => void }) {
+function ProductGridCard({ card, onSelectProduct }: { card: Extract<ChatUiCard, { type: 'product_grid' }>; onSelectProduct: (productId: string, productTitle: string) => void }) {
   return (
     <View style={styles.commerceCard}>
       <View style={styles.commerceHeader}>
@@ -414,7 +298,7 @@ function ProductGridCard({ card, onSelectProduct }: { card: Extract<ChatUiCard, 
       </View>
       <View style={styles.categoryGrid}>
         {card.products.map((product, index) => (
-          <Pressable key={product.id} onPress={() => onSelectProduct(product.id)} style={({ pressed }) => [styles.categoryTile, pressed ? styles.categoryTilePressed : null]}>
+          <Pressable key={product.id} onPress={() => onSelectProduct(product.id, product.title)} style={({ pressed }) => [styles.categoryTile, pressed ? styles.categoryTilePressed : null]}>
             <LinearGradient colors={['rgba(255,255,255,0.68)', 'rgba(232,244,255,0.34)']} style={styles.categoryTileGlass}>
               <View style={styles.categoryTopLine}>
                 <Text style={styles.categoryCode}>{index + 1}</Text>
@@ -429,6 +313,34 @@ function ProductGridCard({ card, onSelectProduct }: { card: Extract<ChatUiCard, 
                 {product.hospitalName}
               </Text>
               <Text style={styles.categoryPrice}>{formatProductMoney(product.priceAmount)}</Text>
+            </LinearGradient>
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function CategoryGridCard({ card, onBrowseCategory }: { card: Extract<ChatUiCard, { type: 'category_grid' }>; onBrowseCategory: (category: string, label: string) => void }) {
+  return (
+    <View style={styles.commerceCard}>
+      <View style={styles.commerceHeader}>
+        <Text style={styles.commerceEyebrow}>Category browse</Text>
+        <Text style={styles.commerceTitle}>{card.title}</Text>
+      </View>
+      <View style={styles.categoryGrid}>
+        {card.categories.slice(0, 4).map((category) => (
+          <Pressable
+            key={category.key}
+            onPress={() => onBrowseCategory(category.key, category.label_th)}
+            style={({ pressed }) => [styles.categoryTile, pressed ? styles.categoryTilePressed : null]}
+          >
+            <LinearGradient colors={['rgba(255,255,255,0.68)', 'rgba(232,244,255,0.34)']} style={styles.categoryTileGlass}>
+              <Text style={styles.categoryIcon}>{category.icon ?? '+'}</Text>
+              <Text numberOfLines={2} style={styles.categoryTitle}>
+                {category.label_th}
+              </Text>
+              <Text style={styles.categoryDescription}>{category.product_count.toLocaleString('th-TH')} รายการ</Text>
             </LinearGradient>
           </Pressable>
         ))}
@@ -501,6 +413,138 @@ function CheckoutDraftCard({ card }: { card: Extract<ChatUiCard, { type: 'checko
   );
 }
 
+function orderStepLabel(step: NonNullable<OrderPanelState>['step']) {
+  if (step === 'branch') {
+    return 'เลือกสาขา';
+  }
+
+  if (step === 'form') {
+    return 'กรอกข้อมูล';
+  }
+
+  if (step === 'qr') {
+    return 'ชำระเงิน';
+  }
+
+  if (step === 'tracking') {
+    return 'ติดตามคิว';
+  }
+
+  return 'ยกเลิก';
+}
+
+function orderHint(order: NonNullable<OrderPanelState>) {
+  if (order.step === 'branch') {
+    return order.branches?.length ? 'เลือกสาขาที่สะดวกจากขั้นตอนถัดไป' : 'รอเจ้าหน้าที่ช่วยยืนยันสาขา';
+  }
+
+  if (order.step === 'form') {
+    return 'กรอกชื่อ เบอร์โทร และอายุเพื่อออก QR';
+  }
+
+  if (order.step === 'qr') {
+    return 'สแกน PromptPay แล้วแจ้งชำระเงิน';
+  }
+
+  if (order.step === 'tracking') {
+    return order.booking_at ? `ลงคิวแล้ว ${new Date(order.booking_at).toLocaleString('th-TH')}` : 'รอเจ้าหน้าที่โทรยืนยันคิว';
+  }
+
+  return 'รายการนี้ถูกยกเลิกแล้ว';
+}
+
+function PrototypeOrderCard({ order }: { order: NonNullable<OrderPanelState> }) {
+  const steps: Array<NonNullable<OrderPanelState>['step']> = ['branch', 'form', 'qr', 'tracking'];
+  const activeIndex = order.step === 'cancelled' ? -1 : Math.max(0, steps.indexOf(order.step));
+
+  return (
+    <View style={styles.orderCard}>
+      <View style={styles.orderHeader}>
+        <View style={styles.orderCopy}>
+          <Text style={styles.orderEyebrow}>ขั้นตอนการจอง</Text>
+          <Text numberOfLines={2} style={styles.orderTitle}>
+            {order.product_name}
+          </Text>
+          <Text numberOfLines={1} style={styles.orderMeta}>
+            {order.branch_name ?? 'ยังไม่ระบุสาขา'} · {order.amount_baht.toLocaleString('th-TH')} THB
+          </Text>
+        </View>
+        <View style={styles.orderStatusPill}>
+          <Text style={styles.orderStatusText}>{orderStepLabel(order.step)}</Text>
+        </View>
+      </View>
+
+      <View style={styles.orderSteps}>
+        {steps.map((step, index) => {
+          const isActive = index <= activeIndex;
+
+          return (
+            <View key={step} style={[styles.orderStepDot, isActive ? styles.orderStepDotActive : null]}>
+              <Text style={[styles.orderStepText, isActive ? styles.orderStepTextActive : null]}>{index + 1}</Text>
+            </View>
+          );
+        })}
+      </View>
+
+      <Text style={styles.orderHint}>{orderHint(order)}</Text>
+    </View>
+  );
+}
+
+function orderStatusText(status: Extract<ChatUiCard, { type: 'order_status' }>['orders'][number]['status']) {
+  if (status === 'submitted') {
+    return 'รอตรวจสอบชำระเงิน';
+  }
+
+  if (status === 'confirmed') {
+    return 'รอโทรนัดวันเวลา';
+  }
+
+  if (status === 'booked') {
+    return 'ลงคิวแล้ว';
+  }
+
+  if (status === 'done') {
+    return 'ใช้บริการแล้ว';
+  }
+
+  if (status === 'cancelled') {
+    return 'ยกเลิกแล้ว';
+  }
+
+  return 'กำลังดำเนินการ';
+}
+
+function OrderStatusUiCard({ card }: { card: Extract<ChatUiCard, { type: 'order_status' }> }) {
+  return (
+    <View style={styles.orderCard}>
+      <View style={styles.commerceHeader}>
+        <Text style={styles.commerceEyebrow}>Order tracking</Text>
+        <Text style={styles.commerceTitle}>{card.title}</Text>
+      </View>
+      {card.orders.length === 0 ? (
+        <Text style={styles.orderHint}>ยังไม่มีคำสั่งซื้อที่ต้องติดตามค่ะ</Text>
+      ) : (
+        card.orders.slice(0, 2).map((order) => (
+          <View key={order.id} style={styles.orderStatusRow}>
+            <View style={styles.orderCopy}>
+              <Text numberOfLines={2} style={styles.orderTitle}>
+                {order.product_name}
+              </Text>
+              <Text numberOfLines={1} style={styles.orderMeta}>
+                {order.branch_name ?? 'ไม่ระบุสาขา'} · {order.amount_baht.toLocaleString('th-TH')} THB
+              </Text>
+            </View>
+            <View style={styles.orderStatusPill}>
+              <Text style={styles.orderStatusText}>{orderStatusText(order.status)}</Text>
+            </View>
+          </View>
+        ))
+      )}
+    </View>
+  );
+}
+
 function MemorySavedCard({ card }: { card: Extract<ChatUiCard, { type: 'memory_saved' }> }) {
   return (
     <View style={styles.memorySavedCard}>
@@ -514,15 +558,25 @@ function MemorySavedCard({ card }: { card: Extract<ChatUiCard, { type: 'memory_s
 
 function ChatUiCardRenderer({
   card,
+  onBrowseCategory,
   onSelectBranch,
   onSelectProduct,
 }: {
   card: ChatUiCard;
+  onBrowseCategory: (category: string, label: string) => void;
   onSelectBranch: (productId: string, branchId: string) => void;
-  onSelectProduct: (productId: string) => void;
+  onSelectProduct: (productId: string, productTitle: string) => void;
 }) {
   if (card.type === 'product_grid') {
     return <ProductGridCard card={card} onSelectProduct={onSelectProduct} />;
+  }
+
+  if (card.type === 'category_grid') {
+    return <CategoryGridCard card={card} onBrowseCategory={onBrowseCategory} />;
+  }
+
+  if (card.type === 'order_status') {
+    return <OrderStatusUiCard card={card} />;
   }
 
   if (card.type === 'branch_location') {
@@ -539,13 +593,15 @@ function ChatUiCardRenderer({
 function ChatMessageBubble({
   index,
   message,
+  onBrowseCategory,
   onSelectBranch,
   onSelectProduct,
 }: {
   index: number;
   message: PrototypeChatMessage;
+  onBrowseCategory: (category: string, label: string) => void;
   onSelectBranch: (productId: string, branchId: string) => void;
-  onSelectProduct: (productId: string) => void;
+  onSelectProduct: (productId: string, productTitle: string) => void;
 }) {
   const opacity = useRef(new Animated.Value(0)).current;
   const translate = useRef(new Animated.Value(14)).current;
@@ -567,18 +623,17 @@ function ChatMessageBubble({
     );
   }
 
-  const assistantContent = sanitizeAssistantDisplayText(message.content, prototypeUserNickname);
-
   return (
     <Animated.View style={[styles.assistantChatRow, { opacity, transform: [{ translateY: translate }] }]}>
       <ChatAvatar />
       <View style={styles.assistantStack}>
         <BlurView intensity={30} tint="light" style={styles.assistantChatBubble}>
-          <Text style={styles.assistantChatText}>{assistantContent}</Text>
+          <Text style={styles.assistantChatText}>{message.content}</Text>
         </BlurView>
         {message.uiCards?.map((card) => (
-          <ChatUiCardRenderer key={card.id} card={card} onSelectBranch={onSelectBranch} onSelectProduct={onSelectProduct} />
+          <ChatUiCardRenderer key={card.id} card={card} onBrowseCategory={onBrowseCategory} onSelectBranch={onSelectBranch} onSelectProduct={onSelectProduct} />
         ))}
+        {message.order ? <PrototypeOrderCard order={message.order} /> : null}
       </View>
     </Animated.View>
   );
@@ -683,8 +738,6 @@ function BackgroundSheen() {
 
 export function PrototypeChatPanel() {
   const auth = useAuthSession();
-  const router = useRouter();
-  const fallbackProducts = useMemo(() => mockProducts(), []);
   const { height, width } = useWindowDimensions();
   const browserWidth = Platform.OS === 'web' && typeof window !== 'undefined' ? window.innerWidth : 390;
   const browserHeight = Platform.OS === 'web' && typeof window !== 'undefined' ? window.innerHeight : 640;
@@ -694,11 +747,10 @@ export function PrototypeChatPanel() {
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [messages, setMessages] = useState<PrototypeChatMessage[]>([]);
-  const [products, setProducts] = useState<ChatProductCard[]>(fallbackProducts);
   const [viewMode, setViewMode] = useState<'chat' | 'home'>('home');
   const [voiceStatus, setVoiceStatus] = useState<string | null>(null);
 
-  const canUseLiveAi = Boolean(auth.session && aiChatConfigStatus.hasProxy);
+  const canUseLiveAi = Boolean(auth.session && aiChatConfigStatus.hasSupabaseProxy);
   const isCompact = viewportWidth < 390;
   const frameSize = useMemo(
     () => ({
@@ -716,81 +768,102 @@ export function PrototypeChatPanel() {
     return undefined;
   }, [isSending, messages, viewMode]);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    loadActiveHospitalProducts(8)
-      .then((activeProducts) => {
-        if (isMounted && activeProducts.length > 0) {
-          setProducts(activeProducts.map((product) => toChatProductCard(product, product.ragChunkId ? 'Published from hospital product portal' : undefined)));
-        }
-      })
-      .catch(() => {
-        if (isMounted) {
-          setProducts(fallbackProducts);
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [fallbackProducts]);
-
   function toggleVoiceRecording() {
     setVoiceStatus(VOICE_INPUT_DISABLED_MESSAGE);
   }
 
-  function showProductGrid(sourceProducts = products, mode: ChatContextAssessment['mode'] = 'direct_product') {
-    setMessages((current) => [
-      ...current,
-      createMessage(
-        'assistant',
-        mode === 'personalized_recommendation'
-          ? 'จากข้อมูลที่มี ฉันเลือกตัวเลือกที่เหมาะให้ 1 รายการค่ะ'
-          : 'ได้ค่ะคุณบอส ดูแพ็กเกจนี้ก่อนได้เลย ถ้าอยากให้ช่วยเลือกให้เข้ากับตัวคุณมากขึ้น ค่อยบอกอายุเพิ่มได้ค่ะ',
-        undefined,
-        [productGridCard((sourceProducts.length ? sourceProducts : fallbackProducts).slice(0, mode === 'personalized_recommendation' ? 1 : 4))],
-      ),
-    ]);
+  function liveUnavailableMessage() {
+    if (auth.isLoading) {
+      return 'กำลังตรวจสอบ session สำหรับ live chat กรุณาลองอีกครั้งค่ะ';
+    }
+
+    if (!auth.session) {
+      return 'ต้องเข้าสู่ระบบก่อนใช้ live AI chat ค่ะ';
+    }
+
+    if (!aiChatConfigStatus.hasSupabaseProxy) {
+      return 'ยังไม่ได้ตั้งค่า Supabase live chat สำหรับหน้านี้ค่ะ';
+    }
+
+    return 'live AI chat ยังไม่พร้อมใช้งาน กรุณาลองใหม่อีกครั้งค่ะ';
   }
 
-  function selectProduct(productId: string) {
-    const product = products.find((entry) => entry.id === productId) ?? fallbackProducts.find((entry) => entry.id === productId) ?? products[0] ?? fallbackProducts[0];
+  function appendSystemNotice(content: string) {
+    setMessages((current) => [...current, createMessage('system_notice', content)]);
+  }
 
+  async function browseCategory(category: string, label: string) {
+    if (isSending) {
+      return;
+    }
+
+    if (!canUseLiveAi) {
+      appendSystemNotice(liveUnavailableMessage());
+      return;
+    }
+
+    const userText = `ดูหมวด ${label || category}`;
+    const userMessage = createMessage('user', userText);
+    const nextMessages = [...messages, userMessage];
     setViewMode('chat');
-    setMessages((current) => [
-      ...current,
-      createMessage('user', `สนใจ ${product.title}`),
-      createMessage(
-        'assistant',
-        `${product.title} ราคา ${formatProductMoney(product.priceAmount)} ค่ะ เลือกสาขาที่สะดวก แล้วฉันจะพาไปขั้นชำระเงิน`,
-        undefined,
-        [branchLocationCard(product)],
-      ),
-    ]);
+    setMessages(nextMessages);
+    setIsSending(true);
+
+    try {
+      const result = await askAiWithRag({
+        action: {
+          category,
+          type: 'browse_category',
+        },
+        messages: nextMessages,
+        question: userText,
+      });
+      const answer = createMessage(result.responseRole ?? 'assistant', result.text, result.ragMatches, result.uiCards, result.order);
+      setMessages((current) => [...current, answer]);
+    } catch (error) {
+      appendSystemNotice(error instanceof Error ? `live AI chat error: ${error.message}` : 'live AI chat error');
+    } finally {
+      setIsSending(false);
+    }
   }
 
-  function selectBranch(productId: string, branchId: string) {
-    const product = products.find((entry) => entry.id === productId) ?? fallbackProducts.find((entry) => entry.id === productId) ?? products[0] ?? fallbackProducts[0];
-    const branch = createProductBranch(product);
+  async function selectProduct(productId: string, productTitle: string) {
+    if (isSending) {
+      return;
+    }
 
-    setMessages((current) => [
-      ...current,
-      createMessage('user', `เลือกสาขา ${branch.name}`),
-      createMessage('assistant', `ได้ค่ะ จะพาไปชำระเงินสำหรับ ${product.title} ที่ ${branch.name}`, undefined, [
-        {
-          branch,
-          id: `checkout-draft-${product.id}`,
-          product,
-          title: 'พร้อมชำระเงิน',
-          type: 'checkout_draft',
+    if (!canUseLiveAi) {
+      appendSystemNotice(liveUnavailableMessage());
+      return;
+    }
+
+    const userText = `สนใจ ${productTitle || productId}`;
+    const userMessage = createMessage('user', userText);
+    const nextMessages = [...messages, userMessage];
+    setViewMode('chat');
+    setMessages(nextMessages);
+    setIsSending(true);
+
+    try {
+      const result = await askAiWithRag({
+        action: {
+          catalog_key: productId,
+          type: 'select_product',
         },
-      ]),
-    ]);
+        messages: nextMessages,
+        question: userText,
+      });
+      const answer = createMessage(result.responseRole ?? 'assistant', result.text, result.ragMatches, result.uiCards, result.order);
+      setMessages((current) => [...current, answer]);
+    } catch (error) {
+      appendSystemNotice(error instanceof Error ? `live AI chat error: ${error.message}` : 'live AI chat error');
+    } finally {
+      setIsSending(false);
+    }
+  }
 
-    setTimeout(() => {
-      router.push(`/checkout?productId=${encodeURIComponent(product.id)}&branchId=${encodeURIComponent(branchId)}`);
-    }, 420);
+  function selectBranch(_productId: string, _branchId: string) {
+    appendSystemNotice('การเลือกสาขาต้องมาจาก order step ของ backend จริงค่ะ');
   }
 
   async function sendMessage() {
@@ -808,59 +881,17 @@ export function PrototypeChatPanel() {
     setIsSending(true);
     setVoiceStatus(null);
 
-    const productRequestKind = classifyPrototypeProductRequest(question);
-    const policyMessages = toPrototypePolicyMessages(nextMessages);
-    const activeProductRequestKind = inferPrototypeActiveProductRequestKind(policyMessages, productRequestKind);
-    const prototypeContext = createPrototypePolicyContextAssessment(question, activeProductRequestKind, policyMessages, prototypeUserNickname);
-
     try {
-      if (activeProductRequestKind !== 'none' && !canUseLiveAi) {
-        await new Promise((resolve) => setTimeout(resolve, 260));
-        const nextContextQuestion = prototypeContext.nextQuestion;
-
-        if (prototypeContext.mode === 'ask_context' && nextContextQuestion) {
-          setMessages((current) => [...current, createMessage('assistant', nextContextQuestion)]);
-        } else {
-          showProductGrid(products, prototypeContext.mode);
-        }
+      if (!canUseLiveAi) {
+        appendSystemNotice(liveUnavailableMessage());
         return;
       }
 
-      const smallTalkAnswer = createSmallTalkAnswer(question);
-
-      if (smallTalkAnswer) {
-        await new Promise((resolve) => setTimeout(resolve, 180));
-        setMessages((current) => [...current, createMessage('assistant', smallTalkAnswer)]);
-        return;
-      }
-
-      if (canUseLiveAi) {
-        const result = await askAiWithRag({ messages: nextMessages, question });
-        const contextMode = result.contextAssessment?.mode ?? prototypeContext.mode;
-        const shouldShowProducts =
-          contextMode !== 'ask_context' &&
-          (result.intent === 'product_recommendation' || result.intent === 'product_compare' || activeProductRequestKind === 'direct');
-        const productSource = products.length ? products : fallbackProducts;
-        const sourceForMode = contextMode === 'personalized_recommendation' ? productSource.slice(0, 1) : productSource;
-        const backendCards = contextMode === 'ask_context' ? result.uiCards.filter((card) => card.type !== 'product_grid') : result.uiCards;
-        const uiCards = shouldShowProducts ? withProductGridCard(backendCards, sourceForMode) : backendCards;
-        const rawAnswerText = hasPrototypeProductGridCard(uiCards)
-          ? contextMode === 'personalized_recommendation'
-            ? 'จากข้อมูลที่มี ฉันเลือกตัวเลือกที่เหมาะให้ 1 รายการค่ะ'
-            : cleanProductAssistantText(result.text)
-          : result.text;
-        const answerText = enforcePrototypePolicyConversationStyle(rawAnswerText, result.contextAssessment ?? prototypeContext);
-        const answer = createMessage('assistant', answerText, result.ragMatches, uiCards);
-        setMessages((current) => [...current, answer]);
-      } else {
-        await new Promise((resolve) => setTimeout(resolve, 520));
-        const demo = createDemoAnswer(question);
-        const answer = createMessage('assistant', demo.content, demo.sources);
-        setMessages((current) => [...current, answer]);
-      }
+      const result = await askAiWithRag({ messages: nextMessages, question });
+      const answer = createMessage(result.responseRole ?? 'assistant', result.text, result.ragMatches, result.uiCards, result.order);
+      setMessages((current) => [...current, answer]);
     } catch (error) {
-      const demo = createDemoAnswer(question);
-      setMessages((current) => [...current, createMessage('assistant', demo.content, demo.sources)]);
+      appendSystemNotice(error instanceof Error ? `live AI chat error: ${error.message}` : 'live AI chat error');
     } finally {
       setIsSending(false);
     }
@@ -935,6 +966,7 @@ export function PrototypeChatPanel() {
                           key={message.id}
                           index={index}
                           message={message}
+                          onBrowseCategory={browseCategory}
                           onSelectBranch={selectBranch}
                           onSelectProduct={selectProduct}
                         />
@@ -1329,6 +1361,103 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     lineHeight: 16,
   },
+  orderCard: {
+    backgroundColor: 'rgba(255,255,255,0.28)',
+    borderColor: 'rgba(255,255,255,0.62)',
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 9,
+    padding: 10,
+    shadowColor: '#718DFF',
+    shadowOffset: { height: 10, width: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    width: 205,
+  },
+  orderHeader: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  orderCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  orderEyebrow: {
+    color: 'rgba(63,82,125,0.72)',
+    fontSize: 8.4,
+    fontWeight: '900',
+    letterSpacing: 0,
+    textTransform: 'uppercase',
+  },
+  orderTitle: {
+    color: '#334675',
+    fontSize: 11.8,
+    fontWeight: '900',
+    lineHeight: 15,
+    marginTop: 2,
+  },
+  orderMeta: {
+    color: '#64749B',
+    fontSize: 8.7,
+    fontWeight: '800',
+    lineHeight: 12,
+    marginTop: 3,
+  },
+  orderStatusPill: {
+    backgroundColor: 'rgba(92,140,255,0.15)',
+    borderColor: 'rgba(255,255,255,0.65)',
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 7,
+    paddingVertical: 4,
+  },
+  orderStatusText: {
+    color: '#4F70EE',
+    fontSize: 8.4,
+    fontWeight: '900',
+  },
+  orderSteps: {
+    flexDirection: 'row',
+    gap: 7,
+  },
+  orderStepDot: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.44)',
+    borderColor: 'rgba(255,255,255,0.68)',
+    borderRadius: 999,
+    borderWidth: 1,
+    height: 23,
+    justifyContent: 'center',
+    width: 23,
+  },
+  orderStepDotActive: {
+    backgroundColor: 'rgba(91,126,255,0.22)',
+    borderColor: 'rgba(102,139,255,0.42)',
+  },
+  orderStepText: {
+    color: '#8A99B8',
+    fontSize: 8.4,
+    fontWeight: '900',
+  },
+  orderStepTextActive: {
+    color: '#4F70EE',
+  },
+  orderHint: {
+    color: '#4B5F8C',
+    fontSize: 9.4,
+    fontWeight: '800',
+    lineHeight: 13,
+  },
+  orderStatusRow: {
+    alignItems: 'flex-start',
+    borderColor: 'rgba(255,255,255,0.44)',
+    borderRadius: 13,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 8,
+    padding: 8,
+  },
   memorySavedCard: {
     backgroundColor: 'rgba(255,255,255,0.28)',
     borderColor: 'rgba(255,255,255,0.6)',
@@ -1391,6 +1520,12 @@ const styles = StyleSheet.create({
     color: '#6B7FAA',
     fontSize: 7.8,
     fontWeight: '900',
+  },
+  categoryIcon: {
+    color: '#4D6FEA',
+    fontSize: 18,
+    fontWeight: '900',
+    lineHeight: 22,
   },
   categoryTitle: {
     color: '#31446F',

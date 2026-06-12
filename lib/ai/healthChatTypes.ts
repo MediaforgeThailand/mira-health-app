@@ -1,4 +1,5 @@
 import type { HospitalProduct } from '@/lib/marketplace/hospitalProducts';
+import type { ChatCategory, OrderStatusInfo } from '@/lib/types/api';
 
 export type HealthChatIntent =
   | 'booking'
@@ -101,6 +102,18 @@ export type ChatUiCard =
       products: ChatProductCard[];
       title: string;
       type: 'product_grid';
+    }
+  | {
+      categories: ChatCategory[];
+      id: string;
+      title: string;
+      type: 'category_grid';
+    }
+  | {
+      id: string;
+      orders: OrderStatusInfo[];
+      title: string;
+      type: 'order_status';
     }
   | {
       branches: ChatBranchCard[];
