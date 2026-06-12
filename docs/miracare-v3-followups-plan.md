@@ -123,7 +123,7 @@ Everything else in §2 of AGENTS.md (openai.ts, marker.ts, orchestrate purchase 
 
 - [x] ✅ 2026-06-12 — `referrer-order` accepts and stores `buyer_age` + resolved `branch_id`; illegal/missing branch rejected; no `transition_order` change in the diff.
 - [x] ✅ 2026-06-12 — `partner.tsx` collects age (+ branch when needed) with validation; demo mode intact.
-- [ ] ❌ 2026-06-12 — e2e assisted-purchase leg not live-verified yet; `npm run v2:e2e-commerce` could not start because `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `SUPABASE_ANON_KEY` are not set in this shell.
+- [x] ✅ 2026-06-12 — live e2e assisted-purchase leg verified in GitHub Actions run 27414394405 (`live-regression` / `Commerce E2E suite`): direct purchase, admin confirm, referral attribution, assisted purchase, commission snapshot, and v3 commerce checks passed.
 - [x] ✅ 2026-06-12 — Type mirror updated; `npm run v2:verify` green.
 
 ---
