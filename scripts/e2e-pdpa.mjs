@@ -73,6 +73,7 @@ async function run() {
   ]);
 
   created.authUserIds.push(admin.user.id, otherAdmin.user.id, customerUser.user.id);
+  await cleanupResidualPdpaTestData(tenant.id, created.authUserIds);
   otherTenant = await createOtherTenant();
   await seedAdminMembership(tenant.id, admin.user.id);
   await seedAdminMembership(otherTenant.id, otherAdmin.user.id);
@@ -416,7 +417,9 @@ async function postEdge(functionName, jwt, body) {
   const envelope = text ? JSON.parse(text) : null;
 
   if (!response.ok || !envelope?.ok) {
-    throw new Error(envelope?.error?.message ?? `${functionName} failed with status ${response.status}`);
+    const detail = (envelope?.error?.message ?? envelope?.message ?? text.slice(0, 500)) || 'no response body';
+
+    throw new Error(`${functionName} failed with status ${response.status}: ${detail}`);
   }
 
   return envelope.data;
@@ -450,8 +453,8 @@ async function cleanup() {
     );
   }
 
-  if (customer) {
-    await checked(service.from('customers').delete().eq('id', customer.id), 'cleanup customer');
+  if (tenant) {
+    await cleanupResidualPdpaTestData(tenant.id, created.authUserIds);
   }
 
   if (tenant) {
@@ -484,12 +487,116 @@ async function cleanup() {
   }
 }
 
+async function cleanupResidualPdpaTestData(tenantId, authUserIds) {
+  const uniqueAuthIds = [...new Set(authUserIds)].filter(Boolean);
+
+  if (!tenantId || uniqueAuthIds.length === 0) {
+    return;
+  }
+
+  const customerRows = await mustMany(
+    service
+      .from('customers')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .in('auth_user_id', uniqueAuthIds),
+    'load residual PDPA customers',
+  );
+  const customerIds = customerRows.map((row) => row.id);
+
+  if (customerIds.length > 0) {
+    await cleanupCustomerDataByIds(tenantId, customerIds);
+  }
+
+  await checked(
+    service.from('tenant_members').delete().eq('tenant_id', tenantId).in('auth_user_id', uniqueAuthIds),
+    'cleanup residual PDPA tenant members',
+  );
+
+  const staleTenants = await mustMany(
+    service.from('tenants').select('id').like('slug', 'e2e-pdpa-other-%'),
+    'load residual PDPA other tenants',
+  );
+  const staleTenantIds = staleTenants.map((row) => row.id);
+
+  if (staleTenantIds.length > 0) {
+    await deleteByFilter('tenant_members', (query) => query.in('tenant_id', staleTenantIds));
+    await deleteByIds('tenants', staleTenantIds);
+  }
+}
+
+async function cleanupCustomerDataByIds(tenantId, customerIds) {
+  const uniqueCustomerIds = [...new Set(customerIds)].filter(Boolean);
+
+  if (uniqueCustomerIds.length === 0) {
+    return;
+  }
+
+  const [sessions, orders, reports] = await Promise.all([
+    mustMany(
+      service
+        .from('chat_sessions')
+        .select('id')
+        .eq('tenant_id', tenantId)
+        .in('customer_id', uniqueCustomerIds),
+      'load residual PDPA sessions',
+    ),
+    mustMany(
+      service
+        .from('orders')
+        .select('id,slip_url')
+        .eq('tenant_id', tenantId)
+        .in('customer_id', uniqueCustomerIds),
+      'load residual PDPA orders',
+    ),
+    mustMany(
+      service
+        .from('lab_reports')
+        .select('id,storage_path')
+        .eq('tenant_id', tenantId)
+        .in('customer_id', uniqueCustomerIds),
+      'load residual PDPA lab reports',
+    ),
+  ]);
+  const sessionIds = sessions.map((row) => row.id);
+  const orderIds = orders.map((row) => row.id);
+  const reportIds = reports.map((row) => row.id);
+
+  for (const row of orders) {
+    if (row.slip_url) {
+      await service.storage.from('payment-slips').remove([row.slip_url]);
+    }
+  }
+
+  for (const row of reports) {
+    if (row.storage_path) {
+      await service.storage.from('lab-reports').remove([row.storage_path]);
+    }
+  }
+
+  await deleteByFilter('order_events', (query) => orderIds.length ? query.in('order_id', orderIds) : query.eq('id', '00000000-0000-0000-0000-000000000000'));
+  await deleteByIds('orders', orderIds);
+  await deleteByFilter('lab_results', (query) => reportIds.length ? query.in('report_id', reportIds) : query.eq('id', '00000000-0000-0000-0000-000000000000'));
+  await deleteByFilter('chat_messages', (query) => sessionIds.length ? query.in('session_id', sessionIds) : query.eq('id', '00000000-0000-0000-0000-000000000000'));
+  await deleteByIds('chat_sessions', sessionIds);
+  await deleteByFilter('consents', (query) => query.in('customer_id', uniqueCustomerIds));
+  await deleteByIds('lab_reports', reportIds);
+  await deleteByFilter('wearable_metrics', (query) => query.in('customer_id', uniqueCustomerIds));
+  await deleteByFilter('user_facts', (query) => query.in('customer_id', uniqueCustomerIds));
+  await deleteByFilter('pdpa_requests', (query) => query.in('customer_id', uniqueCustomerIds));
+  await deleteByIds('customers', uniqueCustomerIds);
+}
+
 async function deleteByIds(table, ids) {
   if (ids.length === 0) {
     return;
   }
 
   await checked(service.from(table).delete().in('id', [...new Set(ids)]), `cleanup ${table}`);
+}
+
+async function deleteByFilter(table, applyFilter) {
+  await checked(applyFilter(service.from(table).delete()), `cleanup ${table}`);
 }
 
 async function assertZero(label, query) {
