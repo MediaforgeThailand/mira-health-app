@@ -245,8 +245,8 @@ New `scripts/pdpa-coverage-audit.mjs` wired into `npm run v2:verify`: statically
 
 - Deterministic: zod/auth guards unit-tested; coverage audit red/green proven in PR description (add a fake table in a scratch test to show it fails — do not commit the fake).
 - Live (credentialed): seed disposable customer with one row in each personal table + a slip object → export returns all of them → delete → assert tables empty for that customer, order anonymized, storage objects gone, `pdpa_requests` has 2 completed rows, second delete call no-ops.
-- [ ] ❌ Migration + RLS; both functions deployed-ready; admin trigger role-gated.
-- [ ] ❌ Coverage audit in `v2:verify`, red/green evidence.
+- [x] ✅ 2026-06-12 — Migration + RLS; both functions deployed-ready/deployed to project `xwixdxmemwcuoamcloty`; admin trigger role-gated.
+- [x] ✅ 2026-06-12 — Coverage audit wired into `v2:verify`; green locally and red proof verified with a scratch customer table (`pdpa_coverage_scratch_should_fail` failed as expected, then removed).
 - [ ] ❌ Live export/delete proof on staging.
 
 ---

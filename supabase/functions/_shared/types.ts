@@ -312,6 +312,62 @@ export type WearableIngestResponse = {
   metrics: WearableMetricRow[];
 };
 
+export type PdpaRequest = {
+  customer_id?: string;
+  tenant_id?: string;
+  tenant_slug?: string;
+};
+
+export type PdpaStorageReference = {
+  bucket: string;
+  expires_in: number;
+  path: string;
+  signed_url: string | null;
+};
+
+export type PdpaOrderEventRow = {
+  actor: string;
+  created_at: string;
+  from_status: string | null;
+  id: string;
+  meta: Record<string, unknown>;
+  order_id: string;
+  to_status: string;
+};
+
+export type PdpaOrderExportRow = OrderRow & {
+  order_events: PdpaOrderEventRow[];
+  slip: PdpaStorageReference | null;
+};
+
+export type PdpaLabReportExportRow = LabReportRow & {
+  lab_results: LabResultRow[];
+  report_file: PdpaStorageReference | null;
+};
+
+export type PdpaExportResponse = {
+  chat_messages: ChatMessageRow[];
+  chat_sessions: ChatSessionRow[];
+  completed_at: string;
+  consents: Record<string, unknown>[];
+  customer: CustomerRow;
+  lab_reports: PdpaLabReportExportRow[];
+  orders: PdpaOrderExportRow[];
+  pdpa_request_id: string;
+  user_facts: UserFactRow[];
+  wearable_metrics: WearableMetricRow[];
+};
+
+export type PdpaDeleteResponse = {
+  anonymized_orders: number;
+  completed_at: string | null;
+  deleted: boolean;
+  deleted_rows: Record<string, number>;
+  deleted_storage: PdpaStorageReference[];
+  idempotent: boolean;
+  pdpa_request_id: string | null;
+};
+
 export type TenantSummary = {
   display_name: string;
   id: string;

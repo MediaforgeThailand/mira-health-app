@@ -52,6 +52,8 @@ npx supabase functions deploy stripe-webhook --project-ref $projectRef --no-veri
 npx supabase functions deploy lab-ingest --project-ref $projectRef
 npx supabase functions deploy lab-confirm --project-ref $projectRef
 npx supabase functions deploy wearable-ingest --project-ref $projectRef
+npx supabase functions deploy pdpa-export --project-ref $projectRef
+npx supabase functions deploy pdpa-delete --project-ref $projectRef
 
 Write-Output 'Verifying deployed bundle encoding (chat-orchestrator canary)...'
 $verifyDir = Join-Path ([IO.Path]::GetTempPath()) ("mira-deploy-verify-" + [Guid]::NewGuid().ToString('N'))

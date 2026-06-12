@@ -7,7 +7,17 @@ import { MiraDesign, softShadow } from '@/constants/Design';
 import { invokeFunction } from '@/lib/api/client';
 import { useAuthSession } from '@/lib/auth/useAuthSession';
 import { supabase, supabaseConfigStatus } from '@/lib/supabase';
-import type { AdminOrderActionRequest, AdminSlipUrlResponse, ChatMessageRow, OrderRow, OrderStatus, TenantSummary } from '@/lib/types/api';
+import type {
+  AdminOrderActionRequest,
+  AdminSlipUrlResponse,
+  ChatMessageRow,
+  OrderRow,
+  OrderStatus,
+  PdpaDeleteResponse,
+  PdpaExportResponse,
+  PdpaRequest,
+  TenantSummary,
+} from '@/lib/types/api';
 import { defaultTenantSlug } from '@/lib/marketplace/hospitalProducts';
 import { showcaseDemoAdminOrders, showcaseDemoTenant, showcaseDemoTranscript } from '@/lib/showcase/demoFixtures';
 
@@ -183,6 +193,8 @@ export function OrdersQueue({ title = 'Orders Queue' }: { title?: string }) {
   const [showActiveOnly, setShowActiveOnly] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [busyAction, setBusyAction] = useState<OrderMutationAction | null>(null);
+  const [pdpaBusyAction, setPdpaBusyAction] = useState<'delete' | 'export' | null>(null);
+  const [pdpaConfirm, setPdpaConfirm] = useState('');
   const [isSavingNote, setIsSavingNote] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -190,6 +202,10 @@ export function OrdersQueue({ title = 'Orders Queue' }: { title?: string }) {
   const isDemoMode = !auth.session || !supabaseConfigStatus.isConfigured;
 
   const selectedOrder = useMemo(() => orders.find((order) => order.id === selectedId) ?? orders[0] ?? null, [orders, selectedId]);
+  const canRunPdpa =
+    !isDemoMode &&
+    Boolean(selectedOrder?.customer_id) &&
+    (tenant?.role === 'superadmin' || tenant?.role === 'tenant_admin');
 
   const filteredOrders = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -529,6 +545,55 @@ export function OrdersQueue({ title = 'Orders Queue' }: { title?: string }) {
     }
   }
 
+  async function runPdpaExport() {
+    if (!selectedOrder?.customer_id || !tenant || pdpaBusyAction) {
+      return;
+    }
+
+    try {
+      setPdpaBusyAction('export');
+      setError(null);
+      setMessage(null);
+      const result = await invokeFunction<PdpaRequest, PdpaExportResponse>('pdpa-export', {
+        customer_id: selectedOrder.customer_id,
+        tenant_id: tenant.id,
+      });
+      setMessage(`ส่งออกข้อมูล (PDPA) สำเร็จ: ${result.pdpa_request_id}`);
+    } catch (pdpaError) {
+      setError(pdpaError instanceof Error ? pdpaError.message : 'ไม่สามารถส่งออกข้อมูล PDPA ได้');
+    } finally {
+      setPdpaBusyAction(null);
+    }
+  }
+
+  async function runPdpaDelete() {
+    if (!selectedOrder?.customer_id || !tenant || pdpaBusyAction) {
+      return;
+    }
+
+    if (pdpaConfirm.trim() !== 'ลบถาวร') {
+      setError('พิมพ์ "ลบถาวร" เพื่อยืนยันการลบข้อมูล PDPA');
+      return;
+    }
+
+    try {
+      setPdpaBusyAction('delete');
+      setError(null);
+      setMessage(null);
+      const result = await invokeFunction<PdpaRequest, PdpaDeleteResponse>('pdpa-delete', {
+        customer_id: selectedOrder.customer_id,
+        tenant_id: tenant.id,
+      });
+      setPdpaConfirm('');
+      setMessage(`ลบข้อมูลถาวร (PDPA) สำเร็จ: anonymized ${result.anonymized_orders} order(s)`);
+      await refreshOrders(tenant.id);
+    } catch (pdpaError) {
+      setError(pdpaError instanceof Error ? pdpaError.message : 'ไม่สามารถลบข้อมูล PDPA ได้');
+    } finally {
+      setPdpaBusyAction(null);
+    }
+  }
+
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
@@ -608,14 +673,20 @@ export function OrdersQueue({ title = 'Orders Queue' }: { title?: string }) {
                 bookingDate={bookingDate}
                 bookingTime={bookingTime}
                 busyAction={busyAction}
+                canRunPdpa={canRunPdpa}
                 isSavingNote={isSavingNote}
                 note={note}
                 onAction={(action) => void runAction(action)}
                 onBookingDateChange={setBookingDate}
                 onBookingTimeChange={setBookingTime}
                 onNoteChange={setNote}
+                onPdpaConfirmChange={setPdpaConfirm}
+                onPdpaDelete={() => void runPdpaDelete()}
+                onPdpaExport={() => void runPdpaExport()}
                 onSaveNote={(nextNote) => void saveNote(nextNote)}
                 order={selectedOrder}
+                pdpaBusyAction={pdpaBusyAction}
+                pdpaConfirm={pdpaConfirm}
                 signedSlipUrl={signedSlipUrls[selectedOrder.id]}
                 transcript={transcript}
               />
@@ -685,28 +756,40 @@ function OrderDetail({
   bookingDate,
   bookingTime,
   busyAction,
+  canRunPdpa,
   isSavingNote,
   note,
   onAction,
   onBookingDateChange,
   onBookingTimeChange,
   onNoteChange,
+  onPdpaConfirmChange,
+  onPdpaDelete,
+  onPdpaExport,
   onSaveNote,
   order,
+  pdpaBusyAction,
+  pdpaConfirm,
   signedSlipUrl,
   transcript,
 }: {
   bookingDate: string;
   bookingTime: string;
   busyAction: OrderMutationAction | null;
+  canRunPdpa: boolean;
   isSavingNote: boolean;
   note: string;
   onAction: (action: OrderMutationAction) => void;
   onBookingDateChange: (value: string) => void;
   onBookingTimeChange: (value: string) => void;
   onNoteChange: (value: string) => void;
+  onPdpaConfirmChange: (value: string) => void;
+  onPdpaDelete: () => void;
+  onPdpaExport: () => void;
   onSaveNote: (nextNote?: string) => void;
   order: OrderQueueRow;
+  pdpaBusyAction: 'delete' | 'export' | null;
+  pdpaConfirm: string;
   signedSlipUrl?: string;
   transcript: TranscriptRow[];
 }) {
@@ -809,6 +892,39 @@ function OrderDetail({
         <ActionButton action="done" busyAction={busyAction} disabled={!canAct(order, 'done')} onAction={onAction} />
         <ActionButton action="cancel" busyAction={busyAction} disabled={!canAct(order, 'cancel')} danger onAction={onAction} />
       </View>
+
+      {canRunPdpa ? (
+        <View style={styles.pdpaBlock}>
+          <View style={styles.pdpaHeader}>
+            <View style={styles.pdpaTitleBlock}>
+              <Text style={styles.sectionTitle}>PDPA</Text>
+              <Text style={styles.helperText}>ส่งออกหรือลบข้อมูลลูกค้าหลังยืนยันตัวตนนอกระบบแล้ว</Text>
+            </View>
+            <Pressable disabled={Boolean(pdpaBusyAction)} onPress={onPdpaExport} style={[styles.secondaryButton, pdpaBusyAction ? styles.disabled : null]}>
+              <Text style={styles.secondaryButtonText}>{pdpaBusyAction === 'export' ? 'กำลังส่งออก' : 'ส่งออกข้อมูล (PDPA)'}</Text>
+            </Pressable>
+          </View>
+          <View style={styles.pdpaDeleteRow}>
+            <TextInput
+              onChangeText={onPdpaConfirmChange}
+              placeholder="พิมพ์ ลบถาวร"
+              placeholderTextColor={MiraDesign.color.muted}
+              style={[styles.input, styles.pdpaConfirmInput]}
+              value={pdpaConfirm}
+            />
+            <Pressable
+              disabled={Boolean(pdpaBusyAction) || pdpaConfirm.trim() !== 'ลบถาวร'}
+              onPress={onPdpaDelete}
+              style={[
+                styles.pdpaDeleteButton,
+                Boolean(pdpaBusyAction) || pdpaConfirm.trim() !== 'ลบถาวร' ? styles.disabled : null,
+              ]}
+            >
+              <Text style={styles.pdpaDeleteText}>{pdpaBusyAction === 'delete' ? 'กำลังลบ' : 'ลบข้อมูลถาวร (PDPA)'}</Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
 
       <View style={styles.transcript}>
         <Text style={styles.sectionTitle}>Transcript</Text>
@@ -1258,6 +1374,51 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+  },
+  pdpaBlock: {
+    backgroundColor: '#F7FBFA',
+    borderColor: MiraDesign.color.line,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 10,
+    padding: 12,
+  },
+  pdpaHeader: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    justifyContent: 'space-between',
+  },
+  pdpaTitleBlock: {
+    flex: 1,
+    gap: 4,
+    minWidth: 220,
+  },
+  pdpaDeleteRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  pdpaConfirmInput: {
+    flex: 1,
+    minWidth: 180,
+  },
+  pdpaDeleteButton: {
+    alignItems: 'center',
+    backgroundColor: '#FFE8E8',
+    borderColor: '#F7B9BA',
+    borderRadius: 8,
+    borderWidth: 1,
+    justifyContent: 'center',
+    minHeight: 44,
+    paddingHorizontal: 12,
+  },
+  pdpaDeleteText: {
+    color: '#A23538',
+    fontSize: 12,
+    fontWeight: '900',
   },
   actionButton: {
     alignItems: 'center',
