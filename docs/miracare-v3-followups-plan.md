@@ -247,7 +247,7 @@ New `scripts/pdpa-coverage-audit.mjs` wired into `npm run v2:verify`: statically
 - Live (credentialed): seed disposable customer with one row in each personal table + a slip object → export returns all of them → delete → assert tables empty for that customer, order anonymized, storage objects gone, `pdpa_requests` has 2 completed rows, second delete call no-ops.
 - [x] ✅ 2026-06-12 — Migration + RLS; both functions deployed-ready/deployed to project `xwixdxmemwcuoamcloty`; admin trigger role-gated.
 - [x] ✅ 2026-06-12 — Coverage audit wired into `v2:verify`; green locally and red proof verified with a scratch customer table (`pdpa_coverage_scratch_should_fail` failed as expected, then removed).
-- [ ] ❌ Live export/delete proof on staging.
+- [x] ✅ 2026-06-12 — Live export/delete proof green in GitHub Actions run 27429471136 (`live-regression` job 81075902490): export, cross-tenant denial, delete, order anonymization, storage removal, and idempotent retry passed.
 
 ---
 
