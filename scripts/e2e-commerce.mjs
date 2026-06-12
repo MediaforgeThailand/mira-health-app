@@ -144,7 +144,7 @@ async function run() {
     console.log('e2e-commerce: SKIP v3 branch UX checks (branches/product_branches schema not applied on this target)');
   }
 
-  console.log('e2e-commerce: PASS (direct purchase, admin confirm, referral attribution, assisted purchase, commission snapshot, and v3 commerce checks when available)');
+  console.log('e2e-commerce: PASS (direct purchase, admin confirm, referral attribution, assisted purchase, commission snapshot, order-status prompt card, and v3 commerce checks)');
 }
 
 async function loadTenant() {
@@ -432,21 +432,17 @@ async function runV3ChatCommerceFlow({ customerAccessToken, referrer, referrerAc
   assert(accountOrder.status === 'booked', 'v3 account orders query should show booked status');
   assert(sameInstant(accountOrder.booking_at, bookingAt), 'v3 account orders query should show booking datetime');
 
-  if (process.env.MIRA_E2E_EXPECT_PROMPT_V3 === '1') {
-    const statusAnswer = await postChat(customerAccessToken, {
-      action: null,
-      message: 'ถึงคิวหรือยัง',
-      session_id: multi.session_id,
-    });
+  const statusAnswer = await postChat(customerAccessToken, {
+    action: null,
+    message: 'ถึงคิวหรือยัง',
+    session_id: multi.session_id,
+  });
 
-    assert(statusAnswer.text.includes('2026-07-20') || statusAnswer.text.includes('20'), 'v3 order-status answer should include booking date');
-    assert(
-      statusAnswer.cards?.some((card) => card.type === 'order_status' && card.orders.some((order) => order.id === multi.order.id)),
-      'v3 order-status answer should include [[order_status]] card',
-    );
-  } else {
-    console.log('e2e-commerce: SKIP v3 prompt order-status assertion (set MIRA_E2E_EXPECT_PROMPT_V3=1 after staging is env-pinned to prompt v3)');
-  }
+  assert(statusAnswer.text.includes('2026-07-20') || statusAnswer.text.includes('20'), 'v3 order-status answer should include booking date');
+  assert(
+    statusAnswer.cards?.some((card) => card.type === 'order_status' && card.orders.some((order) => order.id === multi.order.id)),
+    'v3 order-status answer should include [[order_status]] card',
+  );
 
   const single = await postChat(customerAccessToken, {
     action: {
