@@ -165,3 +165,29 @@ export async function createSignedReadUrl(bucket: string, path: string, expiresI
 
   return signedPath.startsWith('http') ? signedPath : `${supabaseUrl}/storage/v1${signedPath}`;
 }
+
+export async function deleteStorageObjects(bucket: string, paths: string[]) {
+  const normalizedPaths = [...new Set(paths.map((path) => path.replace(/^\/+/, '')).filter(Boolean))];
+
+  if (normalizedPaths.length === 0) {
+    return [];
+  }
+
+  const { serviceRoleKey, supabaseUrl } = serviceConfig();
+  const response = await fetch(`${supabaseUrl}/storage/v1/object/${bucket}`, {
+    body: JSON.stringify({ prefixes: normalizedPaths }),
+    headers: {
+      Authorization: `Bearer ${serviceRoleKey}`,
+      'Content-Type': 'application/json',
+      apikey: serviceRoleKey,
+    },
+    method: 'DELETE',
+  });
+  const payload = await parseStorageJson(response);
+
+  if (!response.ok) {
+    throw new HttpError('UPSTREAM', `Unable to delete objects from ${bucket}.`, response.status);
+  }
+
+  return Array.isArray(payload) ? payload : normalizedPaths.map((name) => ({ name }));
+}

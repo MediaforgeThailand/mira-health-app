@@ -15,6 +15,8 @@ const expectedFunctions = [
   'lab-ingest',
   'lab-confirm',
   'wearable-ingest',
+  'pdpa-export',
+  'pdpa-delete',
 ];
 const scanRoots = ['scripts', '.github', 'README.md', 'docs'];
 const violations = [];

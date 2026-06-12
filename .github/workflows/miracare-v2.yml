@@ -94,6 +94,9 @@ jobs:
       - name: Template mirror audit
         run: npm run templates:mirror-audit
 
+      - name: PDPA coverage audit
+        run: npm run v2:pdpa-coverage-audit
+
       - name: V2 deploy script audit
         run: npm run v2:deploy-audit
 
@@ -186,3 +189,7 @@ jobs:
         if: ${{ steps.gate.outputs.ready == 'true' && steps.gate.outputs.commerce_ready != 'true' }}
         run: |
           echo "Commerce E2E skipped: set MIRA_DEMO_PROMPTPAY_ID to seed the demo tenant PromptPay id."
+
+      - name: PDPA export/delete E2E
+        if: ${{ steps.gate.outputs.ready == 'true' }}
+        run: npm run v2:e2e-pdpa
