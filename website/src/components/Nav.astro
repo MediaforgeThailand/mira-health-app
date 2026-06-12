@@ -2,7 +2,8 @@
 import Button from './Button.astro';
 
 const links = [
-  { href: '#ai-chat', label: 'แพลตฟอร์ม' },
+  { href: '#ai-chat', label: 'AI Chat' },
+  { href: '#admin', label: 'หลังบ้าน' },
   { href: '#referral', label: 'Referral' },
   { href: '#miracare', label: 'MiraCare' },
   { href: '#mirabeauty', label: 'MiraBeauty' },
@@ -12,12 +13,25 @@ const links = [
 
 <header class="site-header" data-site-header>
   <nav class="nav container" aria-label="หลัก">
-    <a class="wordmark" href="#top" aria-label="Mira home">
-      <span>Mira</span><span class="wordmark-dot" aria-hidden="true"></span>
+    <a class="wordmark" href="#top" aria-label="mira AI home">
+      <span class="wordmark-orbit" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="6.5" fill="url(#mw-g)"></circle>
+          <path d="M3.5 21.5C8 26.5 19 28.5 26 22.5" stroke="url(#mw-g)" stroke-width="2.4" stroke-linecap="round"></path>
+          <path d="M28.5 10.5C24 5.5 13 3.5 6 9.5" stroke="url(#mw-g)" stroke-width="2.4" stroke-linecap="round"></path>
+          <defs>
+            <linearGradient id="mw-g" x1="2" y1="28" x2="30" y2="4" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#2E6BF6"></stop>
+              <stop offset="1" stop-color="#9CC3FE"></stop>
+            </linearGradient>
+          </defs>
+        </svg>
+      </span>
+      <span>mira <em>AI</em></span>
     </a>
 
     <div class="nav-links" aria-label="เมนูหลัก">
-      {links.map((link) => <a href={link.href}>{link.label}</a>)}
+      {links.map((link) => <a href={link.href} data-spy-link>{link.label}</a>)}
     </div>
 
     <div class="nav-cta">
@@ -49,7 +63,7 @@ const links = [
   .site-header.is-scrolled,
   .site-header.is-open {
     border-bottom: 1px solid var(--night-line);
-    background: rgba(6, 24, 28, 0.92);
+    background: rgba(5, 18, 38, 0.9);
     backdrop-filter: blur(18px);
   }
 
@@ -71,42 +85,64 @@ const links = [
   .wordmark {
     display: inline-flex;
     align-items: center;
-    gap: 0.28rem;
-    color: var(--canvas);
+    gap: 0.45rem;
+    color: #EAF2FF;
     font-family: "Space Grotesk", system-ui, sans-serif;
     font-size: 1.35rem;
     font-weight: 600;
     line-height: 1;
   }
 
-  .wordmark-dot {
-    width: 0.45rem;
-    height: 0.45rem;
-    border-radius: 50%;
-    background: var(--mint);
-    box-shadow: 0 0 20px var(--glow-teal);
+  .wordmark em {
+    color: var(--sky);
+    font-style: normal;
+  }
+
+  .wordmark-orbit {
+    display: inline-flex;
+    width: 26px;
+    height: 26px;
   }
 
   .nav-links {
     display: flex;
     justify-content: center;
-    gap: clamp(1rem, 2.4vw, 2rem);
+    gap: clamp(0.9rem, 2.2vw, 1.8rem);
     color: var(--muted-dark);
     font-size: 0.92rem;
     font-weight: 500;
   }
 
   .nav-links a {
+    position: relative;
+    padding: 0.3rem 0;
     transition: color 180ms ease;
   }
 
-  .nav-links a:hover {
-    color: var(--canvas);
+  .nav-links a::after {
+    position: absolute;
+    inset: auto 0 0;
+    height: 2px;
+    content: "";
+    transform: scaleX(0);
+    transform-origin: left;
+    border-radius: 2px;
+    background: var(--grad-brand);
+    transition: transform 240ms var(--ease-out);
+  }
+
+  .nav-links a:hover,
+  .nav-links a.is-active {
+    color: #fff;
+  }
+
+  .nav-links a.is-active::after {
+    transform: scaleX(1);
   }
 
   .nav-cta :global(.btn) {
     min-height: 42px;
-    padding: 0.7rem 1rem;
+    padding: 0.7rem 1.05rem;
   }
 
   .menu-toggle {
@@ -116,8 +152,8 @@ const links = [
     place-items: center;
     border: 1px solid var(--night-line);
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--canvas);
+    background: rgba(214, 230, 255, 0.07);
+    color: #EAF2FF;
   }
 
   .menu-toggle span {
@@ -186,8 +222,8 @@ const links = [
       opacity: 0;
       pointer-events: none;
       background:
-        radial-gradient(circle at 18% 12%, rgba(14, 165, 164, 0.22), transparent 36%),
-        linear-gradient(180deg, rgba(6, 24, 28, 0.98), var(--night) 58%);
+        radial-gradient(circle at 18% 12%, rgba(46, 107, 246, 0.25), transparent 38%),
+        linear-gradient(180deg, rgba(5, 18, 38, 0.98), var(--night) 58%);
       backdrop-filter: blur(18px);
       transition: opacity 180ms ease, visibility 180ms ease;
     }
@@ -209,7 +245,7 @@ const links = [
 
     .mobile-menu a:not(.btn) {
       border-bottom: 1px solid var(--night-line);
-      color: var(--canvas);
+      color: #EAF2FF;
       font-size: 1.35rem;
       font-weight: 600;
       padding: 0.85rem 0;

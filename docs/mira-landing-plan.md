@@ -79,30 +79,32 @@ website/
 
 ## 2. Design system — DECIDED
 
-### 2.1 Color tokens (`src/styles/tokens.css`)
+### 2.1 Color tokens (`src/styles/tokens.css`) — REVISED 2026-06-13 (owner decision)
 
-Derived from `constants/Design.ts` (`MiraDesign`) so the marketing site and product share one brand. New marketing-only tokens are marked ★.
+**Identity = the CI blue from the Mira logos** (`assets/images/mira-orbit-logo.png`, `mira-care-logo.png` — royal blue → periwinkle gradient). The original teal identity was rejected by the owner ("ไม่ใช่สีฟ้าเดียวกับ CI"); teal is demoted to the MiraCare vertical accent only. The token source of truth is now `website/src/styles/tokens.css`:
 
 ```css
 :root {
-  /* brand (mirrors MiraDesign) */
-  --ink: #12343B;          --ink-soft: #587177;     --muted: #8CA3A8;
-  --canvas: #F4F9FA;       --surface: #FFFFFF;      --line: #D8E8EA;
-  --teal: #0EA5A4;         --teal-deep: #087B7A;    --teal-soft: #DDF5F3;
-  --mint: #54CFA5;         --blue: #3278C7;         --blue-soft: #E6F0FB;
-  --amber: #F5B84B;        --coral: #EE6B6E;
+  /* Mira CI blue family (sampled from the orbit / mira care logos) */
+  --brand-deep: #1D46E0;   --brand: #3F6DFB;       --brand-bright: #3F8EFC;
+  --sky: #7FA4FE;          --ice: #C5D8FF;         --brand-soft: #E9F0FF;
 
-  /* marketing additions ★ */
-  --night: #06181C;        /* ★ dark hero/referral canvas (deeper than --ink) */
-  --night-soft: #0B2429;   /* ★ dark surface */
-  --night-line: rgba(244, 249, 250, 0.12);
-  --rose: #E58FA2;         /* ★ MiraBeauty accent */
-  --rose-soft: #FBF1F3;    /* ★ MiraBeauty tinted canvas */
-  --glow-teal: rgba(14, 165, 164, 0.35);   /* ★ for shadows/auras on dark */
+  /* neutrals (blue-leaning ink) */
+  --ink: #101A33;          --ink-soft: #4A5878;    --muted: #8B97B3;
+  --canvas: #F6F8FD;       --surface: #FFFFFF;     --line: #DDE5F4;
+
+  /* dark canvas (blue night) */
+  --night: #050B1E;        --night-soft: #0A142E;  --muted-dark: #AFC0E4;
+
+  /* support accents */
+  --mint: #54CFA5;         /* money / success only */
+  --teal: #0EA5A4;         /* MiraCare vertical accent only */
+  --rose: #E58FA2;         /* MiraBeauty vertical accent */
+  --grad-brand: linear-gradient(108deg, var(--brand-deep), var(--brand-bright) 55%, var(--sky));
 }
 ```
 
-Rules: dark sections use `--night` canvas with `--canvas`-colored text; light sections use `--canvas`/`--surface` with `--ink` text. The teal→mint "aurora" is the identity gradient. **Never a purple-blue gradient as identity** (DESIGN.md anti-pattern). `--coral`/`--amber` stay status-only (don't theme MiraBeauty with coral — that's why `--rose` exists).
+Rules: dark sections use `--night` with near-white text; identity gradient = `--grad-brand` (logo-like blue). Commission/money moments use `--mint`. MiraCare panels teal, MiraBeauty panels rose. The DESIGN.md "no purple-blue gradient" rule is overridden for the marketing site by the owner's CI-blue directive (the product app keeps its own rules).
 
 ### 2.2 Typography
 
@@ -372,6 +374,18 @@ Root `tsconfig.json` currently includes `**/*.ts` with no `exclude`, so the new 
 - **[EXISTING-LANDING]** A landing prototype already exists inside the Expo app (`components/MiraLandingPage.tsx`, wired into `app/index.tsx`, assets in `assets/motion/`). This plan supersedes it for mira.com; do NOT delete or modify it (it's outside this plan's scope) — owner decides its fate separately.
 
 ---
+
+## 8.5 Revision 2026-06-13 — owner feedback pass (implemented by Claude directly)
+
+Owner verdict on the first build: colors not CI blue, key messages under-communicated (no clear arrival moment per section), animations too plain. Claude applied a redesign pass directly in `website/` (Codex's structure kept):
+
+1. **CI blue re-theme** (§2.1 above). Favicon, nav orbit mark, ChatSim, all sections re-colored. `hero-aurora` HyperFrames composition re-rendered in blue (mp4+webm+poster re-committed); other 3 compositions re-palette'd in source. The flywheel / care / beauty *videos* were replaced by sharper **live SVG scenes** (flywheel orbit w/ GSAP timeline, ECG + health ring, face-scan w/ sweep beam) — compositions remain in `motion/` for future use; only `hero-aurora` video is embedded (hero + CTA backgrounds).
+2. **Over-communication system**: every section now has a numbered chapter kicker (01–06), a giant outlined ghost word (AI CHAT / CONTROL / REFERRAL / CHANNELS / INDUSTRIES) with scroll parallax, a bold `key-claim` benefit statement, and a per-section `mini-cta` to `#contact`. Referral gets a full-width outlined **marquee billboard band** announcing arrival, and its heading stays pinned through the whole step sequence.
+3. **Animation upgrade** (`motion.ts` rewritten): Thai-safe word-mask hero reveal (blur+rise, manual word spans — SplitText removed), scroll progress bar + nav scrollspy, scroll-velocity-skewed marquees, 3D tilt + sheen cards, magnetic CTAs, pointer-parallax hero device, rebuilt referral pin driving a 4-state story panel (link card → attributed chat → PromptPay close → commission counter ฿0→฿350), animated flywheel SVG, CTA pointer spotlight, count-up numbers, admin bar-chart grow-in.
+4. **Robustness**: reveal targets are CSS-hidden only under `html.has-motion` (inline head script) with a watchdog that un-hides everything if rAF never ticks (occluded window/battery saver); reduced-motion path renders everything static; chat sim pauses off-screen.
+5. Verified: `astro check` 0 errors, production build passes, no console errors, no horizontal overflow at 375px, full desktop walkthrough in Chrome.
+
+DoD note: this pass supersedes the L1–L6 visual specs above where they conflict (copy in §3 was kept verbatim, with added claim lines); §7 checkbox state should be audited against the live build.
 
 ## 9. Open questions for owner (answer at audit; none block L0–L7)
 

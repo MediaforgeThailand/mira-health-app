@@ -1,6 +1,5 @@
 ---
 import Chip from './Chip.astro';
-import MotionLoop from './MotionLoop.astro';
 ---
 
 <section id="miracare" class="vertical-panel care" data-vertical-panel>
@@ -14,11 +13,51 @@ import MotionLoop from './MotionLoop.astro';
       <ul>
         <li>แพ็กเกจตรวจสุขภาพและวัคซีน พร้อมนัดหมาย-เลือกสาขาในแชท</li>
         <li>Referral สำหรับเครือข่ายผู้แนะนำของโรงพยาบาล</li>
-        <li>Health Dashboard <Chip tone="mint">ADD-ON</Chip> — ให้คนไข้เห็นผลตรวจและติดตามสุขภาพ แล้วกลับมาซื้อแพ็กเกจถัดไปเอง</li>
+        <li>
+          Health Dashboard <Chip tone="mint">ADD-ON</Chip> — คนไข้เห็นผลตรวจและติดตามสุขภาพ แล้วกลับมาซื้อแพ็กเกจถัดไปเอง
+        </li>
       </ul>
+      <p class="vertical-claim">ยอดขายรอบใหม่ ไม่ต้องรอลูกค้าใหม่ — ระบบชวนคนไข้เดิมกลับมาตรวจรอบถัดไปเอง</p>
+      <a class="mini-cta" href="#contact">ดูเดโมเวอร์ชันโรงพยาบาล <span class="arrow">→</span></a>
     </div>
+
     <div class="vertical-visual" data-reveal>
-      <MotionLoop name="miracare-pulse" />
+      <svg class="care-art" viewBox="0 0 640 360" fill="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="care-line" x1="0" y1="0" x2="640" y2="0" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#0EA5A4" stop-opacity="0.25"></stop>
+            <stop offset="0.5" stop-color="#0EA5A4"></stop>
+            <stop offset="1" stop-color="#3F8EFC"></stop>
+          </linearGradient>
+        </defs>
+        <path
+          class="ecg"
+          d="M-10 200 H150 l18 0 12 -46 16 92 18 -132 14 86 12 -22 18 22 H400 l14 0 10 -30 14 60 12 -44 10 14 H650"
+          stroke="url(#care-line)"
+          stroke-width="3.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        ></path>
+        <circle class="ring-track" cx="528" cy="96" r="46" stroke="rgba(14,165,164,0.18)" stroke-width="9"></circle>
+        <circle
+          class="ring-fill"
+          cx="528"
+          cy="96"
+          r="46"
+          stroke="#0EA5A4"
+          stroke-width="9"
+          stroke-linecap="round"
+          transform="rotate(-90 528 96)"
+        ></circle>
+        <text x="528" y="103" text-anchor="middle" fill="#087B7A" font-family="Space Grotesk, sans-serif" font-size="20" font-weight="600">75%</text>
+        <text x="528" y="165" text-anchor="middle" fill="#4A5878" font-family="Anuphan, sans-serif" font-size="13">เป้าสุขภาพปีนี้ (ตัวอย่าง)</text>
+      </svg>
+
+      <div class="care-bubble">
+        <strong>Mira · MiraCare</strong>
+        <p>ถึงรอบตรวจสุขภาพประจำปีของคุณแม่แล้วค่ะ จองคิวสาขาเดิมต่อเลยไหมคะ</p>
+        <span>จองคิวเลย →</span>
+      </div>
     </div>
   </div>
 </section>
@@ -32,7 +71,7 @@ import MotionLoop from './MotionLoop.astro';
 
   .care {
     background:
-      radial-gradient(circle at 8% 18%, rgba(84, 207, 165, 0.2), transparent 34%),
+      radial-gradient(circle at 8% 18%, rgba(14, 165, 164, 0.16), transparent 34%),
       linear-gradient(180deg, var(--canvas), var(--teal-soft));
   }
 
@@ -48,14 +87,14 @@ import MotionLoop from './MotionLoop.astro';
     border-radius: var(--radius-pill);
     background: var(--surface);
     box-shadow: var(--shadow-soft);
-    color: var(--teal-deep);
+    color: #087B7A;
     font-weight: 600;
     padding: 0.45rem 0.8rem;
   }
 
   h3 {
     margin: 1.2rem 0 0;
-    font-size: clamp(1.9rem, 4vw, 3.25rem);
+    font-size: clamp(1.9rem, 4vw, 3.1rem);
     font-weight: 600;
     line-height: 1.14;
   }
@@ -64,6 +103,13 @@ import MotionLoop from './MotionLoop.astro';
     margin: 1rem 0 0;
     color: var(--ink-soft);
     font-size: 1.08rem;
+  }
+
+  .vertical-claim {
+    border-left: 3px solid var(--teal);
+    color: var(--ink);
+    font-weight: 600;
+    padding-left: 1rem;
   }
 
   ul {
@@ -97,17 +143,95 @@ import MotionLoop from './MotionLoop.astro';
   }
 
   .vertical-visual {
+    position: relative;
     aspect-ratio: 16 / 9;
-    border: 1px solid rgba(14, 165, 164, 0.2);
+    border: 1px solid rgba(14, 165, 164, 0.22);
     border-radius: 30px;
-    background: var(--canvas);
+    background:
+      radial-gradient(circle at 80% 16%, rgba(14, 165, 164, 0.1), transparent 40%),
+      var(--surface);
     box-shadow: var(--shadow-soft);
     overflow: hidden;
+  }
+
+  .care-art {
+    width: 100%;
+    height: 100%;
+  }
+
+  .ecg {
+    stroke-dasharray: 720 1400;
+    stroke-dashoffset: 720;
+    animation: ecgDraw 4.5s linear infinite;
+  }
+
+  @keyframes ecgDraw {
+    0% {
+      stroke-dashoffset: 720;
+    }
+
+    55% {
+      stroke-dashoffset: 0;
+    }
+
+    100% {
+      stroke-dashoffset: -1400;
+    }
+  }
+
+  .ring-fill {
+    stroke-dasharray: 289;
+    stroke-dashoffset: 289;
+    transition: stroke-dashoffset 1.4s var(--ease-out) 300ms;
+  }
+
+  .vertical-visual[data-reveal-done] .ring-fill,
+  :global(html:not(.has-motion)) .ring-fill {
+    stroke-dashoffset: 72;
+  }
+
+  .care-bubble {
+    position: absolute;
+    left: 5%;
+    bottom: 8%;
+    width: min(62%, 320px);
+    border: 1px solid var(--line);
+    border-radius: 18px 18px 18px 6px;
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+    padding: 0.9rem 1rem;
+  }
+
+  .care-bubble strong {
+    color: #087B7A;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+  }
+
+  .care-bubble p {
+    margin: 0.35rem 0 0.6rem;
+    color: var(--ink);
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+
+  .care-bubble span {
+    display: inline-flex;
+    border-radius: var(--radius-pill);
+    background: var(--teal);
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.4rem 0.85rem;
   }
 
   @media (max-width: 900px) {
     .vertical-inner {
       grid-template-columns: 1fr;
+    }
+
+    .vertical-visual {
+      aspect-ratio: 4 / 3;
     }
   }
 </style>

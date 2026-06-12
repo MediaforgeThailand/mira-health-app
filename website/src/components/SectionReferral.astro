@@ -1,88 +1,279 @@
----
-import MotionLoop from './MotionLoop.astro';
-import Section from './Section.astro';
+﻿---
+import Button from './Button.astro';
+import Chip from './Chip.astro';
 import { referralSteps } from '../data/referral-steps';
+
+const bandItems = ['REFERRAL ENGINE', 'à¹€à¸›à¸¥à¸µà¹ˆà¸¢à¸™à¸„à¸™à¸£à¸¹à¹‰à¸ˆà¸±à¸à¹€à¸›à¹‡à¸™à¸¢à¸­à¸”à¸‚à¸²à¸¢', 'à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸¢à¸™à¸•à¹Œà¸‚à¸²à¸¢à¸•à¸±à¸§à¸—à¸µà¹ˆ 2'];
 ---
 
-<Section id="referral" tone="dark" class="referral-section">
-  <div class="section-heading" data-reveal>
-    <p class="eyebrow">REFERRAL ENGINE</p>
-    <h2 class="section-title">เปลี่ยนคนรู้จัก ให้กลายเป็นยอดขาย</h2>
-    <p class="section-sub">สร้างแคมเปญแนะนำได้ในไม่กี่นาที — ที่เหลือ Mira จัดการต่อจนจบ</p>
-  </div>
-
-  <div class="referral-pin" data-referral-pin>
-    <div class="referral-scene glass-panel" data-referral-scene>
-      <div class="progress-rail" aria-hidden="true">
-        <span data-referral-progress></span>
-      </div>
-      <div class="referral-steps">
-        {referralSteps.map((step, index) => (
-          <article class="referral-step" data-referral-step data-step-index={index}>
-            <span class:list={['step-glyph', step.glyph]} aria-hidden="true"></span>
-            <div>
-              <span class="step-number display-accent">0{index + 1}</span>
-              <h3>{step.title}</h3>
-              <p>{step.body}</p>
-              {index === 3 && (
-                <strong class="commission-counter display-accent" data-commission-counter data-count-to="350">
-                  ฿0
-                </strong>
-              )}
-            </div>
-          </article>
+<section id="referral" class="referral-section section-dark grain">
+  <div class="referral-billboard" aria-hidden="true">
+    <div class="marquee">
+      <div class="marquee-track">
+        {[0, 1].map(() => (
+          <span class="marquee-item band-item">
+            {bandItems.map((item) => (
+              <>
+                <span>{item}</span>
+                <span class="marquee-dot"></span>
+              </>
+            ))}
+          </span>
         ))}
       </div>
-      <div class="referral-panel" aria-hidden="true">
-        <span class="panel-chip">DRNOK2</span>
-        <span class="panel-chat"></span>
-        <span class="panel-card"></span>
-        <span class="panel-qr"></span>
+    </div>
+  </div>
+
+  <div class="referral-stage" data-referral-scene>
+    <div class="container stage-inner">
+      <header class="stage-head section-head">
+        <span class="ghost-word" aria-hidden="true">REFERRAL</span>
+        <p class="kicker" data-reveal>
+          <span class="kicker-num">03</span>
+          <span class="kicker-rule"></span>
+          à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸¢à¸™à¸•à¹Œà¸‚à¸²à¸¢à¸•à¸±à¸§à¸—à¸µà¹ˆ 2 â€” REFERRAL ENGINE
+        </p>
+        <h2 class="section-title" data-reveal>à¹€à¸›à¸¥à¸µà¹ˆà¸¢à¸™à¸„à¸™à¸£à¸¹à¹‰à¸ˆà¸±à¸ à¹ƒà¸«à¹‰à¸à¸¥à¸²à¸¢à¹€à¸›à¹‡à¸™<span class="gradient-text">à¸¢à¸­à¸”à¸‚à¸²à¸¢</span></h2>
+        <p class="key-claim" data-reveal>
+          à¸¥à¸¹à¸à¸„à¹‰à¸²à¹€à¸à¹ˆà¸² à¸žà¸™à¸±à¸à¸‡à¸²à¸™ à¸«à¸¡à¸­ à¸­à¸´à¸™à¸Ÿà¸¥à¸¹à¹€à¸­à¸™à¹€à¸‹à¸­à¸£à¹Œ â€” à¸—à¸¸à¸à¸„à¸™à¹€à¸›à¹‡à¸™à¸—à¸µà¸¡à¸‚à¸²à¸¢à¸‚à¸­à¸‡à¸„à¸¸à¸“à¹„à¸”à¹‰ à¹à¸„à¹ˆà¹à¸Šà¸£à¹Œà¸¥à¸´à¸‡à¸à¹Œ à¸—à¸µà¹ˆà¹€à¸«à¸¥à¸·à¸­ Mira à¸›à¸´à¸”à¸à¸²à¸£à¸‚à¸²à¸¢à¹ƒà¸«à¹‰ à¹à¸¥à¸°à¹à¸šà¹ˆà¸‡à¸ªà¹ˆà¸§à¸™à¹à¸šà¹ˆà¸‡à¹ƒà¸«à¹‰à¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´
+        </p>
+      </header>
+
+      <div class="stage-body" data-reveal>
+        <div class="steps-rail">
+          <div class="progress-rail" aria-hidden="true">
+            <span data-referral-progress></span>
+          </div>
+          <div class="referral-steps">
+            {referralSteps.map((step, index) => (
+              <article class="referral-step" data-referral-step>
+                <span class:list={['step-glyph', step.glyph]} aria-hidden="true">
+                  {step.glyph === 'link' && (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                      <path d="M7 17 17 7M9 7h8v8"></path>
+                    </svg>
+                  )}
+                  {step.glyph === 'chat' && (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M20 12a8 8 0 1 0-3.2 6.4L20 20l-.7-3.4A7.9 7.9 0 0 0 20 12Z"></path>
+                    </svg>
+                  )}
+                  {step.glyph === 'qr' && (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+                      <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2.5v2.5H14zM17.5 17.5H20V20h-2.5z"></path>
+                    </svg>
+                  )}
+                  {step.glyph === 'percent' && (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                      <path d="M19 5 5 19"></path>
+                      <circle cx="7.5" cy="7.5" r="2.6"></circle>
+                      <circle cx="16.5" cy="16.5" r="2.6"></circle>
+                    </svg>
+                  )}
+                </span>
+                <div>
+                  <span class="step-number display-accent">STEP 0{index + 1}</span>
+                  <h3>{step.title}</h3>
+                  <p>{step.body}</p>
+                  {index === 3 && (
+                    <strong
+                      class="commission-counter display-accent"
+                      data-commission-counter
+                      data-count-to="350"
+                      data-count-prefix="+à¸¿"
+                      data-count-manual
+                    >
+                      +à¸¿0
+                    </strong>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div class="story-panel glass-panel" aria-hidden="true">
+          <div class="story-card" data-referral-panel>
+            <div class="story-profile">
+              <span class="story-avatar">à¸™à¸</span>
+              <div>
+                <strong>à¸„à¸¸à¸“à¸«à¸¡à¸­à¸™à¸</strong>
+                <span>à¸œà¸¹à¹‰à¹à¸™à¸°à¸™à¸³à¸‚à¸­à¸‡à¹‚à¸£à¸‡à¸žà¸¢à¸²à¸šà¸²à¸¥à¸„à¸¸à¸“</span>
+              </div>
+            </div>
+            <div class="story-code">
+              <span class="code-pill">mira.com/r/DRNOK2</span>
+              <span class="mini-qr"></span>
+            </div>
+            <div class="share-row">
+              <span>à¹à¸Šà¸£à¹Œà¹„à¸›</span><em>LINE</em><em>Facebook</em><em>IG</em>
+            </div>
+          </div>
+
+          <div class="story-card" data-referral-panel>
+            <span class="story-chip">à¸¥à¸¹à¸à¸„à¹‰à¸²à¸„à¸™à¸™à¸µà¹‰à¸¡à¸²à¸ˆà¸²à¸à¸¥à¸´à¸‡à¸à¹Œà¸‚à¸­à¸‡ à¸„à¸¸à¸“à¸«à¸¡à¸­à¸™à¸ âœ“</span>
+            <div class="story-bubble user">à¸ªà¸™à¹ƒà¸ˆà¹‚à¸›à¸£à¹à¸à¸£à¸¡à¸•à¸£à¸§à¸ˆà¸ªà¸¸à¸‚à¸ à¸²à¸žà¹ƒà¸«à¹‰à¸„à¸¸à¸“à¹à¸¡à¹ˆà¸„à¹ˆà¸°</div>
+            <div class="story-bubble mira">à¹à¸™à¸°à¸™à¸³ 2 à¹‚à¸›à¸£à¹à¸à¸£à¸¡à¸—à¸µà¹ˆà¹€à¸«à¸¡à¸²à¸°à¸—à¸µà¹ˆà¸ªà¸¸à¸”à¸„à¹ˆà¸° <span class="b-typing"><i></i><i></i><i></i></span></div>
+          </div>
+
+          <div class="story-card" data-referral-panel>
+            <div class="story-order">
+              <div>
+                <strong>à¸•à¸£à¸§à¸ˆà¸ªà¸¸à¸‚à¸ à¸²à¸ž Premium 50+</strong>
+                <span>à¸ªà¸²à¸‚à¸²à¸¥à¸²à¸”à¸žà¸£à¹‰à¸²à¸§ Â· à¸žà¸£à¸¸à¹ˆà¸‡à¸™à¸µà¹‰ 09:30</span>
+              </div>
+              <span class="story-price">à¸¿4,900</span>
+            </div>
+            <span class="story-chip mint">à¸Šà¸³à¸£à¸°à¸œà¹ˆà¸²à¸™ PromptPay à¹à¸¥à¹‰à¸§ âœ“ à¸›à¸´à¸”à¸à¸²à¸£à¸‚à¸²à¸¢à¹‚à¸”à¸¢ Mira</span>
+          </div>
+
+          <div class="story-card" data-referral-panel>
+            <span class="story-label">à¸ªà¹ˆà¸§à¸™à¹à¸šà¹ˆà¸‡à¸‚à¸­à¸‡à¸„à¸¸à¸“à¸«à¸¡à¸­à¸™à¸</span>
+            <strong class="story-commission">+à¸¿350</strong>
+            <ul class="story-lines">
+              <li><span>à¸à¸•à¸´à¸à¸²à¸‚à¸­à¸‡à¸­à¸‡à¸„à¹Œà¸à¸£à¸„à¸¸à¸“</span><em>7% à¸‚à¸­à¸‡à¸¢à¸­à¸”à¸‚à¸²à¸¢ (à¸•à¸±à¸§à¸­à¸¢à¹ˆà¸²à¸‡)</em></li>
+              <li><span>à¸ªà¸–à¸²à¸™à¸°</span><em class="mint-text">à¹€à¸‚à¹‰à¸²à¸£à¸­à¸šà¹‚à¸­à¸™à¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´ âœ“</em></li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="flywheel" data-reveal>
-    <div class="flywheel-media">
-      <MotionLoop name="referral-flywheel" />
-      <span>แนะนำ</span>
-      <span>ขาย</span>
-      <span>ส่วนแบ่ง</span>
-      <span>อยากแนะนำอีก</span>
+  <div class="container flywheel-wrap">
+    <div class="flywheel" data-flywheel data-reveal>
+      <svg viewBox="0 0 600 600" fill="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="fw-grad" x1="120" y1="500" x2="500" y2="100" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#2E6BF6"></stop>
+            <stop offset="1" stop-color="#9CC3FE"></stop>
+          </linearGradient>
+          <radialGradient id="fw-glow" cx="0.5" cy="0.5" r="0.5">
+            <stop stop-color="rgba(63,109,251,0.5)"></stop>
+            <stop offset="1" stop-color="rgba(63,109,251,0)"></stop>
+          </radialGradient>
+        </defs>
+
+        <circle cx="300" cy="300" r="252" fill="url(#fw-glow)" opacity="0.5"></circle>
+        <g data-flywheel-orbit>
+          <circle cx="300" cy="300" r="210" stroke="rgba(159,188,254,0.3)" stroke-width="1.6" stroke-dasharray="3 10"></circle>
+        </g>
+        <g data-flywheel-comet>
+          <circle cx="300" cy="90" r="7" fill="#9CC3FE"></circle>
+          <path d="M300 90 A210 210 0 0 0 213 112" stroke="url(#fw-grad)" stroke-width="3.4" stroke-linecap="round" opacity="0.75"></path>
+        </g>
+
+        <g data-flywheel-node>
+          <circle cx="300" cy="90" r="34" fill="#0E2344" stroke="rgba(159,188,254,0.4)" stroke-width="1.4"></circle>
+          <path d="M289 311 L311 289 M293 289h18v18" transform="translate(0 -200)" stroke="#9CC3FE" stroke-width="2.6" stroke-linecap="round"></path>
+        </g>
+        <g data-flywheel-node>
+          <circle cx="510" cy="300" r="34" fill="#0E2344" stroke="rgba(159,188,254,0.4)" stroke-width="1.4"></circle>
+          <path d="M524 294a14 14 0 1 0-5.6 11.2L524 308l-1.2-6Z" stroke="#9CC3FE" stroke-width="2.4" stroke-linejoin="round" fill="none"></path>
+        </g>
+        <g data-flywheel-node>
+          <circle cx="300" cy="510" r="34" fill="#0E2344" stroke="rgba(159,188,254,0.4)" stroke-width="1.4"></circle>
+          <text x="300" y="519" text-anchor="middle" fill="#9CC3FE" font-family="Space Grotesk, sans-serif" font-size="22" font-weight="600">à¸¿</text>
+        </g>
+        <g data-flywheel-node>
+          <circle cx="90" cy="300" r="34" fill="#0E2344" stroke="rgba(159,188,254,0.4)" stroke-width="1.4"></circle>
+          <path d="M104 286 76 314M83 293a5 5 0 1 0 .1 0M97 307a5 5 0 1 0 .1 0" stroke="#9CC3FE" stroke-width="2.4" stroke-linecap="round" fill="none"></path>
+        </g>
+
+        <circle cx="300" cy="300" r="64" fill="url(#fw-grad)"></circle>
+        <text x="300" y="316" text-anchor="middle" fill="#fff" font-family="Space Grotesk, sans-serif" font-size="46" font-weight="600">M</text>
+      </svg>
+
+      <span class="fw-label l-top" data-flywheel-label>1 Â· à¹à¸™à¸°à¸™à¸³</span>
+      <span class="fw-label l-right" data-flywheel-label>2 Â· Mira à¸‚à¸²à¸¢à¹ƒà¸«à¹‰</span>
+      <span class="fw-label l-bottom" data-flywheel-label>3 Â· à¸ªà¹ˆà¸§à¸™à¹à¸šà¹ˆà¸‡à¹€à¸‚à¹‰à¸²</span>
+      <span class="fw-label l-left" data-flywheel-label>4 Â· à¸­à¸¢à¸²à¸à¹à¸™à¸°à¸™à¸³à¸­à¸µà¸</span>
     </div>
-    <p>ยิ่งแนะนำ ยิ่งขาย · ยิ่งขายดี ยิ่งมีคนอยากแนะนำ</p>
+
+    <div class="flywheel-copy" data-reveal>
+      <h3>à¸¢à¸´à¹ˆà¸‡à¹à¸™à¸°à¸™à¸³ à¸¢à¸´à¹ˆà¸‡à¸‚à¸²à¸¢ â€” à¸¢à¸´à¹ˆà¸‡à¸‚à¸²à¸¢à¸”à¸µ à¸¢à¸´à¹ˆà¸‡à¸¡à¸µà¸„à¸™à¸­à¸¢à¸²à¸à¹à¸™à¸°à¸™à¸³</h3>
+      <p>à¸™à¸µà¹ˆà¸„à¸·à¸­à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸¢à¸™à¸•à¹Œà¸¢à¸­à¸”à¸‚à¸²à¸¢à¸—à¸µà¹ˆà¸«à¸¡à¸¸à¸™à¹€à¸­à¸‡à¹„à¸”à¹‰ à¹€à¸žà¸£à¸²à¸° AI Chat à¸à¸±à¸š Referral à¸—à¸³à¸‡à¸²à¸™à¹€à¸›à¹‡à¸™à¸§à¸‡à¸ˆà¸£à¹€à¸”à¸µà¸¢à¸§à¸à¸±à¸™</p>
+      <div class="chip-row">
+        <Chip tone="dark">à¸•à¸±à¹‰à¸‡ % à¸ªà¹ˆà¸§à¸™à¹à¸šà¹ˆà¸‡à¹€à¸­à¸‡à¹„à¸”à¹‰</Chip>
+        <Chip tone="dark">à¸—à¸¸à¸à¸­à¸­à¹€à¸”à¸­à¸£à¹Œà¸£à¸¹à¹‰à¸§à¹ˆà¸²à¸¡à¸²à¸ˆà¸²à¸à¹ƒà¸„à¸£</Chip>
+        <Chip tone="dark">à¸ªà¸£à¸¸à¸›à¸¢à¸­à¸”à¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´à¸—à¸¸à¸à¸£à¸­à¸š</Chip>
+      </div>
+      <div class="button-row fw-actions">
+        <Button href="#contact" magnetic>à¸ªà¸£à¹‰à¸²à¸‡à¹à¸„à¸¡à¹€à¸›à¸à¹à¸£à¸à¸‚à¸­à¸‡à¸„à¸¸à¸“ â€” à¸™à¸±à¸”à¸”à¸¹à¹€à¸”à¹‚à¸¡</Button>
+      </div>
+    </div>
   </div>
-</Section>
+</section>
 
 <style>
-  .section-heading {
-    max-width: 860px;
+  .referral-section {
+    position: relative;
+    overflow: clip;
+    background:
+      radial-gradient(circle at 85% 8%, rgba(23, 86, 219, 0.3), transparent 36%),
+      radial-gradient(circle at 8% 80%, rgba(46, 107, 246, 0.16), transparent 40%),
+      var(--night);
   }
 
-  .referral-pin {
-    margin-top: 2.35rem;
+  .referral-billboard {
+    border-top: 1px solid var(--night-line);
+    border-bottom: 1px solid var(--night-line);
+    background: rgba(14, 35, 68, 0.5);
+    padding: 1.1rem 0;
+    color: transparent;
+    font-family: "Space Grotesk", "Anuphan", sans-serif;
+    font-size: clamp(1.6rem, 3.4vw, 2.6rem);
+    font-weight: 600;
+    -webkit-text-stroke: 1px rgba(147, 187, 254, 0.55);
+    text-transform: uppercase;
   }
 
-  .referral-scene {
+  .referral-billboard :global(.marquee-track) {
+    --marquee-speed: 32s;
+  }
+
+  .referral-billboard :global(.marquee-dot) {
+    width: 10px;
+    height: 10px;
+    background: var(--brand-bright);
+  }
+
+  .referral-stage {
+    display: grid;
+    align-items: center;
+    min-height: 100svh;
+    padding: clamp(2.5rem, 4vw, 4rem) 0;
+  }
+
+  .stage-head {
+    max-width: 980px;
+  }
+
+  .stage-head .section-title {
+    font-size: clamp(2rem, 4.6vw, 3.8rem);
+  }
+
+  .stage-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.75fr);
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    align-items: stretch;
+    margin-top: clamp(1.75rem, 3vw, 2.75rem);
+  }
+
+  .steps-rail {
     position: relative;
     display: grid;
-    min-height: 620px;
-    grid-template-columns: minmax(0, 0.95fr) minmax(320px, 0.8fr);
-    gap: clamp(1.5rem, 4vw, 3rem);
-    align-items: center;
-    border-radius: 28px;
-    padding: clamp(1.2rem, 3vw, 2rem);
-    overflow: hidden;
   }
 
   .progress-rail {
     position: absolute;
-    top: 2rem;
-    bottom: 2rem;
-    left: clamp(1.4rem, 3vw, 2.2rem);
-    width: 2px;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    left: 0;
+    width: 3px;
     border-radius: var(--radius-pill);
-    background: rgba(244, 249, 250, 0.1);
+    background: rgba(214, 226, 255, 0.12);
   }
 
   .progress-rail span {
@@ -92,13 +283,14 @@ import { referralSteps } from '../data/referral-steps';
     transform: scaleY(0);
     transform-origin: top;
     border-radius: inherit;
-    background: linear-gradient(180deg, var(--teal), var(--mint));
+    background: var(--grad-brand);
+    box-shadow: 0 0 18px var(--glow-brand);
   }
 
   .referral-steps {
     display: grid;
-    gap: 0.9rem;
-    padding-left: clamp(1.4rem, 3vw, 2.2rem);
+    gap: clamp(0.8rem, 1.6vw, 1.3rem);
+    padding-left: clamp(1.4rem, 2.5vw, 2rem);
   }
 
   .referral-step {
@@ -106,14 +298,17 @@ import { referralSteps } from '../data/referral-steps';
     grid-template-columns: 52px 1fr;
     gap: 1rem;
     align-items: start;
-    opacity: 0.45;
-    transform: translateX(0);
-    transition: opacity 180ms ease, transform 180ms ease;
+    opacity: 0.38;
+    transition: opacity 240ms ease, transform 240ms ease;
+  }
+
+  .referral-step.is-done {
+    opacity: 0.62;
   }
 
   .referral-step.is-active {
     opacity: 1;
-    transform: translateX(8px);
+    transform: translateX(10px);
   }
 
   .step-glyph {
@@ -123,44 +318,36 @@ import { referralSteps } from '../data/referral-steps';
     place-items: center;
     border: 1px solid var(--night-line);
     border-radius: 18px;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(214, 226, 255, 0.06);
+    color: var(--sky);
+    transition: background 240ms ease, box-shadow 240ms ease, color 240ms ease;
   }
 
-  .step-glyph::before {
-    display: block;
+  .step-glyph svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .referral-step.is-active .step-glyph {
+    background: var(--grad-brand);
+    box-shadow: 0 0 26px var(--glow-brand);
+    color: #fff;
+  }
+
+  .referral-step.is-done .step-glyph {
     color: var(--mint);
-    font-family: "Space Grotesk", sans-serif;
-    font-size: 1rem;
-    font-weight: 600;
-  }
-
-  .step-glyph.link::before {
-    content: "↗";
-  }
-
-  .step-glyph.chat::before {
-    content: "••";
-  }
-
-  .step-glyph.cart::before {
-    content: "QR";
-    font-size: 0.78rem;
-  }
-
-  .step-glyph.percent::before {
-    content: "%";
   }
 
   .step-number {
     display: block;
-    color: var(--mint);
-    font-size: 0.78rem;
+    color: var(--sky);
+    font-size: 0.75rem;
     letter-spacing: 0.18em;
   }
 
   h3 {
     margin: 0.2rem 0 0;
-    color: var(--canvas);
+    color: #F2F6FF;
     font-size: clamp(1.18rem, 2.3vw, 1.55rem);
     line-height: 1.25;
   }
@@ -174,152 +361,325 @@ import { referralSteps } from '../data/referral-steps';
     display: inline-flex;
     margin-top: 0.65rem;
     border-radius: var(--radius-pill);
-    background: rgba(84, 207, 165, 0.12);
+    background: rgba(84, 207, 165, 0.14);
+    box-shadow: 0 0 24px rgba(84, 207, 165, 0.25);
     color: var(--mint);
-    font-size: 1.3rem;
-    padding: 0.18rem 0.72rem;
+    font-size: 1.35rem;
+    padding: 0.2rem 0.8rem;
   }
 
-  .referral-panel {
+  /* story panel */
+  .story-panel {
     position: relative;
-    min-height: 430px;
-    border: 1px solid var(--night-line);
+    min-height: 420px;
     border-radius: 26px;
-    background:
-      radial-gradient(circle at 24% 12%, rgba(84, 207, 165, 0.22), transparent 35%),
-      rgba(255, 255, 255, 0.04);
-    box-shadow: var(--shadow-glow);
-  }
-
-  .referral-panel span {
-    position: absolute;
-    border-radius: var(--radius-lg);
-  }
-
-  .panel-chip {
-    top: 2rem;
-    left: 2rem;
-    border: 1px solid var(--night-line);
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--mint);
-    font-family: "Space Grotesk", sans-serif;
-    padding: 0.5rem 0.75rem;
-  }
-
-  .panel-chat {
-    top: 6.2rem;
-    left: 2rem;
-    width: 68%;
-    height: 90px;
-    background: linear-gradient(110deg, rgba(244, 249, 250, 0.16), rgba(84, 207, 165, 0.12));
-  }
-
-  .panel-card {
-    right: 2rem;
-    bottom: 7.4rem;
-    width: 62%;
-    height: 120px;
-    background: rgba(244, 249, 250, 0.12);
-  }
-
-  .panel-qr {
-    right: 2rem;
-    bottom: 2rem;
-    width: 78px;
-    height: 78px;
-    background:
-      linear-gradient(90deg, var(--canvas) 12px, transparent 0) 0 0 / 24px 24px,
-      linear-gradient(var(--canvas) 12px, transparent 0) 0 0 / 24px 24px,
-      var(--teal-deep);
-  }
-
-  .flywheel {
-    display: grid;
-    justify-items: center;
-    margin-top: clamp(3rem, 7vw, 5rem);
-    text-align: center;
-  }
-
-  .flywheel-media {
-    position: relative;
-    width: min(100%, 560px);
-    aspect-ratio: 1;
-  }
-
-  .flywheel-media :global(.motion-loop) {
-    border-radius: 50%;
     overflow: hidden;
   }
 
-  .flywheel-media span {
+  .story-card {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    gap: 1rem;
+    align-content: center;
+    opacity: 0;
+    transform: translateY(26px) scale(0.98);
+    padding: clamp(1.2rem, 2.5vw, 2rem);
+    transition: opacity 380ms var(--ease-out), transform 380ms var(--ease-out);
+    pointer-events: none;
+  }
+
+  .story-card.is-active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .story-panel:not(:has(.story-card.is-active)) .story-card:last-child {
+    opacity: 1;
+    transform: none;
+  }
+
+  .story-profile {
+    display: flex;
+    gap: 0.85rem;
+    align-items: center;
+  }
+
+  .story-avatar {
+    display: grid;
+    width: 52px;
+    height: 52px;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--grad-brand);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .story-profile strong {
+    display: block;
+    color: #F2F6FF;
+  }
+
+  .story-profile span:not(.story-avatar) {
+    color: var(--muted-dark);
+    font-size: 0.88rem;
+  }
+
+  .story-code {
+    display: flex;
+    gap: 0.85rem;
+    align-items: center;
+  }
+
+  .code-pill {
+    flex: 1;
+    border: 1px dashed rgba(147, 187, 254, 0.5);
+    border-radius: var(--radius-pill);
+    background: rgba(46, 107, 246, 0.12);
+    color: var(--ice);
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 0.9rem;
+    padding: 0.6rem 0.9rem;
+    text-align: center;
+  }
+
+  .mini-qr {
+    width: 52px;
+    height: 52px;
+    flex: none;
+    border-radius: 10px;
+    background:
+      linear-gradient(90deg, var(--night) 8px, transparent 0) 0 0 / 16px 16px,
+      linear-gradient(var(--night) 8px, transparent 0) 0 0 / 16px 16px,
+      #EAF1FF;
+  }
+
+  .share-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    color: var(--muted-dark);
+    font-size: 0.88rem;
+  }
+
+  .share-row em {
+    border: 1px solid var(--night-line);
+    border-radius: var(--radius-pill);
+    background: rgba(214, 226, 255, 0.07);
+    color: #EAF1FF;
+    font-size: 0.8rem;
+    font-style: normal;
+    font-weight: 600;
+    padding: 0.3rem 0.65rem;
+  }
+
+  .story-chip {
+    justify-self: start;
+    border: 1px solid rgba(147, 187, 254, 0.4);
+    border-radius: var(--radius-pill);
+    background: rgba(46, 107, 246, 0.14);
+    color: var(--ice);
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.42rem 0.8rem;
+  }
+
+  .story-chip.mint {
+    border-color: rgba(84, 207, 165, 0.5);
+    background: rgba(84, 207, 165, 0.13);
+    color: var(--mint);
+  }
+
+  .story-bubble {
+    max-width: 88%;
+    border-radius: 16px;
+    font-size: 0.95rem;
+    padding: 0.7rem 0.95rem;
+  }
+
+  .story-bubble.user {
+    justify-self: end;
+    border-radius: 16px 16px 6px 16px;
+    background: var(--grad-brand);
+    color: #fff;
+  }
+
+  .story-bubble.mira {
+    justify-self: start;
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    border: 1px solid var(--night-line);
+    border-radius: 16px 16px 16px 6px;
+    background: rgba(214, 226, 255, 0.09);
+    color: #EAF1FF;
+  }
+
+  .b-typing {
+    display: inline-grid;
+    grid-template-columns: repeat(3, 5px);
+    gap: 3px;
+  }
+
+  .b-typing i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--sky);
+    animation: storyTyping 900ms infinite ease-in-out;
+  }
+
+  .b-typing i:nth-child(2) { animation-delay: 120ms; }
+  .b-typing i:nth-child(3) { animation-delay: 240ms; }
+
+  @keyframes storyTyping {
+    0%, 80%, 100% { opacity: 0.4; transform: translateY(0); }
+    40% { opacity: 1; transform: translateY(-3px); }
+  }
+
+  .story-order {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid var(--night-line);
+    border-radius: 16px;
+    background: rgba(214, 226, 255, 0.07);
+    padding: 0.9rem 1rem;
+  }
+
+  .story-order strong {
+    display: block;
+    color: #F2F6FF;
+  }
+
+  .story-order span:not(.story-price) {
+    color: var(--muted-dark);
+    font-size: 0.85rem;
+  }
+
+  .story-price {
+    color: var(--ice);
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+
+  .story-label {
+    color: var(--muted-dark);
+    font-size: 0.92rem;
+  }
+
+  .story-commission {
+    color: var(--mint);
+    font-family: "Space Grotesk", sans-serif;
+    font-size: clamp(2.6rem, 5vw, 3.6rem);
+    line-height: 1;
+    text-shadow: 0 0 38px rgba(84, 207, 165, 0.45);
+  }
+
+  .story-lines {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .story-lines li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid var(--night-line);
+    color: var(--muted-dark);
+    font-size: 0.9rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .story-lines em {
+    color: #EAF1FF;
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  .story-lines em.mint-text {
+    color: var(--mint);
+  }
+
+  /* flywheel */
+  .flywheel-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: center;
+    padding-top: clamp(2rem, 5vw, 4rem);
+    padding-bottom: clamp(4rem, 7vw, 6.5rem);
+  }
+
+  .flywheel {
+    position: relative;
+    width: min(100%, 520px);
+    margin-inline: auto;
+  }
+
+  .fw-label {
     position: absolute;
     border: 1px solid var(--night-line);
     border-radius: var(--radius-pill);
-    background: rgba(6, 24, 28, 0.72);
-    color: var(--canvas);
+    background: rgba(5, 18, 38, 0.78);
+    backdrop-filter: blur(6px);
+    color: #EAF1FF;
+    font-size: 0.88rem;
     font-weight: 600;
-    padding: 0.45rem 0.75rem;
+    padding: 0.42rem 0.8rem;
+    white-space: nowrap;
   }
 
-  .flywheel-media span:nth-of-type(1) {
-    top: 8%;
-    left: 50%;
-    transform: translateX(-50%);
+  .l-top { top: 2%; left: 50%; transform: translate(-50%, -50%); }
+  .l-right { top: 33%; right: 2%; transform: translate(0, -50%); }
+  .l-bottom { bottom: 2%; left: 50%; transform: translate(-50%, 50%); }
+  .l-left { top: 67%; left: 2%; transform: translate(0, -50%); }
+
+  .flywheel-copy h3 {
+    margin: 0;
+    color: #F2F6FF;
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    line-height: 1.25;
   }
 
-  .flywheel-media span:nth-of-type(2) {
-    top: 50%;
-    right: 5%;
-    transform: translateY(-50%);
-  }
-
-  .flywheel-media span:nth-of-type(3) {
-    bottom: 8%;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  .flywheel-media span:nth-of-type(4) {
-    top: 50%;
-    left: 3%;
-    transform: translateY(-50%);
-  }
-
-  .flywheel p {
-    margin: 1rem 0 0;
+  .flywheel-copy p {
+    margin: 0.9rem 0 1.2rem;
     color: var(--muted-dark);
-    font-size: 1.08rem;
+    font-size: 1.05rem;
+  }
+
+  .fw-actions {
+    margin-top: 1.4rem;
   }
 
   @media (max-width: 1023px) {
-    .referral-scene {
+    .referral-stage {
       min-height: auto;
+    }
+
+    .stage-body {
       grid-template-columns: 1fr;
     }
 
-    .progress-rail {
-      display: none;
+    .story-panel {
+      min-height: 380px;
     }
 
-    .referral-steps {
-      padding-left: 0;
+    .flywheel-wrap {
+      grid-template-columns: 1fr;
     }
 
-    .referral-step {
-      opacity: 1;
-      transform: none;
-    }
-
-    .referral-panel {
-      min-height: 320px;
-    }
+    .l-right { right: 4%; transform: translate(0, -50%); }
+    .l-left { left: 4%; transform: translate(0, -50%); }
   }
 
   @media (max-width: 560px) {
-    .referral-scene {
-      padding: 1rem;
-    }
-
     .referral-step {
       grid-template-columns: 44px 1fr;
       gap: 0.75rem;
@@ -331,8 +691,8 @@ import { referralSteps } from '../data/referral-steps';
       border-radius: 15px;
     }
 
-    .flywheel-media span {
-      font-size: 0.78rem;
+    .fw-label {
+      font-size: 0.76rem;
     }
   }
 </style>

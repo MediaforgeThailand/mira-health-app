@@ -1,0 +1,381 @@
+
+> mira-health-app@1.0.0 web
+> expo start --web --port 8083 --host localhost
+
+env: load .env.local
+env: export EXPO_PUBLIC_AI_PROXY_URL EXPO_PUBLIC_OPENAI_MODEL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPABASE_URL
+Starting project at C:\Users\taksi\Documents\Mira Application
+Starting Metro Bundler
+
+Waiting on http://localhost:8083
+An update for expo is available: 56.0.8 → ~56.0.11
+5 other packages may need updating. Run npx expo install --check for details.
+Logs for your project will appear below.
+λ Bundled 1443ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1432 modules)
+Web Bundled 1816ms node_modules\expo-router\entry.js (1394 modules)
+λ Bundled 771ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 942ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 21ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 202ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 17ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 197ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 18ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 186ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 20ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 195ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 15ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 171ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 16ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 239ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 21ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 188ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 17ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 182ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 16ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 217ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 17ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 182ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 767ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 1064ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 16ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 214ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 21ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 196ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 17ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 181ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 16ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 189ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 15ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 185ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 15ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 188ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 15ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 184ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 16ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 244ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 17ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 197ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 19ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 193ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 17ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 190ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 16ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 182ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 17ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 204ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 17ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 258ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 18ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 204ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 17ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 210ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 17ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 186ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 16ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 194ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 28ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 231ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 28ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 312ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 38ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 433ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 671ms node_modules\expo-router\entry.js (1317 modules)
+Web  LOG  Running application "main" with appParams:
+ {"hydrate": undefined, "rootTag": "#root"} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+Web  WARN  "shadow*" style props are deprecated. Use "boxShadow".
+Web  WARN  props.pointerEvents is deprecated. Use style.pointerEvents
+Web  WARN  Animated: `useNativeDriver` is not supported because the native animated module is missing. Falling back to JS-based animation. To resolve this, add `RCTAnimation` module to this app, or remove `useNativeDriver`. Make sure to run `bundle exec pod install` first. Read more about autolinking: https://github.com/react-native-community/cli/blob/master/docs/autolinking.md
+λ Bundled 929ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 1179ms node_modules\expo-router\entry.js (1 module)
+Web  ERROR  '[Error: [expo-router]: You are passing an array of styles to a child of <Slot>. Consider flattening the styles with StyleSheet.flatten before passing them to the child component.]'
+
+The above error occurred in the <ForwardRef(RNSlotHOC)> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, Try.
+Web  ERROR  '[Error: [expo-router]: You are passing an array of styles to a child of <Slot>. Consider flattening the styles with StyleSheet.flatten before passing them to the child component.]'
+
+The above error occurred in the <ForwardRef(RNSlotHOC)> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, Try.
+λ Bundled 1525ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 4001ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 21ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 2084ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 19ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 1928ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 33ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 2088ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 18ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 1949ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 328ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 2615ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 22ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 2149ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 19ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 2018ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 19ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 2028ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 17ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 2027ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 23ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 1953ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 19ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 2075ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 25ms node_modules\expo-router\entry.js (1 module)
+Web  INFO  %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+Web  LOG  Running application "main" with appParams:
+ {"hydrate": undefined, "rootTag": "#root"} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+Web  WARN  "shadow*" style props are deprecated. Use "boxShadow".
+Web  WARN  props.pointerEvents is deprecated. Use style.pointerEvents
+Web  WARN  Animated: `useNativeDriver` is not supported because the native animated module is missing. Falling back to JS-based animation. To resolve this, add `RCTAnimation` module to this app, or remove `useNativeDriver`. Make sure to run `bundle exec pod install` first. Read more about autolinking: https://github.com/react-native-community/cli/blob/master/docs/autolinking.md
+Web  ERROR  '[ReferenceError: healthPackages is not defined]'
+
+The above error occurred in the <PrototypeChatPanel> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, Try.
+λ Bundled 306ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 2329ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 21ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+λ Bundled 17ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+λ Bundled 20ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+λ Bundled 17ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 2758ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 2580ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 2354ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 24ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 2157ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 23ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 1968ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 23ms node_modules\expo-router\entry.js (1 module)
+Web  INFO  %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+Web  LOG  Running application "main" with appParams:
+ {"hydrate": undefined, "rootTag": "#root"} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+Web  WARN  "shadow*" style props are deprecated. Use "boxShadow".
+λ Bundled 17ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 2016ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 24ms node_modules\expo-router\entry.js (1 module)
+Web  INFO  %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+Web  LOG  Running application "main" with appParams:
+ {"hydrate": undefined, "rootTag": "#root"} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+Web  WARN  "shadow*" style props are deprecated. Use "boxShadow".
+λ Bundled 644ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 2699ms node_modules\expo-router\entry.js (1 module)
+Web  WARN  props.pointerEvents is deprecated. Use style.pointerEvents
+Web  WARN  Animated: `useNativeDriver` is not supported because the native animated module is missing. Falling back to JS-based animation. To resolve this, add `RCTAnimation` module to this app, or remove `useNativeDriver`. Make sure to run `bundle exec pod install` first. Read more about autolinking: https://github.com/react-native-community/cli/blob/master/docs/autolinking.md
+λ Bundled 345ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 2599ms node_modules\expo-router\entry.js (1 module)
+Unable to resolve "@/lib/showcase/demoFixtures" from "components\HealthInsightScreens.tsx"
+[0m [90m  8 |[39m [36mimport[39m { confirmLabResults } [36mfrom[39m [32m'@/lib/health/labConfirm'[39m[33m;[39m
+ [90m  9 |[39m [36mimport[39m { loadHealthDashboardData[33m,[39m type [33mHealthDashboardData[39m[33m,[39m type [33mLabReportWithResults[39m } [36mfrom[39m [32m'@/lib/health/v2HealthDashboard'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mimport[39m type { [33mLabResultRow[39m[33m,[39m [33mUserFactRow[39m[33m,[39m [33mWearableMetricRow[39m } [36mfrom[39m [32m'@/lib/types/api'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 11 |[39m
+ [90m 12 |[39m type [33mHealthInsightKind[39m [33m=[39m [32m'overview'[39m [33m|[39m [32m'results'[39m [33m|[39m [32m'wearable'[39m[33m;[39m
+ [90m 13 |[39m type [33mInsightRoute[39m [33m=[39m [32m'/ai-body-overview'[39m [33m|[39m [32m'/body-overview'[39m [33m|[39m [32m'/health-check-results'[39m [33m|[39m [32m'/user-profile'[39m [33m|[39m [32m'/wearable-health'[39m[33m;[39m[0m
+
+Import stack:
+
+ components\HealthInsightScreens.tsx
+ | import "@/lib/showcase/demoFixtures"
+
+ app\body-overview.tsx
+ | import "@/components/HealthInsightScreens"
+
+ app (require.context)
+
+λ Bundled 2170ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 3863ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 26ms node_modules\expo-router\entry.js (1 module)
+Web  INFO  %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+Web  LOG  Running application "main" with appParams:
+ {"hydrate": undefined, "rootTag": "#root"} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+Web  WARN  "shadow*" style props are deprecated. Use "boxShadow".
+Web  WARN  props.pointerEvents is deprecated. Use style.pointerEvents
+Web  WARN  Animated: `useNativeDriver` is not supported because the native animated module is missing. Falling back to JS-based animation. To resolve this, add `RCTAnimation` module to this app, or remove `useNativeDriver`. Make sure to run `bundle exec pod install` first. Read more about autolinking: https://github.com/react-native-community/cli/blob/master/docs/autolinking.md
+λ Bundled 2071ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+λ Bundled 2063ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 6412ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 6362ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 28ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 30ms node_modules\expo-router\entry.js (1 module)
+Web  INFO  %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+Web  LOG  Running application "main" with appParams:
+ {"hydrate": undefined, "rootTag": "#root"} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+Web  WARN  "shadow*" style props are deprecated. Use "boxShadow".
+Web  WARN  props.pointerEvents is deprecated. Use style.pointerEvents
+Web  WARN  Animated: `useNativeDriver` is not supported because the native animated module is missing. Falling back to JS-based animation. To resolve this, add `RCTAnimation` module to this app, or remove `useNativeDriver`. Make sure to run `bundle exec pod install` first. Read more about autolinking: https://github.com/react-native-community/cli/blob/master/docs/autolinking.md
+Web  INFO  %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+Web  LOG  Running application "main" with appParams:
+ {"hydrate": undefined, "rootTag": "#root"} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+Web  WARN  "shadow*" style props are deprecated. Use "boxShadow".
+λ Bundled 1466ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+λ Bundled 1456ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 4321ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 4269ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 30ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 30ms node_modules\expo-router\entry.js (1 module)
+Web  INFO  %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+Web  LOG  Running application "main" with appParams:
+ {"hydrate": undefined, "rootTag": "#root"} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+Web  WARN  "shadow*" style props are deprecated. Use "boxShadow".
+Web  WARN  props.pointerEvents is deprecated. Use style.pointerEvents
+Web  WARN  Animated: `useNativeDriver` is not supported because the native animated module is missing. Falling back to JS-based animation. To resolve this, add `RCTAnimation` module to this app, or remove `useNativeDriver`. Make sure to run `bundle exec pod install` first. Read more about autolinking: https://github.com/react-native-community/cli/blob/master/docs/autolinking.md
+Web  INFO  %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+Web  LOG  Running application "main" with appParams:
+ {"hydrate": undefined, "rootTag": "#root"} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+Web  WARN  "shadow*" style props are deprecated. Use "boxShadow".
+λ Bundled 2177ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+λ Bundled 3963ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 12089ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 45ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 12832ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 54ms node_modules\expo-router\entry.js (1 module)
+Web  INFO  %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+Web  LOG  Running application "main" with appParams:
+ {"hydrate": undefined, "rootTag": "#root"} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+Web  WARN  "shadow*" style props are deprecated. Use "boxShadow".
+Web  INFO  %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+Web  LOG  Running application "main" with appParams:
+ {"hydrate": undefined, "rootTag": "#root"} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+Web  WARN  "shadow*" style props are deprecated. Use "boxShadow".
+Web  WARN  props.pointerEvents is deprecated. Use style.pointerEvents
+Web  WARN  Animated: `useNativeDriver` is not supported because the native animated module is missing. Falling back to JS-based animation. To resolve this, add `RCTAnimation` module to this app, or remove `useNativeDriver`. Make sure to run `bundle exec pod install` first. Read more about autolinking: https://github.com/react-native-community/cli/blob/master/docs/autolinking.md
+λ Bundled 1110ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 5556ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 573ms node_modules\expo-router\entry.js (1 module)
+Web  INFO  %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+Web  LOG  Running application "main" with appParams:
+ {"hydrate": undefined, "rootTag": "#root"} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+Web  WARN  "shadow*" style props are deprecated. Use "boxShadow".
+Unable to resolve "@/assets/motion/mira-landing-motion.gif" from "components\MiraLandingPage.tsx"
+[0m [90m  8 |[39m [36mimport[39m { [33mMiraDesign[39m } [36mfrom[39m [32m'@/constants/Design'[39m[33m;[39m
+ [90m  9 |[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m heroMotion [33m=[39m require([32m'@/assets/motion/mira-landing-motion.gif'[39m)[33m;[39m
+ [90m    |[39m                             [31m[1m^[22m[39m
+ [90m 11 |[39m
+ [90m 12 |[39m [36mconst[39m processSteps [33m=[39m [
+ [90m 13 |[39m   [[32m'01'[39m[33m,[39m [32m'ต่อข้อมูลขององค์กร'[39m[33m,[39m [32m'นำสินค้า ราคา สาขา เงื่อนไขบริการ และชุดข้อมูลที่ทีมคุณใช้จริงมาเป็นฐานให้ Mira ทำงาน'[39m][33m,[39m[0m
+
+Import stack:
+
+ components\MiraLandingPage.tsx
+ | import "@/assets/motion/mira-landing-motion.gif"
+
+ app\index.tsx
+ | import "@/components/MiraLandingPage"
+
+ app (require.context)
+
+Unable to resolve "@/assets/motion/mira-landing-motion.gif" from "components\MiraLandingPage.tsx"
+[0m [90m  8 |[39m [36mimport[39m { [33mMiraDesign[39m } [36mfrom[39m [32m'@/constants/Design'[39m[33m;[39m
+ [90m  9 |[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m heroMotion [33m=[39m require([32m'@/assets/motion/mira-landing-motion.gif'[39m)[33m;[39m
+ [90m    |[39m                             [31m[1m^[22m[39m
+ [90m 11 |[39m
+ [90m 12 |[39m [36mconst[39m landingColor [33m=[39m {
+ [90m 13 |[39m   blueBright[33m:[39m [32m'#3F8EFC'[39m[33m,[39m[0m
+
+Import stack:
+
+ components\MiraLandingPage.tsx
+ | import "@/assets/motion/mira-landing-motion.gif"
+
+ app\index.tsx
+ | import "@/components/MiraLandingPage"
+
+ app (require.context)
+
+Unable to resolve "@/assets/motion/mira-landing-motion.gif" from "components\MiraLandingPage.tsx"
+[0m [90m  8 |[39m [36mimport[39m { [33mMiraDesign[39m } [36mfrom[39m [32m'@/constants/Design'[39m[33m;[39m
+ [90m  9 |[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m heroMotion [33m=[39m require([32m'@/assets/motion/mira-landing-motion.gif'[39m)[33m;[39m
+ [90m    |[39m                             [31m[1m^[22m[39m
+ [90m 11 |[39m
+ [90m 12 |[39m [36mconst[39m landingColor [33m=[39m {
+ [90m 13 |[39m   blueBright[33m:[39m [32m'#3F8EFC'[39m[33m,[39m[0m
+
+Import stack:
+
+ components\MiraLandingPage.tsx
+ | import "@/assets/motion/mira-landing-motion.gif"
+
+ app\index.tsx
+ | import "@/components/MiraLandingPage"
+
+ app (require.context)
+
+Unable to resolve "@/assets/motion/mira-landing-motion.gif" from "components\MiraLandingPage.tsx"
+[0m [90m  8 |[39m [36mimport[39m { [33mMiraDesign[39m } [36mfrom[39m [32m'@/constants/Design'[39m[33m;[39m
+ [90m  9 |[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m heroMotion [33m=[39m require([32m'@/assets/motion/mira-landing-motion.gif'[39m)[33m;[39m
+ [90m    |[39m                             [31m[1m^[22m[39m
+ [90m 11 |[39m
+ [90m 12 |[39m [36mconst[39m landingColor [33m=[39m {
+ [90m 13 |[39m   blueBright[33m:[39m [32m'#3F8EFC'[39m[33m,[39m[0m
+
+Import stack:
+
+ components\MiraLandingPage.tsx
+ | import "@/assets/motion/mira-landing-motion.gif"
+
+ app\index.tsx
+ | import "@/components/MiraLandingPage"
+
+ app (require.context)
+
+Unable to resolve "@/assets/motion/mira-landing-motion.gif" from "components\MiraLandingPage.tsx"
+[0m [90m  8 |[39m [36mimport[39m { [33mMiraDesign[39m } [36mfrom[39m [32m'@/constants/Design'[39m[33m;[39m
+ [90m  9 |[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m heroMotion [33m=[39m require([32m'@/assets/motion/mira-landing-motion.gif'[39m)[33m;[39m
+ [90m    |[39m                             [31m[1m^[22m[39m
+ [90m 11 |[39m
+ [90m 12 |[39m [36mconst[39m landingColor [33m=[39m {
+ [90m 13 |[39m   blueBright[33m:[39m [32m'#3F8EFC'[39m[33m,[39m[0m
+
+Import stack:
+
+ components\MiraLandingPage.tsx
+ | import "@/assets/motion/mira-landing-motion.gif"
+
+ app\index.tsx
+ | import "@/components/MiraLandingPage"
+
+ app (require.context)
+
+λ Bundled 32688ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 138722ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 535298ms node_modules\expo-router\entry.js (1 module)
+Web  INFO  %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+Web  LOG  Running application "main" with appParams:
+ {"hydrate": undefined, "rootTag": "#root"} 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+Web  WARN  "shadow*" style props are deprecated. Use "boxShadow".
+λ Bundled 140476ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+λ Bundled 209296ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 842703ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 889330ms node_modules\expo-router\entry.js (1 module)

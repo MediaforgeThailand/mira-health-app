@@ -1,0 +1,27 @@
+ INFO  Accepting connections at http://localhost:8098
+ HTTP  12/6/2569 18:41:09 ::1 GET /partner
+ HTTP  12/6/2569 18:41:09 ::1 Returned 200 in 14 ms
+ HTTP  12/6/2569 18:41:09 ::1 GET /assets/assets/fonts/SpaceMono-Regular.49a79d66bdea2debf1832bf4d7aca127.ttf
+ HTTP  12/6/2569 18:41:09 ::1 GET /_expo/static/js/web/entry-dfa717ffa7b3db6c3fa15fb43720bd55.js
+ HTTP  12/6/2569 18:41:09 ::1 Returned 200 in 4 ms
+ HTTP  12/6/2569 18:41:09 ::1 Returned 200 in 16 ms
+ HTTP  12/6/2569 18:41:10 ::1 GET /favicon.ico
+ HTTP  12/6/2569 18:41:10 ::1 Returned 200 in 3 ms
+ HTTP  12/6/2569 18:41:10 ::1 GET /assets/assets/motion/mira-landing-motion.7498df0a2b655f6f2d5994e0f01d4412.gif
+ HTTP  12/6/2569 18:41:10 ::1 GET /assets/node_modules/@expo-google-fonts/material-symbols/400Regular/MaterialSymbols_400Regular.209e47c0a53beec43565c37e47082989.ttf
+ HTTP  12/6/2569 18:41:10 ::1 Returned 200 in 6 ms
+ HTTP  12/6/2569 18:41:10 ::1 Returned 200 in 21 ms
+ HTTP  12/6/2569 18:41:29 ::1 GET /partner.html
+ HTTP  12/6/2569 18:41:29 ::1 Returned 301 in 1 ms
+ HTTP  12/6/2569 18:41:29 ::1 GET /partner
+ HTTP  12/6/2569 18:41:29 ::1 Returned 200 in 1 ms
+ HTTP  12/6/2569 18:41:29 ::1 GET /assets/assets/fonts/SpaceMono-Regular.49a79d66bdea2debf1832bf4d7aca127.ttf
+ HTTP  12/6/2569 18:41:29 ::1 GET /_expo/static/js/web/entry-dfa717ffa7b3db6c3fa15fb43720bd55.js
+ HTTP  12/6/2569 18:41:29 ::1 Returned 200 in 3 ms
+ HTTP  12/6/2569 18:41:29 ::1 Returned 200 in 2 ms
+ HTTP  12/6/2569 18:41:29 ::1 GET /favicon.ico
+ HTTP  12/6/2569 18:41:29 ::1 Returned 200 in 2 ms
+ HTTP  12/6/2569 18:41:29 ::1 GET /assets/assets/motion/mira-landing-motion.7498df0a2b655f6f2d5994e0f01d4412.gif
+ HTTP  12/6/2569 18:41:29 ::1 Returned 200 in 2 ms
+ HTTP  12/6/2569 18:41:29 ::1 GET /assets/node_modules/@expo-google-fonts/material-symbols/400Regular/MaterialSymbols_400Regular.209e47c0a53beec43565c37e47082989.ttf
+ HTTP  12/6/2569 18:41:29 ::1 Returned 200 in 1 ms

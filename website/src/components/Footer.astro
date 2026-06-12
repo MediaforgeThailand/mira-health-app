@@ -1,6 +1,7 @@
 ---
 const links = [
-  { href: '#ai-chat', label: 'แพลตฟอร์ม' },
+  { href: '#ai-chat', label: 'AI Chat' },
+  { href: '#admin', label: 'หลังบ้าน' },
   { href: '#referral', label: 'Referral' },
   { href: '#miracare', label: 'MiraCare' },
   { href: '#mirabeauty', label: 'MiraBeauty' },
@@ -10,9 +11,12 @@ const links = [
 
 <footer class="footer">
   <div class="container footer-inner">
-    <a class="wordmark" href="#top" aria-label="Mira home">
-      <span>Mira</span><span class="wordmark-dot" aria-hidden="true"></span>
-    </a>
+    <div>
+      <a class="wordmark" href="#top" aria-label="Mira home">
+        <span>Mira</span><span class="wordmark-dot" aria-hidden="true"></span>
+      </a>
+      <p class="tagline">AI Chat ที่ขายเป็น × Referral ที่ขยายยอดขาย</p>
+    </div>
     <p>© MediaForge</p>
     <nav aria-label="ท้ายหน้า">
       {links.map((link) => <a href={link.href}>{link.label}</a>)}
@@ -25,13 +29,13 @@ const links = [
     border-top: 1px solid var(--night-line);
     background: var(--night);
     color: var(--muted-dark);
-    padding: 1.5rem 0 2rem;
+    padding: 1.7rem 0 2.1rem;
   }
 
   .footer-inner {
     display: grid;
     grid-template-columns: auto auto 1fr;
-    gap: 1.25rem;
+    gap: 1.5rem;
     align-items: center;
   }
 
@@ -39,7 +43,7 @@ const links = [
     display: inline-flex;
     align-items: center;
     gap: 0.28rem;
-    color: var(--canvas);
+    color: #EAF1FF;
     font-family: "Space Grotesk", system-ui, sans-serif;
     font-size: 1.18rem;
     font-weight: 600;
@@ -50,7 +54,13 @@ const links = [
     width: 0.4rem;
     height: 0.4rem;
     border-radius: 50%;
-    background: var(--mint);
+    background: var(--brand-bright);
+    box-shadow: 0 0 14px var(--glow-brand);
+  }
+
+  .tagline {
+    margin: 0.45rem 0 0;
+    font-size: 0.82rem;
   }
 
   p {
@@ -71,7 +81,7 @@ const links = [
   }
 
   a:hover {
-    color: var(--canvas);
+    color: #EAF1FF;
   }
 
   @media (max-width: 760px) {

@@ -1,45 +1,53 @@
----
+﻿---
 import MotionLoop from './MotionLoop.astro';
 ---
 
-<section id="contact" class="cta-section section-dark grain">
+<section id="contact" class="cta-section section-dark grain" data-spotlight>
   <div class="cta-media" aria-hidden="true">
     <MotionLoop name="hero-aurora" />
   </div>
+  <div class="cta-spot" aria-hidden="true"></div>
   <div class="container cta-inner">
-    <div data-reveal>
-      <h2 class="section-title">อยากเห็น Mira ขายให้องค์กรคุณ?</h2>
-      <p class="section-sub">นัดดูเดโมสด 30 นาที — เห็นทั้งฝั่งลูกค้าและหลังบ้าน ด้วยข้อมูลตัวอย่างของธุรกิจแบบคุณ</p>
-      <div class="cta-mini">
-        <span>AI Chat</span>
-        <span>Referral</span>
-        <span>Back office</span>
-      </div>
+    <div class="cta-copy" data-reveal>
+      <p class="kicker">
+        <span class="kicker-num">06</span>
+        <span class="kicker-rule"></span>
+        à¹€à¸£à¸´à¹ˆà¸¡à¹„à¸”à¹‰à¸ à¸²à¸¢à¹ƒà¸™ 30 à¸™à¸²à¸—à¸µ
+      </p>
+      <h2 class="section-title">à¸­à¸¢à¸²à¸à¹€à¸«à¹‡à¸™ Mira <span class="gradient-text">à¸‚à¸²à¸¢à¹ƒà¸«à¹‰à¸­à¸‡à¸„à¹Œà¸à¸£à¸„à¸¸à¸“</span>?</h2>
+      <p class="section-sub">à¸™à¸±à¸”à¸”à¸¹à¹€à¸”à¹‚à¸¡à¸ªà¸” 30 à¸™à¸²à¸—à¸µ â€” à¹€à¸«à¹‡à¸™à¸‚à¸­à¸‡à¸ˆà¸£à¸´à¸‡à¸—à¸±à¹‰à¸‡à¸ªà¸­à¸‡à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸¢à¸™à¸•à¹Œ à¸”à¹‰à¸§à¸¢à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸•à¸±à¸§à¸­à¸¢à¹ˆà¸²à¸‡à¸‚à¸­à¸‡à¸˜à¸¸à¸£à¸à¸´à¸ˆà¹à¸šà¸šà¸„à¸¸à¸“</p>
+      <ul class="cta-ticks">
+        <li>à¹€à¸«à¹‡à¸™à¸à¸±à¹ˆà¸‡à¸¥à¸¹à¸à¸„à¹‰à¸²: AI Chat à¹à¸™à¸°à¸™à¸³ â†’ à¸›à¸´à¸”à¸à¸²à¸£à¸‚à¸²à¸¢ â†’ à¸Šà¸³à¸£à¸°à¹€à¸‡à¸´à¸™</li>
+        <li>à¹€à¸«à¹‡à¸™à¸à¸±à¹ˆà¸‡à¸—à¸µà¸¡à¸„à¸¸à¸“: à¸«à¸¥à¸±à¸‡à¸šà¹‰à¸²à¸™ à¹à¸„à¸•à¸•à¸²à¸¥à¹‡à¸­à¸ à¸­à¸­à¹€à¸”à¸­à¸£à¹Œ à¸ªà¹ˆà¸§à¸™à¹à¸šà¹ˆà¸‡</li>
+        <li>à¹€à¸«à¹‡à¸™ Referral à¸—à¸³à¸‡à¸²à¸™à¸ˆà¸£à¸´à¸‡à¸•à¸±à¹‰à¸‡à¹à¸•à¹ˆà¹à¸Šà¸£à¹Œà¸¥à¸´à¸‡à¸à¹Œà¸ˆà¸™à¸ªà¹ˆà¸§à¸™à¹à¸šà¹ˆà¸‡à¹€à¸‚à¹‰à¸²</li>
+      </ul>
     </div>
 
     <form class="contact-form glass-panel" data-contact-form data-mailto="hello@mira.com">
       <label>
-        <span>ชื่อ</span>
+        <span>à¸Šà¸·à¹ˆà¸­</span>
         <input name="name" autocomplete="name" required />
       </label>
       <label>
-        <span>องค์กร</span>
+        <span>à¸­à¸‡à¸„à¹Œà¸à¸£</span>
         <input name="organization" autocomplete="organization" required />
       </label>
       <label>
-        <span>อีเมลหรือเบอร์ติดต่อ</span>
+        <span>à¸­à¸µà¹€à¸¡à¸¥à¸«à¸£à¸·à¸­à¹€à¸šà¸­à¸£à¹Œà¸•à¸´à¸”à¸•à¹ˆà¸­</span>
         <input name="contact" autocomplete="email" required />
       </label>
       <label>
-        <span>ประเภทธุรกิจ</span>
+        <span>à¸›à¸£à¸°à¹€à¸ à¸—à¸˜à¸¸à¸£à¸à¸´à¸ˆ</span>
         <select name="businessType" required>
-          <option value="">เลือกประเภท</option>
-          <option>โรงพยาบาล</option>
-          <option>คลินิกความงาม</option>
-          <option>อื่น ๆ</option>
+          <option value="">à¹€à¸¥à¸·à¸­à¸à¸›à¸£à¸°à¹€à¸ à¸—</option>
+          <option>à¹‚à¸£à¸‡à¸žà¸¢à¸²à¸šà¸²à¸¥</option>
+          <option>à¸„à¸¥à¸´à¸™à¸´à¸à¸„à¸§à¸²à¸¡à¸‡à¸²à¸¡</option>
+          <option>à¸­à¸·à¹ˆà¸™ à¹†</option>
         </select>
       </label>
-      <button type="submit">ส่งคำขอนัดเดโม</button>
+      <button type="submit" data-magnetic>à¸ªà¹ˆà¸‡à¸„à¸³à¸‚à¸­à¸™à¸±à¸”à¹€à¸”à¹‚à¸¡à¸Ÿà¸£à¸µ</button>
+      <p class="form-foot">à¸•à¸­à¸šà¸à¸¥à¸±à¸šà¸ à¸²à¸¢à¹ƒà¸™ 1 à¸§à¸±à¸™à¸—à¸³à¸à¸²à¸£ Â· à¹„à¸¡à¹ˆà¸¡à¸µà¸„à¹ˆà¸²à¹ƒà¸Šà¹‰à¸ˆà¹ˆà¸²à¸¢</p>
+      <p class="form-note" data-form-note hidden>à¹€à¸›à¸´à¸”à¹à¸­à¸›à¸­à¸µà¹€à¸¡à¸¥à¸‚à¸­à¸‡à¸„à¸¸à¸“à¹à¸¥à¹‰à¸§ â€” à¸–à¹‰à¸²à¹„à¸¡à¹ˆà¸‚à¸¶à¹‰à¸™ à¸ªà¹ˆà¸‡à¸•à¸£à¸‡à¹„à¸”à¹‰à¸—à¸µà¹ˆ hello@mira.com</p>
     </form>
   </div>
 </section>
@@ -54,14 +62,21 @@ import MotionLoop from './MotionLoop.astro';
   .cta-media {
     position: absolute;
     inset: 0;
-    opacity: 0.28;
+    opacity: 0.3;
+  }
+
+  .cta-spot {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(560px circle at var(--mx, 70%) var(--my, 30%), rgba(46, 107, 246, 0.22), transparent 60%);
   }
 
   .cta-inner {
     position: relative;
     z-index: 2;
     display: grid;
-    grid-template-columns: minmax(0, 0.9fr) minmax(340px, 0.7fr);
+    grid-template-columns: minmax(0, 0.95fr) minmax(340px, 0.7fr);
     gap: clamp(2rem, 5vw, 4rem);
     align-items: center;
   }
@@ -70,26 +85,41 @@ import MotionLoop from './MotionLoop.astro';
     max-width: 780px;
   }
 
-  .cta-mini {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-top: 1.5rem;
+  .cta-ticks {
+    display: grid;
+    gap: 0.7rem;
+    margin: 1.4rem 0 0;
+    padding: 0;
+    list-style: none;
   }
 
-  .cta-mini span {
-    border: 1px solid var(--night-line);
-    border-radius: var(--radius-pill);
-    background: rgba(255, 255, 255, 0.06);
+  .cta-ticks li {
+    position: relative;
     color: var(--muted-dark);
-    font-family: "Space Grotesk", sans-serif;
-    padding: 0.45rem 0.72rem;
+    padding-left: 1.9rem;
+  }
+
+  .cta-ticks li::before {
+    position: absolute;
+    top: 0.18rem;
+    left: 0;
+    display: grid;
+    width: 20px;
+    height: 20px;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(84, 207, 165, 0.16);
+    color: var(--mint);
+    content: "âœ“";
+    font-size: 0.7rem;
+    font-weight: 700;
   }
 
   .contact-form {
     display: grid;
     gap: 0.9rem;
     border-radius: 28px;
+    box-shadow: var(--shadow-glow);
     padding: clamp(1.1rem, 2.6vw, 1.6rem);
   }
 
@@ -106,29 +136,70 @@ import MotionLoop from './MotionLoop.astro';
     min-height: 48px;
     border: 1px solid var(--night-line);
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--canvas);
+    background: rgba(214, 226, 255, 0.08);
+    color: #EAF1FF;
     padding: 0.75rem 0.85rem;
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  input:focus,
+  select:focus {
+    border-color: rgba(63, 142, 252, 0.65);
+    box-shadow: 0 0 0 3px rgba(46, 107, 246, 0.22);
+    outline: none;
   }
 
   select option {
     background: var(--night);
-    color: var(--canvas);
+    color: #EAF1FF;
   }
 
   button {
-    min-height: 50px;
+    position: relative;
+    min-height: 52px;
     border: 0;
     border-radius: var(--radius-pill);
-    background: linear-gradient(110deg, var(--teal), var(--mint));
-    color: var(--night);
+    background: var(--grad-brand);
+    box-shadow: var(--shadow-glow);
+    color: #fff;
     cursor: pointer;
     font-weight: 600;
+    overflow: hidden;
     transition: transform 180ms ease;
+  }
+
+  button::before {
+    position: absolute;
+    inset: 0;
+    content: "";
+    transform: translateX(-110%) skewX(-16deg);
+    background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.34) 50%, transparent 80%);
+    transition: transform 700ms var(--ease-out);
+  }
+
+  button:hover::before {
+    transform: translateX(110%) skewX(-16deg);
   }
 
   button:hover {
     transform: translateY(-2px);
+  }
+
+  .form-foot {
+    margin: 0;
+    color: var(--muted-dark);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+
+  .form-note {
+    margin: 0;
+    border-radius: 12px;
+    background: rgba(84, 207, 165, 0.13);
+    color: var(--mint);
+    font-size: 0.88rem;
+    padding: 0.6rem 0.8rem;
+    text-align: center;
   }
 
   @media (max-width: 860px) {

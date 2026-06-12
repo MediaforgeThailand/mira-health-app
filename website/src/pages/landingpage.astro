@@ -1,4 +1,4 @@
----
+﻿---
 import '../styles/tokens.css';
 import '../styles/base.css';
 import Nav from '../components/Nav.astro';
@@ -12,8 +12,8 @@ import VerticalBeauty from '../components/VerticalBeauty.astro';
 import Cta from '../components/Cta.astro';
 import Footer from '../components/Footer.astro';
 
-const title = 'Mira — AI Chat ที่ขายเป็น | แพลตฟอร์ม AI Sales Chat + Referral สำหรับองค์กร';
-const description = 'Mira เปลี่ยนแชทให้เป็นยอดขายด้วย AI Sales Chat, Referral Program, หลังบ้าน และช่องทาง PWA, App, LINE OA สำหรับองค์กร';
+const title = 'Mira â€” AI Chat à¸—à¸µà¹ˆà¸‚à¸²à¸¢à¹€à¸›à¹‡à¸™ | à¹à¸žà¸¥à¸•à¸Ÿà¸­à¸£à¹Œà¸¡ AI Sales Chat + Referral à¸ªà¸³à¸«à¸£à¸±à¸šà¸­à¸‡à¸„à¹Œà¸à¸£';
+const description = 'Mira à¹€à¸›à¸¥à¸µà¹ˆà¸¢à¸™à¹à¸Šà¸—à¹ƒà¸«à¹‰à¹€à¸›à¹‡à¸™à¸¢à¸­à¸”à¸‚à¸²à¸¢à¸”à¹‰à¸§à¸¢ AI Sales Chat, Referral Program, à¸«à¸¥à¸±à¸‡à¸šà¹‰à¸²à¸™ à¹à¸¥à¸°à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡ PWA, App, LINE OA à¸ªà¸³à¸«à¸£à¸±à¸šà¸­à¸‡à¸„à¹Œà¸à¸£';
 const jsonLd = [
   {
     '@context': 'https://schema.org',
@@ -48,7 +48,7 @@ const jsonLd = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#06181C" />
+    <meta name="theme-color" content="#051226" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preload" href="/fonts/anuphan-thai-400-normal.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/anuphan-thai-600-normal.woff2" as="font" type="font/woff2" crossorigin />
@@ -62,8 +62,14 @@ const jsonLd = [
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content="/og.png" />
     <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />
+    <script is:inline>
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.classList.add('has-motion');
+      }
+    </script>
   </head>
   <body>
+    <div class="scroll-progress" aria-hidden="true"><span></span></div>
     <Nav />
     <main>
       <Hero />
@@ -72,9 +78,17 @@ const jsonLd = [
       <SectionReferral />
       <SectionChannels />
       <section class="verticals-intro section-shell section-light">
-        <div class="container" data-reveal>
-          <h2 class="section-title">หนึ่งแพลตฟอร์ม หลายอุตสาหกรรม</h2>
-          <p class="section-sub">แกนเดียวกัน — AI Chat + Referral + หลังบ้าน — ปรับโฉมและความสามารถให้เข้ากับธุรกิจของคุณ</p>
+        <div class="container section-head">
+          <span class="ghost-word" aria-hidden="true">INDUSTRIES</span>
+          <p class="kicker" data-reveal>
+            <span class="kicker-num">05</span>
+            <span class="kicker-rule"></span>
+            à¸ªà¸­à¸‡à¹€à¸§à¸­à¸£à¹Œà¸Šà¸±à¸™ à¸ªà¸³à¸«à¸£à¸±à¸šà¸ªà¸­à¸‡à¸˜à¸¸à¸£à¸à¸´à¸ˆ
+          </p>
+          <h2 class="section-title" data-reveal>à¸«à¸™à¸¶à¹ˆà¸‡à¹à¸žà¸¥à¸•à¸Ÿà¸­à¸£à¹Œà¸¡ <span class="gradient-text">à¸«à¸¥à¸²à¸¢à¸­à¸¸à¸•à¸ªà¸²à¸«à¸à¸£à¸£à¸¡</span></h2>
+          <p class="section-sub" data-reveal>
+            à¹à¸à¸™à¹€à¸”à¸µà¸¢à¸§à¸à¸±à¸™ â€” AI Chat + Referral + à¸«à¸¥à¸±à¸‡à¸šà¹‰à¸²à¸™ â€” à¸›à¸£à¸±à¸šà¹‚à¸‰à¸¡à¹à¸¥à¸°à¸„à¸§à¸²à¸¡à¸ªà¸²à¸¡à¸²à¸£à¸–à¹ƒà¸«à¹‰à¹€à¸‚à¹‰à¸²à¸à¸±à¸šà¸˜à¸¸à¸£à¸à¸´à¸ˆà¸‚à¸­à¸‡à¸„à¸¸à¸“
+          </p>
         </div>
       </section>
       <VerticalCare />

@@ -1,4 +1,4 @@
-@font-face {
+﻿@font-face {
   font-family: "Anuphan";
   src: url("/fonts/anuphan-thai-400-normal.woff2") format("woff2");
   font-display: swap;
@@ -98,8 +98,13 @@ video {
   max-width: 100%;
 }
 
+::selection {
+  background: var(--brand);
+  color: #fff;
+}
+
 :focus-visible {
-  outline: 2px solid var(--teal);
+  outline: 2px solid var(--brand);
   outline-offset: 4px;
 }
 
@@ -108,27 +113,45 @@ video {
   margin: 0 auto;
 }
 
+/* ===== scroll progress bar ===== */
+.scroll-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 80;
+  height: 3px;
+  pointer-events: none;
+}
+
+.scroll-progress span {
+  display: block;
+  height: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: var(--grad-brand);
+}
+
+/* ===== typography patterns ===== */
 .eyebrow {
-  color: var(--teal-deep);
+  color: var(--brand);
   font-family: "Space Grotesk", system-ui, sans-serif;
   font-size: 0.8125rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.18em;
   line-height: 1.35;
   text-transform: uppercase;
 }
 
-.dark .eyebrow,
-.section-dark .eyebrow {
-  color: var(--mint);
+.section-dark .eyebrow,
+.dark .eyebrow {
+  color: var(--sky);
 }
 
 .section-title {
   margin: 0;
-  font-size: clamp(1.9rem, 4vw, 3.25rem);
+  font-size: clamp(2rem, 4.4vw, 3.6rem);
   font-weight: 600;
   letter-spacing: 0;
-  line-height: 1.14;
+  line-height: 1.12;
 }
 
 .section-sub {
@@ -143,6 +166,168 @@ video {
   color: var(--muted-dark);
 }
 
+/* chapter kicker: 01 â”€â”€â”€ LABEL */
+.kicker {
+  display: flex;
+  gap: 0.85rem;
+  align-items: center;
+  margin: 0 0 1.1rem;
+  color: var(--brand);
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.kicker .kicker-num {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+}
+
+.kicker .kicker-rule {
+  width: 56px;
+  height: 1px;
+  flex: none;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.section-dark .kicker,
+.dark .kicker {
+  color: var(--sky);
+}
+
+/* pain hook — one short line above the solution headline */
+.pain-line {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  max-width: 640px;
+  margin: 0 0 0.9rem;
+  color: var(--ink-soft);
+  font-size: clamp(1rem, 1.7vw, 1.15rem);
+  line-height: 1.55;
+}
+
+.pain-line::before {
+  flex: none;
+  content: "✗";
+  color: var(--rose-deep);
+  font-weight: 700;
+}
+
+.section-dark .pain-line,
+.dark .pain-line {
+  color: var(--muted-dark);
+}
+
+.section-dark .pain-line::before,
+.dark .pain-line::before {
+  color: var(--rose);
+}
+
+/* bold key-claim statement bar */
+.key-claim {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+  max-width: 720px;
+  margin: 1.4rem 0 0;
+  border-left: 3px solid var(--brand);
+  padding: 0.35rem 0 0.35rem 1rem;
+  color: var(--ink);
+  font-size: clamp(1.05rem, 1.8vw, 1.25rem);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.section-dark .key-claim,
+.dark .key-claim {
+  border-left-color: var(--sky);
+  color: #EAF1FF;
+}
+
+/* giant ghost word behind section heads */
+.section-head {
+  position: relative;
+}
+
+.ghost-word {
+  position: absolute;
+  top: -0.55em;
+  left: -0.04em;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+  color: transparent;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: clamp(4.5rem, 13vw, 11rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  -webkit-text-stroke: 1.5px rgba(46, 107, 246, 0.16);
+}
+
+.section-dark .ghost-word,
+.dark .ghost-word {
+  -webkit-text-stroke: 1.5px rgba(147, 187, 254, 0.16);
+}
+
+.section-head > *:not(.ghost-word) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== marquee band ===== */
+.marquee {
+  position: relative;
+  overflow: clip;
+  white-space: nowrap;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.marquee-track {
+  display: inline-flex;
+  gap: 2.4rem;
+  align-items: center;
+  padding-right: 2.4rem;
+  will-change: transform;
+  animation: marqueeScroll var(--marquee-speed, 26s) linear infinite;
+}
+
+@keyframes marqueeScroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-item {
+  display: inline-flex;
+  gap: 2.4rem;
+  align-items: center;
+  font-family: "Space Grotesk", "Anuphan", sans-serif;
+  font-weight: 600;
+}
+
+.marquee-dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--brand);
+}
+
+/* ===== sections ===== */
 .section-shell {
   position: relative;
   padding: clamp(4.5rem, 8vw, 7.5rem) 0;
@@ -161,7 +346,7 @@ video {
 
 .section-dark {
   background: var(--night);
-  color: var(--canvas);
+  color: #EAF1FF;
 }
 
 .grain::after {
@@ -175,20 +360,27 @@ video {
     radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px);
   background-size: 22px 22px, 18px 18px;
   mix-blend-mode: overlay;
-  opacity: 0.03;
+  opacity: 0.04;
 }
 
 .glass-panel {
   border: 1px solid var(--night-line);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(214, 226, 255, 0.05);
   backdrop-filter: blur(14px);
 }
 
 .gradient-text {
   color: transparent;
-  background: linear-gradient(110deg, var(--teal) 0%, var(--mint) 92%);
+  background: var(--grad-text-light);
+  background-size: 180% 100%;
   -webkit-background-clip: text;
   background-clip: text;
+}
+
+.section-dark .gradient-text,
+.dark .gradient-text {
+  background-image: var(--grad-text-dark);
+  background-size: 180% 100%;
 }
 
 .display-accent {
@@ -216,8 +408,78 @@ video {
   gap: 1rem;
 }
 
-[data-reveal] {
-  transform: translateZ(0);
+/* per-section conversion link */
+.mini-cta {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 2rem;
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.mini-cta .arrow {
+  display: inline-block;
+  transition: transform 200ms var(--ease-out);
+}
+
+.mini-cta:hover .arrow {
+  transform: translateX(6px);
+}
+
+.section-dark .mini-cta,
+.dark .mini-cta {
+  color: var(--sky);
+}
+
+/* ===== motion primitives ===== */
+html.has-motion [data-reveal] {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+html.has-motion [data-reveal-done],
+html:not(.has-motion) [data-reveal] {
+  opacity: 1;
+  transform: none;
+}
+
+.tilt-card {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.tilt-card .tilt-inner {
+  transform: translateZ(24px);
+}
+
+/* sheen sweep on hover-able cards */
+.sheen {
+  position: relative;
+  overflow: hidden;
+}
+
+.sheen::after {
+  position: absolute;
+  inset: -120% auto auto -40%;
+  width: 45%;
+  height: 340%;
+  content: "";
+  transform: rotate(18deg) translateX(-320%);
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sheen:hover::after {
+  transition: transform 800ms var(--ease-out), opacity 200ms ease;
+  transform: rotate(18deg) translateX(620%);
+  opacity: 1;
+}
+
+.section-dark .sheen::after,
+.dark .sheen::after {
+  background: linear-gradient(100deg, transparent, rgba(147, 187, 254, 0.22), transparent);
 }
 
 .sr-only {
@@ -261,5 +523,15 @@ video {
 
   .section-shell {
     padding: clamp(3.75rem, 12vw, 5.75rem) 0;
+  }
+
+  .ghost-word {
+    top: -0.4em;
+  }
+
+  .kicker .kicker-num {
+    width: 38px;
+    height: 38px;
+    font-size: 0.8rem;
   }
 }

@@ -1,27 +1,47 @@
----
+﻿---
 import Button from './Button.astro';
 import ChatSim from './ChatSim.astro';
 import Chip from './Chip.astro';
 import MotionLoop from './MotionLoop.astro';
+
+const marqueeItems = [
+  'à¸›à¸´à¸”à¸à¸²à¸£à¸‚à¸²à¸¢à¹ƒà¸™à¹à¸Šà¸—',
+  'REFERRAL â†’ à¸¢à¸­à¸”à¸‚à¸²à¸¢',
+  'à¸•à¸­à¸šà¸¥à¸¹à¸à¸„à¹‰à¸² 24/7',
+  'PWA Â· APP Â· LINE OA',
+  'à¸«à¸¥à¸±à¸‡à¸šà¹‰à¸²à¸™à¸„à¸£à¸šà¹ƒà¸™à¸•à¸±à¸§',
+  'à¸›à¸£à¸±à¸šà¸•à¸²à¸¡ CI à¸‚à¸­à¸‡à¸­à¸‡à¸„à¹Œà¸à¸£à¸„à¸¸à¸“',
+];
 ---
 
 <section id="top" class="hero section-dark grain">
   <div class="hero-media" aria-hidden="true">
     <MotionLoop name="hero-aurora" />
+    <span class="hero-layer layer-a"></span>
+    <span class="hero-layer layer-b"></span>
   </div>
+
   <div class="container hero-inner">
     <div class="hero-copy">
-      <p class="eyebrow" data-reveal>MIRA — AI COMMERCE CHAT PLATFORM</p>
-      <h1 data-hero-title>
-        <span>AI Chat ที่<span class="gradient-text">ขายเป็น</span></span>
-        <span>แนะนำ · ตอบ · ปิดการขาย จบใน<span class="nowrap">แชทเดียว</span></span>
+      <p class="eyebrow hero-eyebrow" data-reveal>MIRA â€” AI COMMERCE CHAT PLATFORM</p>
+      <h1 data-hero-title data-words>
+        <span class="line"
+          ><span class="w">AI&nbsp;Chat</span> <span class="w">à¸—à¸µà¹ˆ</span><span class="w gradient-text">à¸‚à¸²à¸¢à¹€à¸›à¹‡à¸™</span></span
+        >
+        <span class="line line-2"
+          ><span class="w">à¹à¸™à¸°à¸™à¸³</span> <span class="w dot">Â·</span> <span class="w">à¸•à¸­à¸š</span>
+          <span class="w dot">Â·</span> <span class="w">à¸›à¸´à¸”à¸à¸²à¸£à¸‚à¸²à¸¢</span> <span class="w">à¸ˆà¸šà¹ƒà¸™à¹à¸Šà¸—à¹€à¸”à¸µà¸¢à¸§</span></span
+        >
       </h1>
       <p class="hero-sub" data-reveal>
-        Mira เรียนรู้จากชุดข้อมูลขององค์กรคุณ แล้วเปลี่ยนทุกบทสนทนาให้เป็นยอดขาย — แนะนำสินค้าได้ตรงคน พาลูกค้าไปจนถึงชำระเงิน และส่งต่อให้ทีมของคุณแบบไร้รอยต่อ
+        Mira à¹€à¸£à¸µà¸¢à¸™à¸£à¸¹à¹‰à¸ˆà¸²à¸à¸Šà¸¸à¸”à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸‚à¸­à¸‡à¸­à¸‡à¸„à¹Œà¸à¸£à¸„à¸¸à¸“ à¹à¸¥à¹‰à¸§à¹€à¸›à¸¥à¸µà¹ˆà¸¢à¸™à¸—à¸¸à¸à¸šà¸—à¸ªà¸™à¸—à¸™à¸²à¹ƒà¸«à¹‰à¹€à¸›à¹‡à¸™à¸¢à¸­à¸”à¸‚à¸²à¸¢ â€” à¹à¸™à¸°à¸™à¸³à¸ªà¸´à¸™à¸„à¹‰à¸²à¹„à¸”à¹‰à¸•à¸£à¸‡à¸„à¸™ à¸žà¸²à¸¥à¸¹à¸à¸„à¹‰à¸²à¹„à¸›à¸ˆà¸™à¸–à¸¶à¸‡à¸Šà¸³à¸£à¸°à¹€à¸‡à¸´à¸™ à¹à¸¥à¸°à¸ªà¹ˆà¸‡à¸•à¹ˆà¸­à¹ƒà¸«à¹‰à¸—à¸µà¸¡à¸‚à¸­à¸‡à¸„à¸¸à¸“à¹à¸šà¸šà¹„à¸£à¹‰à¸£à¸­à¸¢à¸•à¹ˆà¸­
+      </p>
+      <p class="key-claim" data-reveal>
+        à¸•à¸´à¸”à¸•à¸±à¹‰à¸‡à¸„à¸£à¸±à¹‰à¸‡à¹€à¸”à¸µà¸¢à¸§ â€” à¸—à¸µà¸¡à¸‚à¸²à¸¢à¸‚à¸­à¸‡à¸„à¸¸à¸“à¸—à¸³à¸‡à¸²à¸™à¸•à¸¥à¸­à¸” 24 à¸Šà¸±à¹ˆà¸§à¹‚à¸¡à¸‡ à¹à¸¥à¸°à¸¥à¸¹à¸à¸„à¹‰à¸²à¹€à¸à¹ˆà¸²à¸žà¸²à¸¥à¸¹à¸à¸„à¹‰à¸²à¹ƒà¸«à¸¡à¹ˆà¸¡à¸²à¹ƒà¸«à¹‰à¹€à¸­à¸‡à¸œà¹ˆà¸²à¸™ Referral
       </p>
       <div class="button-row hero-actions" data-reveal>
-        <Button href="#contact">นัดดูเดโม</Button>
-        <Button href="#ai-chat" variant="ghost">ดูวิธีทำงาน ↓</Button>
+        <Button href="#contact" magnetic>à¸™à¸±à¸”à¸”à¸¹à¹€à¸”à¹‚à¸¡à¸Ÿà¸£à¸µ</Button>
+        <Button href="#ai-chat" variant="ghost">à¸”à¸¹ Mira à¸—à¸³à¸‡à¸²à¸™à¸ˆà¸£à¸´à¸‡ â†“</Button>
       </div>
       <div class="hero-channels" data-reveal>
         <div class="chip-row">
@@ -29,11 +49,30 @@ import MotionLoop from './MotionLoop.astro';
           <Chip tone="dark">APP</Chip>
           <Chip tone="dark">LINE OA</Chip>
         </div>
-        <p>ปรับให้เข้ากับระบบและแบรนด์ขององค์กรคุณ</p>
+        <p>à¹ƒà¸Šà¹‰à¹„à¸”à¹‰à¸—à¸¸à¸à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡ â€” à¸›à¸£à¸±à¸šà¹ƒà¸«à¹‰à¹€à¸‚à¹‰à¸²à¸à¸±à¸šà¸£à¸°à¸šà¸šà¹à¸¥à¸°à¹à¸šà¸£à¸™à¸”à¹Œà¸‚à¸­à¸‡à¸­à¸‡à¸„à¹Œà¸à¸£à¸„à¸¸à¸“</p>
       </div>
     </div>
     <div class="hero-device" data-reveal>
-      <ChatSim />
+      <div class="device-tilt">
+        <ChatSim />
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-band" aria-hidden="true">
+    <div class="marquee">
+      <div class="marquee-track">
+        {[0, 1].map(() => (
+          <span class="marquee-item">
+            {marqueeItems.map((item) => (
+              <>
+                <span>{item}</span>
+                <span class="marquee-dot"></span>
+              </>
+            ))}
+          </span>
+        ))}
+      </div>
     </div>
   </div>
 </section>
@@ -41,8 +80,8 @@ import MotionLoop from './MotionLoop.astro';
 <style>
   .hero {
     position: relative;
-    min-height: min(94svh, 920px);
-    padding: clamp(6.5rem, 10vw, 8rem) 0 clamp(3rem, 6vw, 5.5rem);
+    min-height: min(96svh, 960px);
+    padding: clamp(6.5rem, 10vw, 8.5rem) 0 0;
     overflow: clip;
   }
 
@@ -50,13 +89,36 @@ import MotionLoop from './MotionLoop.astro';
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(circle at 20% 20%, rgba(14, 165, 164, 0.28), transparent 32%),
-      radial-gradient(circle at 78% 12%, rgba(84, 207, 165, 0.18), transparent 30%),
-      linear-gradient(180deg, var(--night), #082327 82%);
+      radial-gradient(circle at 16% 18%, rgba(46, 107, 246, 0.3), transparent 34%),
+      radial-gradient(circle at 80% 10%, rgba(127, 177, 254, 0.16), transparent 30%),
+      linear-gradient(180deg, var(--night), #082040 84%);
   }
 
   .hero-media :global(.motion-loop) {
-    opacity: 0.8;
+    opacity: 0.85;
+  }
+
+  .hero-layer {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(60px);
+  }
+
+  .layer-a {
+    top: -12%;
+    left: -6%;
+    width: 46vw;
+    height: 46vw;
+    background: radial-gradient(circle, rgba(46, 107, 246, 0.3), transparent 64%);
+  }
+
+  .layer-b {
+    right: -8%;
+    bottom: -18%;
+    width: 40vw;
+    height: 40vw;
+    background: radial-gradient(circle, rgba(23, 86, 219, 0.34), transparent 62%);
   }
 
   .hero-inner {
@@ -66,40 +128,49 @@ import MotionLoop from './MotionLoop.astro';
     grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
     gap: clamp(2rem, 4vw, 4rem);
     align-items: center;
-  }
-
-  .hero-copy {
-    padding-top: 1rem;
+    padding-bottom: clamp(3rem, 6vw, 5rem);
   }
 
   h1 {
     display: grid;
-    gap: 0.25rem;
+    gap: 0.3rem;
     max-width: 900px;
     margin: 1.2rem 0 0;
-    color: var(--canvas);
+    color: #F2F6FF;
     font-size: clamp(2.5rem, 6.5vw, 5.25rem);
     font-weight: 600;
     letter-spacing: 0;
-    line-height: 1.08;
+    line-height: 1.1;
   }
 
-  h1 > span {
+  .line {
     display: block;
   }
 
-  .nowrap {
-    white-space: nowrap;
+  .line-2 {
+    max-width: 880px;
+    font-size: clamp(1.7rem, 4vw, 3.4rem);
+    color: #C9D8FB;
   }
 
-  h1 > span:last-child {
-    max-width: 880px;
-    font-size: clamp(1.8rem, 4.2vw, 3.75rem);
+  :global(html.has-motion) [data-words] .w {
+    opacity: 0;
+    transform: translateY(44px);
+    filter: blur(14px);
+  }
+
+  .w {
+    display: inline-block;
+    will-change: transform, opacity, filter;
+  }
+
+  .w.dot {
+    color: var(--sky);
   }
 
   .hero-sub {
     max-width: 680px;
-    margin: 1.25rem 0 0;
+    margin: 1.4rem 0 0;
     color: var(--muted-dark);
     font-size: clamp(1rem, 1.7vw, 1.2rem);
   }
@@ -111,7 +182,7 @@ import MotionLoop from './MotionLoop.astro';
   .hero-channels {
     display: grid;
     gap: 0.7rem;
-    margin-top: 1.4rem;
+    margin-top: 1.5rem;
   }
 
   .hero-channels p {
@@ -122,16 +193,37 @@ import MotionLoop from './MotionLoop.astro';
 
   .hero-device {
     position: relative;
+    perspective: 1100px;
+  }
+
+  .device-tilt {
+    transform-style: preserve-3d;
+    will-change: transform;
   }
 
   .hero-device::before {
     position: absolute;
-    inset: 12% 4% 4%;
+    inset: 10% 2% 2%;
     z-index: -1;
     content: "";
     border-radius: 44%;
-    background: radial-gradient(circle, rgba(84, 207, 165, 0.34), transparent 66%);
-    filter: blur(30px);
+    background: radial-gradient(circle, rgba(63, 142, 252, 0.4), transparent 66%);
+    filter: blur(34px);
+  }
+
+  .hero-band {
+    position: relative;
+    z-index: 2;
+    border-top: 1px solid var(--night-line);
+    background: rgba(5, 18, 38, 0.55);
+    backdrop-filter: blur(6px);
+    padding: 0.85rem 0;
+    color: var(--ice);
+    font-size: 0.95rem;
+  }
+
+  .hero-band :global(.marquee-dot) {
+    background: var(--brand-bright);
   }
 
   @media (max-width: 1020px) {
@@ -144,10 +236,6 @@ import MotionLoop from './MotionLoop.astro';
       grid-template-columns: 1fr;
     }
 
-    .hero-copy {
-      padding-top: 0;
-    }
-
     .hero-device {
       max-width: 460px;
       margin-inline: auto;
@@ -155,21 +243,21 @@ import MotionLoop from './MotionLoop.astro';
   }
 
   @media (max-width: 520px) {
-    .hero {
-      padding-bottom: 3.5rem;
-    }
-
     h1 {
-      font-size: clamp(2.1rem, 11vw, 2.85rem);
+      font-size: clamp(2.15rem, 11vw, 2.9rem);
     }
 
-    h1 > span:last-child {
-      font-size: clamp(1.45rem, 7.4vw, 2rem);
+    .line-2 {
+      font-size: clamp(1.4rem, 7vw, 1.95rem);
     }
 
     .hero-sub {
       font-size: 0.96rem;
-      line-height: 1.58;
+      line-height: 1.6;
+    }
+
+    .hero-band {
+      font-size: 0.85rem;
     }
   }
 </style>

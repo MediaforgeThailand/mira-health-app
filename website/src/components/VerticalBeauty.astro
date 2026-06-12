@@ -1,12 +1,62 @@
 ---
-import MotionLoop from './MotionLoop.astro';
+import Chip from './Chip.astro';
 ---
 
 <section id="mirabeauty" class="vertical-panel beauty" data-vertical-panel>
   <div class="container vertical-inner">
     <div class="vertical-visual" data-reveal>
-      <MotionLoop name="mirabeauty-scan" />
+      <svg class="beauty-art" viewBox="0 0 640 360" fill="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="scan-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop stop-color="rgba(63,142,252,0)"></stop>
+            <stop offset="0.5" stop-color="rgba(63,142,252,0.55)"></stop>
+            <stop offset="1" stop-color="rgba(63,142,252,0)"></stop>
+          </linearGradient>
+        </defs>
+
+        <!-- abstract profile line art -->
+        <path
+          d="M268 38
+             C 224 44 196 76 196 116
+             C 196 142 208 158 204 176
+             C 201 189 188 196 190 206
+             C 192 214 202 215 203 222
+             C 204 229 198 233 200 241
+             C 203 252 216 254 230 255
+             C 244 256 252 263 252 276
+             C 252 304 230 322 196 330"
+          stroke="#2A2230"
+          stroke-width="3"
+          stroke-linecap="round"
+        ></path>
+        <path d="M268 38 C 320 30 376 52 398 104" stroke="#2A2230" stroke-width="3" stroke-linecap="round" opacity="0.55"></path>
+        <path d="M398 104 C 404 150 396 196 372 232" stroke="#2A2230" stroke-width="3" stroke-linecap="round" opacity="0.25"></path>
+        <path d="M236 150 C 244 144 256 144 263 150" stroke="#2A2230" stroke-width="2.6" stroke-linecap="round"></path>
+
+        <!-- scan grid -->
+        <g stroke="rgba(63,142,252,0.22)" stroke-width="1">
+          <path d="M150 90 H440"></path>
+          <path d="M150 150 H440"></path>
+          <path d="M150 210 H440"></path>
+          <path d="M150 270 H440"></path>
+        </g>
+
+        <!-- landmark dots -->
+        <circle class="dot d1" cx="222" cy="120" r="5"></circle>
+        <circle class="dot d2" cx="203" cy="206" r="5"></circle>
+        <circle class="dot d3" cx="240" cy="262" r="5"></circle>
+
+        <!-- scan beam -->
+        <rect class="scan-beam" x="140" y="-70" width="310" height="64" fill="url(#scan-grad)"></rect>
+      </svg>
+
+      <div class="scan-results">
+        <span class="result-chip"><i></i>ผิวขาดน้ำโซนแก้ม · ตัวอย่าง</span>
+        <span class="result-chip strong">แนะนำ: คอร์สฟื้นฟูผิว 4 ครั้ง</span>
+        <span class="result-chip cta">ปรึกษาต่อในแชท →</span>
+      </div>
     </div>
+
     <div class="vertical-copy" data-reveal>
       <span class="vertical-badge">MiraBeauty · สำหรับคลินิกความงาม</span>
       <h3>ที่ปรึกษาความงามที่ปิดการขายเก่งที่สุดของคลินิก</h3>
@@ -16,8 +66,10 @@ import MotionLoop from './MotionLoop.astro';
       <ul>
         <li>สแกนใบหน้า → คำแนะนำเฉพาะบุคคล</li>
         <li>เสนอคอร์สและโปรโมชันที่ใช่ ในจังหวะที่ลูกค้าสนใจที่สุด</li>
-        <li>Referral ให้ลูกค้าบอกต่อและรับส่วนแบ่ง</li>
+        <li>Referral ให้ลูกค้าบอกต่อและรับส่วนแบ่ง <Chip tone="rose">ลูกค้าสวย = ทีมขายที่ดีที่สุด</Chip></li>
       </ul>
+      <p class="vertical-claim">จังหวะที่ลูกค้าเห็นผลวิเคราะห์หน้าตัวเอง คือจังหวะที่อยากซื้อที่สุด — Mira เสนอคอร์สตอนนั้นทันที</p>
+      <a class="mini-cta" href="#contact">ดูเดโมเวอร์ชันคลินิก <span class="arrow">→</span></a>
     </div>
   </div>
 </section>
@@ -31,7 +83,7 @@ import MotionLoop from './MotionLoop.astro';
 
   .beauty {
     background:
-      radial-gradient(circle at 88% 18%, rgba(229, 143, 162, 0.24), transparent 36%),
+      radial-gradient(circle at 88% 18%, rgba(229, 143, 162, 0.22), transparent 36%),
       linear-gradient(180deg, var(--rose-soft), var(--canvas));
   }
 
@@ -47,14 +99,14 @@ import MotionLoop from './MotionLoop.astro';
     border-radius: var(--radius-pill);
     background: var(--surface);
     box-shadow: var(--shadow-soft);
-    color: #89465A;
+    color: var(--rose-deep);
     font-weight: 600;
     padding: 0.45rem 0.8rem;
   }
 
   h3 {
     margin: 1.2rem 0 0;
-    font-size: clamp(1.9rem, 4vw, 3.25rem);
+    font-size: clamp(1.9rem, 4vw, 3.1rem);
     font-weight: 600;
     line-height: 1.14;
   }
@@ -63,6 +115,13 @@ import MotionLoop from './MotionLoop.astro';
     margin: 1rem 0 0;
     color: var(--ink-soft);
     font-size: 1.08rem;
+  }
+
+  .vertical-claim {
+    border-left: 3px solid var(--rose);
+    color: var(--ink);
+    font-weight: 600;
+    padding-left: 1rem;
   }
 
   ul {
@@ -89,13 +148,108 @@ import MotionLoop from './MotionLoop.astro';
     content: "";
   }
 
+  li :global(.chip) {
+    min-height: 26px;
+    margin-inline: 0.25rem;
+    padding: 0.2rem 0.52rem;
+  }
+
   .vertical-visual {
+    position: relative;
     aspect-ratio: 16 / 9;
-    border: 1px solid rgba(229, 143, 162, 0.22);
+    border: 1px solid rgba(229, 143, 162, 0.28);
     border-radius: 30px;
-    background: var(--rose-soft);
+    background:
+      radial-gradient(circle at 20% 14%, rgba(229, 143, 162, 0.14), transparent 42%),
+      var(--surface);
     box-shadow: var(--shadow-soft);
     overflow: hidden;
+  }
+
+  .beauty-art {
+    width: 100%;
+    height: 100%;
+  }
+
+  .scan-beam {
+    animation: scanSweep 3.6s ease-in-out infinite;
+  }
+
+  @keyframes scanSweep {
+    0%, 8% {
+      transform: translateY(0);
+    }
+
+    60% {
+      transform: translateY(360px);
+    }
+
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  .dot {
+    fill: var(--brand-bright);
+    opacity: 0.25;
+    animation: dotPulse 3.6s ease-in-out infinite;
+  }
+
+  .dot.d2 { animation-delay: 0.5s; }
+  .dot.d3 { animation-delay: 1s; }
+
+  @keyframes dotPulse {
+    0%, 100% {
+      opacity: 0.25;
+      r: 5;
+    }
+
+    30% {
+      opacity: 1;
+      r: 7;
+    }
+  }
+
+  .scan-results {
+    position: absolute;
+    right: 5%;
+    bottom: 9%;
+    display: grid;
+    gap: 0.5rem;
+    justify-items: end;
+  }
+
+  .result-chip {
+    display: inline-flex;
+    gap: 0.45rem;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: var(--shadow-soft);
+    color: var(--ink);
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.42rem 0.8rem;
+  }
+
+  .result-chip i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--rose);
+  }
+
+  .result-chip.strong {
+    border-color: rgba(229, 143, 162, 0.5);
+    background: var(--rose-soft);
+    color: var(--rose-deep);
+  }
+
+  .result-chip.cta {
+    border: 0;
+    background: linear-gradient(108deg, var(--rose-deep), var(--rose));
+    color: #fff;
   }
 
   @media (max-width: 900px) {
@@ -105,6 +259,7 @@ import MotionLoop from './MotionLoop.astro';
 
     .vertical-visual {
       order: 2;
+      aspect-ratio: 4 / 3;
     }
   }
 </style>

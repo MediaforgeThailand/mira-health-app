@@ -1,14 +1,14 @@
-<div class="phone-frame" data-chat-sim aria-label="ตัวอย่างบทสนทนา Mira">
+﻿<div class="phone-frame" data-chat-sim aria-label="à¸•à¸±à¸§à¸­à¸¢à¹ˆà¸²à¸‡à¸šà¸—à¸ªà¸™à¸—à¸™à¸² Mira">
   <div class="phone-top">
     <span class="camera" aria-hidden="true"></span>
     <div>
       <strong>Mira Chat</strong>
-      <span>AI commerce assistant</span>
+      <span><i class="online-dot" aria-hidden="true"></i>à¸‚à¸²à¸¢à¸­à¸¢à¸¹à¹ˆà¸•à¸­à¸™à¸™à¸µà¹‰ Â· à¸•à¸­à¸šà¹ƒà¸™ 1 à¸§à¸´à¸™à¸²à¸—à¸µ</span>
     </div>
   </div>
   <div class="chat-stream" data-chat-stream>
     <noscript>
-      <div class="chat-noscript">Mira แนะนำสินค้า รับออเดอร์ ชำระเงิน และคำนวณส่วนแบ่งผู้แนะนำในแชทเดียว</div>
+      <div class="chat-noscript">Mira à¹à¸™à¸°à¸™à¸³à¸ªà¸´à¸™à¸„à¹‰à¸² à¸£à¸±à¸šà¸­à¸­à¹€à¸”à¸­à¸£à¹Œ à¸Šà¸³à¸£à¸°à¹€à¸‡à¸´à¸™ à¹à¸¥à¸°à¸„à¸³à¸™à¸§à¸“à¸ªà¹ˆà¸§à¸™à¹à¸šà¹ˆà¸‡à¸œà¸¹à¹‰à¹à¸™à¸°à¸™à¸³à¹ƒà¸™à¹à¸Šà¸—à¹€à¸”à¸µà¸¢à¸§</div>
     </noscript>
   </div>
 </div>
@@ -19,14 +19,14 @@
     width: min(100%, 390px);
     min-height: 650px;
     margin-inline: auto;
-    border: 1px solid rgba(244, 249, 250, 0.2);
+    border: 1px solid rgba(214, 226, 255, 0.22);
     border-radius: 34px;
     background:
-      linear-gradient(180deg, rgba(244, 249, 250, 0.96), rgba(236, 246, 247, 0.94)),
+      linear-gradient(180deg, rgba(246, 248, 253, 0.97), rgba(236, 241, 252, 0.95)),
       var(--surface);
     box-shadow:
-      0 36px 90px -44px rgba(84, 207, 165, 0.72),
-      inset 0 0 0 8px rgba(6, 24, 28, 0.86);
+      0 36px 90px -42px rgba(46, 107, 246, 0.85),
+      inset 0 0 0 8px rgba(5, 18, 38, 0.88);
     color: var(--ink);
     overflow: hidden;
   }
@@ -38,8 +38,8 @@
     pointer-events: none;
     content: "";
     background:
-      radial-gradient(circle at 18% 10%, rgba(84, 207, 165, 0.24), transparent 34%),
-      radial-gradient(circle at 90% 22%, rgba(50, 120, 199, 0.14), transparent 28%);
+      radial-gradient(circle at 18% 10%, rgba(46, 107, 246, 0.16), transparent 34%),
+      radial-gradient(circle at 90% 22%, rgba(127, 177, 254, 0.14), transparent 28%);
   }
 
   .phone-top {
@@ -60,9 +60,9 @@
     height: 36px;
     border-radius: 50%;
     background:
-      radial-gradient(circle at 50% 50%, var(--mint) 0 20%, transparent 21%),
+      radial-gradient(circle at 50% 50%, var(--sky) 0 20%, transparent 21%),
       var(--night);
-    box-shadow: 0 0 0 4px rgba(14, 165, 164, 0.12);
+    box-shadow: 0 0 0 4px rgba(46, 107, 246, 0.14);
   }
 
   strong,
@@ -78,10 +78,21 @@
   }
 
   .phone-top span:not(.camera) {
+    display: inline-flex;
+    gap: 0.32rem;
+    align-items: center;
     color: var(--ink-soft);
-    font-family: "Space Grotesk", system-ui, sans-serif;
     font-size: 0.73rem;
     line-height: 1.35;
+  }
+
+  .online-dot {
+    width: 7px;
+    height: 7px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--mint);
+    box-shadow: 0 0 0 3px rgba(84, 207, 165, 0.22);
   }
 
   .chat-stream {
@@ -113,7 +124,7 @@
   :global(.chat-item.user) {
     align-self: flex-end;
     border-radius: 18px 18px 6px 18px;
-    background: var(--teal);
+    background: var(--grad-brand);
     color: white;
     padding: 0.72rem 0.9rem;
   }
@@ -123,7 +134,7 @@
     border: 1px solid var(--line);
     border-radius: 18px 18px 18px 6px;
     background: var(--surface);
-    box-shadow: 0 10px 22px rgba(107, 146, 151, 0.08);
+    box-shadow: 0 10px 22px rgba(38, 64, 134, 0.08);
     color: var(--ink);
     padding: 0.72rem 0.9rem;
   }
@@ -133,7 +144,7 @@
     max-width: 100%;
     border: 1px solid var(--line);
     border-radius: var(--radius-pill);
-    background: rgba(255, 255, 255, 0.72);
+    background: rgba(255, 255, 255, 0.76);
     color: var(--ink-soft);
     font-size: 0.74rem;
     padding: 0.42rem 0.72rem;
@@ -142,8 +153,8 @@
 
   :global(.chat-chip.status) {
     border-color: rgba(84, 207, 165, 0.54);
-    background: var(--teal-soft);
-    color: var(--teal-deep);
+    background: rgba(84, 207, 165, 0.16);
+    color: var(--mint-deep);
     font-weight: 600;
   }
 
@@ -184,7 +195,7 @@
     border: 1px solid var(--line);
     border-radius: var(--radius-sm);
     background: var(--surface);
-    box-shadow: 0 10px 22px rgba(107, 146, 151, 0.08);
+    box-shadow: 0 10px 22px rgba(38, 64, 134, 0.08);
     padding: 0.75rem;
   }
 
@@ -197,7 +208,7 @@
   }
 
   :global(.product-card .price) {
-    color: var(--teal-deep);
+    color: var(--brand-deep);
     font-family: "Space Grotesk", sans-serif;
     font-weight: 600;
   }
@@ -207,8 +218,8 @@
     width: fit-content;
     margin-top: 0.45rem;
     border-radius: var(--radius-pill);
-    background: var(--blue-soft);
-    color: var(--blue);
+    background: var(--brand-soft);
+    color: var(--brand-deep);
     font-size: 0.68rem;
     font-weight: 600;
     padding: 0.12rem 0.42rem;
@@ -248,8 +259,8 @@
   :global(.toast-card) {
     width: 100%;
     border-color: rgba(84, 207, 165, 0.5);
-    background: linear-gradient(110deg, rgba(245, 184, 75, 0.18), rgba(84, 207, 165, 0.18));
-    color: var(--teal-deep);
+    background: linear-gradient(110deg, rgba(46, 107, 246, 0.12), rgba(84, 207, 165, 0.2));
+    color: var(--mint-deep);
     font-weight: 600;
   }
 
