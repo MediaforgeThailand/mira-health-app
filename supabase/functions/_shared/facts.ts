@@ -1,4 +1,4 @@
-import { insertRow, selectMany, updateRows, upsertRow } from './db.ts';
+import { insertRow, selectMany, selectOne, updateRows, upsertRow } from './db.ts';
 import type { FactKeyRow, UserFactRow } from './types.ts';
 
 export type ExtractedFactCandidate = {
@@ -168,11 +168,13 @@ export async function loadFactRegistry() {
 export async function insertFactsIdempotent({
   customerId,
   facts,
+  source = 'chat_extraction',
   sourceRef,
   tenantId,
 }: {
   customerId: string;
   facts: NormalizedFact[];
+  source?: UserFactRow['source'];
   sourceRef: string;
   tenantId: string;
 }) {
@@ -185,7 +187,7 @@ export async function insertFactsIdempotent({
         confidence: fact.confidence,
         customer_id: customerId,
         key: fact.key,
-        source: 'chat_extraction',
+        source,
         source_ref: sourceRef,
         status: fact.status,
         tenant_id: tenantId,
@@ -234,6 +236,48 @@ export async function insertFactsIdempotent({
   }
 
   return inserted;
+}
+
+export async function recordFormAgeFact({
+  age,
+  customerId,
+  orderId,
+  tenantId,
+}: {
+  age: number;
+  customerId: string;
+  orderId: string;
+  tenantId: string;
+}) {
+  const latestConsent = await selectOne<{ granted: boolean }>('consents', {
+    customer_id: `eq.${customerId}`,
+    kind: 'eq.health_data_collection',
+    order: 'created_at.desc',
+    select: 'granted',
+    tenant_id: `eq.${tenantId}`,
+  });
+
+  if (!latestConsent?.granted) {
+    return null;
+  }
+
+  const rows = await insertFactsIdempotent({
+    customerId,
+    facts: [
+      {
+        confidence: 1,
+        key: 'age',
+        status: 'active',
+        value_num: age,
+        value_text: null,
+      },
+    ],
+    source: 'user_form',
+    sourceRef: orderId,
+    tenantId,
+  });
+
+  return rows[0] ?? null;
 }
 
 export async function insertSystemNotice(sessionId: string, content: string) {

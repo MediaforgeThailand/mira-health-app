@@ -84,6 +84,8 @@ async function run() {
     buyerName: 'E2E Direct Customer',
     buyerPhone: '0811111111',
     customerAccessToken: directCustomer.accessToken,
+    expectAgeFact: true,
+    grantConsent: true,
     label: 'direct customer purchase',
   });
   await confirmOrderAndAssertNotices({
@@ -222,7 +224,18 @@ async function createReferrer(tenantId, authUserId) {
   return row;
 }
 
-async function runPurchaseFlow({ buyerName, buyerPhone, customerAccessToken, label, refCode }) {
+async function runPurchaseFlow({ buyerName, buyerPhone, customerAccessToken, expectAgeFact = false, grantConsent = false, label, refCode }) {
+  if (grantConsent) {
+    await postChat(customerAccessToken, {
+      action: {
+        type: 'consent_granted',
+      },
+      message: `Grant health data consent for ${label}.`,
+      ref_code: refCode,
+      session_id: null,
+    });
+  }
+
   const selected = await postChat(customerAccessToken, {
     action: {
       catalog_key: 'chk-basic',
@@ -280,6 +293,36 @@ async function runPurchaseFlow({ buyerName, buyerPhone, customerAccessToken, lab
     expectedDelta: 1,
     sessionId: selected.session_id,
   });
+
+  if (expectAgeFact) {
+    await assertUserFormAgeFact({
+      expectedAge: 35,
+      expectedCount: 1,
+      label: `${label}: age fact after first form submit`,
+      orderId: activeOrder.id,
+    });
+    await expectEdgeError('chat-orchestrator', customerAccessToken, {
+      action: {
+        buyer_age: 35,
+        buyer_name: buyerName,
+        buyer_phone: buyerPhone,
+        order_id: activeOrder.id,
+        preferred_date: '2026-07-01',
+        type: 'order_form_submit',
+      },
+      channel: 'pwa',
+      client_msg_id: randomUUID(),
+      message: `Resubmit buyer info for ${label}.`,
+      session_id: selected.session_id,
+      tenant_slug: tenantSlug,
+    }, 'VALIDATION', `${label}: duplicate form submit should be rejected`);
+    await assertUserFormAgeFact({
+      expectedAge: 35,
+      expectedCount: 1,
+      label: `${label}: age fact stays idempotent after duplicate submit`,
+      orderId: activeOrder.id,
+    });
+  }
 
   const paymentBefore = await countSystemNotices(selected.session_id);
   const submitted = await postChat(customerAccessToken, {
@@ -488,6 +531,7 @@ async function runAssistedPurchaseFlow({ products, referrer, referrerAccessToken
   assert(multiOrder.branch_id === chosenBranch.id, 'assisted multi-branch DB order should store branch_id');
   assert(multiOrder.buyer_age === 36, 'assisted multi-branch DB order should store buyer_age');
   assert(multiOrder.referrer_id === referrer.id, 'assisted multi-branch DB order should store referrer_id');
+  await assertNoUserFormAgeFact(multi.order.id, 'assisted multi-branch order should not write age fact without consent');
 
   const paid = await postEdge('referrer-order', referrerAccessToken, {
     action: 'payment_done',
@@ -523,6 +567,7 @@ async function runAssistedPurchaseFlow({ products, referrer, referrerAccessToken
 
   assert(singleOrder.branch_id === products.single.branch_id, 'assisted single-branch DB order should auto-assign branch_id');
   assert(singleOrder.buyer_age === 44, 'assisted single-branch DB order should store buyer_age');
+  await assertNoUserFormAgeFact(single.order.id, 'assisted single-branch order should not write age fact without consent');
 }
 
 async function seedV3ProductsAndBranches(tenantId, suffix) {
@@ -815,6 +860,42 @@ async function countCommissionEntries(orderId) {
   }
 
   return count ?? 0;
+}
+
+async function loadUserFormAgeFacts(orderId) {
+  const { data, error } = await service
+    .from('user_facts')
+    .select('id,key,source,source_ref,value_num,status')
+    .eq('key', 'age')
+    .eq('source', 'user_form')
+    .eq('source_ref', orderId)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    throw new Error(`Unable to load user_form age facts for order ${orderId}: ${error.message}`);
+  }
+
+  return data ?? [];
+}
+
+async function assertUserFormAgeFact({ expectedAge, expectedCount, label, orderId }) {
+  const rows = await loadUserFormAgeFacts(orderId);
+
+  assert(rows.length === expectedCount, `${label}: expected ${expectedCount} age fact rows, got ${rows.length}`);
+
+  for (const row of rows) {
+    assert(row.key === 'age', `${label}: expected key age, got ${row.key}`);
+    assert(row.source === 'user_form', `${label}: expected source user_form, got ${row.source}`);
+    assert(row.source_ref === orderId, `${label}: expected source_ref ${orderId}, got ${row.source_ref}`);
+    assert(Number(row.value_num) === expectedAge, `${label}: expected value_num ${expectedAge}, got ${row.value_num}`);
+    assert(row.status === 'active', `${label}: expected active status, got ${row.status}`);
+  }
+}
+
+async function assertNoUserFormAgeFact(orderId, label) {
+  const rows = await loadUserFormAgeFacts(orderId);
+
+  assert(rows.length === 0, `${label}: expected no user_form age fact rows, got ${rows.length}`);
 }
 
 async function assertCommissionEntries(orderId, expectedCount, label) {

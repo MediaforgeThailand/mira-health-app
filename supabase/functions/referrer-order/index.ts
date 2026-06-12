@@ -1,5 +1,6 @@
 ﻿import { assertTenant, insertRow, resolveAuthUserId, selectOne, updateRows } from '../_shared/db.ts';
 import { activeBranchesForProduct, resolveProductBranchSelection } from '../_shared/branches.ts';
+import { recordFormAgeFact } from '../_shared/facts.ts';
 import { HttpError, handleOptions, json, toErrorResponse, validateJson } from '../_shared/http.ts';
 import { loadOrderForPanel, toOrderPanel, transition } from '../_shared/orders.ts';
 import { referrerOrderRequestSchema } from '../_shared/referrerOrder.ts';
@@ -104,6 +105,17 @@ async function createReferrerOrder(body: Extract<ReferrerOrderRequest, { action:
     select:
       'id,tenant_id,customer_id,session_id,product_id,qty,amount_baht,buyer_name,buyer_phone,preferred_branch,preferred_date,channel,referrer_id,commission_scheme_snapshot,status,slip_url,booking_at,branch_id,buyer_age,admin_note,created_at,updated_at',
   });
+
+  try {
+    await recordFormAgeFact({
+      age: body.buyer_age,
+      customerId: customer.id,
+      orderId: order.id,
+      tenantId: referrer.tenant_id,
+    });
+  } catch (error) {
+    console.warn('form_age_fact_failed', error instanceof Error ? error.message : error);
+  }
 
   await transition(order.id, 'awaiting_payment', `referrer:${referrer.id}`, { channel: 'referrer' });
 

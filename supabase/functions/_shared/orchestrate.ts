@@ -13,6 +13,7 @@ import {
 } from './db.ts';
 import { HttpError, z } from './http.ts';
 import { filterKnownProductMarkerKeys, parseChatMarker } from './marker.ts';
+import { recordFormAgeFact } from './facts.ts';
 import {
   assertOrderBelongsToSession,
   assertPaymentSlipPathForOrder,
@@ -428,6 +429,16 @@ async function handleAction({
       buyer_phone: action.buyer_phone,
       preferred_date: action.preferred_date,
     });
+    try {
+      await recordFormAgeFact({
+        age: action.buyer_age,
+        customerId: customer.id,
+        orderId: order.id,
+        tenantId: tenant.id,
+      });
+    } catch (error) {
+      console.warn('form_age_fact_failed', error instanceof Error ? error.message : error);
+    }
     const loaded = await maybeAdvanceCollectingOrder(await loadOrderForPanel(order.id, tenant.id), 'customer');
 
     return {
