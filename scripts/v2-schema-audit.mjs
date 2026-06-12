@@ -10,6 +10,7 @@ const files = {
   phase4: 'supabase/migrations/20260611040000_miracare_v2_phase4_referrals.sql',
   phase5: 'supabase/migrations/20260611050000_miracare_v2_phase5_health_dashboard.sql',
   b8: 'supabase/migrations/20260611062000_b8_referrer_contract.sql',
+  r5: 'supabase/migrations/20260612180000_wearable_imports.sql',
 };
 
 async function read(relativePath) {
@@ -117,6 +118,11 @@ const tableContracts = [
     table: 'wearable_metrics',
     snippets: ['tenant_id uuid not null references public.tenants (id)', 'customer_id uuid not null references public.customers (id)', "source text not null check (source in ('apple_export', 'healthkit', 'manual'))", 'unique (customer_id, metric, day, source)'],
   },
+  {
+    file: 'r5',
+    table: 'wearable_imports',
+    snippets: ['tenant_id uuid not null references public.tenants (id)', 'customer_id uuid not null references public.customers (id)', "source text not null check (source in ('apple_export', 'healthkit', 'manual'))", 'metric_count int not null default 0', 'imported_at timestamptz not null default now()'],
+  },
 ];
 
 for (const { file, snippets, table } of tableContracts) {
@@ -158,6 +164,8 @@ const policySnippets = [
   ['phase5', 'lab_results_staff_all'],
   ['phase5', 'wearable_metrics_customer_read'],
   ['phase5', 'wearable_metrics_staff_all'],
+  ['r5', 'wearable_imports_customer_read'],
+  ['r5', 'wearable_imports_staff_all'],
 ];
 
 for (const [file, policy] of policySnippets) {
@@ -196,6 +204,10 @@ const indexSnippets = [
   ['phase5', 'lab_results_v2_code_idx'],
   ['phase5', 'wearable_metrics_v2_customer_metric_day_idx'],
   ['phase5', 'wearable_metrics_v2_tenant_day_idx'],
+  ['r5', 'wearable_imports_customer_imported_idx'],
+  ['r5', 'wearable_imports_tenant_imported_idx'],
+  ['r5', 'wearable_imports_customer_source_file_idx'],
+  ['r5', 'wearable_metrics_import_idx'],
 ];
 
 for (const [file, snippet] of indexSnippets) {
@@ -239,6 +251,13 @@ expect(
     sources.phase1.includes("('payment-slips', 'payment-slips', false)") &&
     sources.phase1.includes("('product-images', 'product-images', true)"),
   'Phase 1 must create private lab/payment buckets and public product images bucket',
+);
+
+expect(
+  'wearable metric import link',
+  sources.r5.includes('alter table public.wearable_metrics') &&
+    sources.r5.includes('add column if not exists import_id uuid references public.wearable_imports (id)'),
+  'R5 must link wearable_metrics rows to their wearable_imports row',
 );
 
 expect(

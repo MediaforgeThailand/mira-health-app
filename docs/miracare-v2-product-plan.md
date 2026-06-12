@@ -215,7 +215,7 @@ Verify the draft implements THIS plan — catching silent scope drift, contract 
 
 **C. Data/profile integrity (P1)**
 - [✅ 2026-06-11] `user_facts` append-only w/ supersede; extraction idempotent; keys registry-enforced. Evidence: Phase 1 migration, `_shared/facts.ts`, `_shared/__tests__/facts_test.ts`.
-- [❌ 2026-06-11] No fact written from assistant text; every fact has source_ref. Chat and lab facts carry source refs, but wearable facts have no spec-defined import entity/source_ref.
+- [✅ 2026-06-12] No fact written from assistant text; every new fact write has source_ref. Evidence: chat/lab/form fact paths keep source refs, R5 adds `wearable_imports` + `wearable_metrics.import_id`, `wearable-ingest` writes wearable facts with `source_ref=<import id>`, and `supabase/functions/_shared/__tests__/wearable_test.ts` covers same-file idempotency.
 - [❌ 2026-06-11] PDPA: consent stored; export & delete functions work end-to-end. Consent exists; export/delete endpoints are not defined in the technical spec.
 
 **D. Commerce correctness (P1)**

@@ -96,6 +96,7 @@ async function run() {
   assert(exported.lab_reports?.length === 1, 'customer export should include lab reports');
   assert(exported.lab_reports[0]?.lab_results?.length === 1, 'customer export should include lab results');
   assert(exported.lab_reports[0]?.report_file?.signed_url, 'customer export should include signed lab URL');
+  assert(exported.wearable_imports?.length === 1, 'customer export should include wearable imports');
   assert(exported.wearable_metrics?.length === 1, 'customer export should include wearable metrics');
 
   await expectEdgeError('pdpa-delete', otherAdmin.accessToken, {
@@ -318,12 +319,29 @@ async function seedPersonalData(tenantId, customerRow, product) {
     }),
     'seed lab_result',
   );
+  const wearableImport = await mustSingle(
+    service
+      .from('wearable_imports')
+      .insert({
+        customer_id: customerRow.id,
+        file_path: `${tenantId}/${customerRow.id}/pdpa-wearable.xml`,
+        filename: 'pdpa-wearable.xml',
+        metric_count: 1,
+        source: 'apple_export',
+        tenant_id: tenantId,
+      })
+      .select('id')
+      .single(),
+    'seed wearable_import',
+  );
+
   await checked(
     service.from('wearable_metrics').insert({
       customer_id: customerRow.id,
       day: '2026-06-12',
+      import_id: wearableImport.id,
       metric: 'steps',
-      source: 'manual',
+      source: 'apple_export',
       tenant_id: tenantId,
       value: 5600,
     }),
@@ -361,6 +379,7 @@ async function assertDeletedState(seeded) {
   await assertZero('lab_results', service.from('lab_results').select('id').eq('report_id', seeded.reportId));
   await assertZero('lab_reports', service.from('lab_reports').select('id').eq('customer_id', customer.id));
   await assertZero('wearable_metrics', service.from('wearable_metrics').select('id').eq('customer_id', customer.id));
+  await assertZero('wearable_imports', service.from('wearable_imports').select('id').eq('customer_id', customer.id));
   await assertZero('customers', service.from('customers').select('id').eq('id', customer.id));
 
   const order = await mustSingle(
@@ -582,6 +601,7 @@ async function cleanupCustomerDataByIds(tenantId, customerIds) {
   await deleteByFilter('consents', (query) => query.in('customer_id', uniqueCustomerIds));
   await deleteByIds('lab_reports', reportIds);
   await deleteByFilter('wearable_metrics', (query) => query.in('customer_id', uniqueCustomerIds));
+  await deleteByFilter('wearable_imports', (query) => query.in('customer_id', uniqueCustomerIds));
   await deleteByFilter('user_facts', (query) => query.in('customer_id', uniqueCustomerIds));
   await deleteByFilter('pdpa_requests', (query) => query.in('customer_id', uniqueCustomerIds));
   await deleteByIds('customers', uniqueCustomerIds);

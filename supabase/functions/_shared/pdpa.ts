@@ -18,6 +18,7 @@ import type {
   PdpaStorageReference,
   TenantRow,
   UserFactRow,
+  WearableImportRow,
   WearableMetricRow,
 } from './types.ts';
 
@@ -29,6 +30,7 @@ export const PDPA_CUSTOMER_DELETE_TABLES = [
   'lab_results',
   'lab_reports',
   'wearable_metrics',
+  'wearable_imports',
 ] as const;
 
 export const PDPA_CUSTOMER_ANONYMIZE_TABLES = ['orders'] as const;
@@ -42,7 +44,8 @@ const MESSAGE_SELECT = 'id,session_id,role,content,marker_product_ids,cards,open
 const FACT_SELECT = 'id,tenant_id,customer_id,key,value_text,value_num,confidence,status,source,source_ref,superseded_by,created_at';
 const LAB_REPORT_SELECT = 'id,tenant_id,customer_id,storage_path,status,ai_summary_th,collected_date,created_at';
 const LAB_RESULT_SELECT = 'id,report_id,test_code,test_name_raw,value,unit,ref_low,ref_high,confidence,confirmed';
-const WEARABLE_SELECT = 'id,tenant_id,customer_id,source,metric,day,value';
+const WEARABLE_IMPORT_SELECT = 'id,tenant_id,customer_id,source,filename,file_path,metric_count,imported_at';
+const WEARABLE_SELECT = 'id,tenant_id,customer_id,source,metric,day,value,import_id';
 const ORDER_EVENT_SELECT = 'id,order_id,from_status,to_status,actor,meta,created_at';
 const PDPA_REQUEST_SELECT = 'id,tenant_id,customer_id,kind,requested_by,requested_at,completed_at';
 const ANONYMIZED_BUYER_NAME_TH = 'ลบตามคำขอ (PDPA)';
@@ -308,7 +311,7 @@ async function deleteStorageReferences(references: PdpaStorageReference[]) {
 async function loadCustomerExportBundle(target: PdpaTarget) {
   const customerId = target.customerId;
   const tenantId = target.tenantId;
-  const [consents, userFacts, chatSessions, orders, labReports, wearableMetrics] = await Promise.all([
+  const [consents, userFacts, chatSessions, orders, labReports, wearableImports, wearableMetrics] = await Promise.all([
     selectMany<Record<string, unknown>>('consents', {
       customer_id: `eq.${customerId}`,
       order: 'created_at.asc',
@@ -337,6 +340,12 @@ async function loadCustomerExportBundle(target: PdpaTarget) {
       customer_id: `eq.${customerId}`,
       order: 'created_at.asc',
       select: LAB_REPORT_SELECT,
+      tenant_id: `eq.${tenantId}`,
+    }),
+    selectMany<WearableImportRow>('wearable_imports', {
+      customer_id: `eq.${customerId}`,
+      order: 'imported_at.asc',
+      select: WEARABLE_IMPORT_SELECT,
       tenant_id: `eq.${tenantId}`,
     }),
     selectMany<WearableMetricRow>('wearable_metrics', {
@@ -402,6 +411,7 @@ async function loadCustomerExportBundle(target: PdpaTarget) {
     labReports: labReportsWithResults,
     orders: ordersWithEvents,
     userFacts,
+    wearableImports,
     wearableMetrics,
   };
 }
@@ -427,6 +437,7 @@ export async function exportPdpaData(body: PdpaRequest, authorization: string | 
     orders: bundle.orders,
     pdpa_request_id: request.id,
     user_facts: bundle.userFacts,
+    wearable_imports: bundle.wearableImports,
     wearable_metrics: bundle.wearableMetrics,
   };
 }
@@ -512,6 +523,10 @@ export async function deletePdpaData(body: PdpaRequest, authorization: string | 
     tenant_id: `eq.${target.tenantId}`,
   });
   deletedRows.wearable_metrics = await deleteRows('wearable_metrics', {
+    customer_id: `eq.${target.customerId}`,
+    tenant_id: `eq.${target.tenantId}`,
+  });
+  deletedRows.wearable_imports = await deleteRows('wearable_imports', {
     customer_id: `eq.${target.customerId}`,
     tenant_id: `eq.${target.tenantId}`,
   });
