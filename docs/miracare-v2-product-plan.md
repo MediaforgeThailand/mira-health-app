@@ -226,7 +226,7 @@ Verify the draft implements THIS plan — catching silent scope drift, contract 
 **E. Conversation quality (P1)**
 - [✅ 2026-06-11] 7-case regression suite green on app/PWA, automated in `scripts/`. The credentialed live run passed all 7 handoff cases after the final v2 function redeploy; LINE sandbox credentials remain pending separately.
 - [✅ 2026-06-11] Order-info collection feels conversational (no hardcoded scripted sequences in backend code — grep for canned Thai reply strings outside templates). Evidence: active order context + order field extractor; payment/admin notices are templated system notices.
-- [❌ 2026-06-11] Known-user test: facts from a previous session used, not re-asked. Context builder tests exist, but seeded end-to-end known-user proof is pending.
+- [✅ 2026-06-12] Known-user test: facts from a previous session used, not re-asked. Evidence: R6 `scripts/chat-known-user.mjs` seeds consent + previous-session `user_facts` (`age=35`, `health_concerns=น้ำตาล`) and GitHub Actions run 27431179529 passed the credentialed `Known-user chat proof` step in `live-regression` job 81081827964.
 
 **F. Dashboard correctness (P2)**
 - [✅ 2026-06-11] Lab extraction confidence-gated with user confirmation UI; summaries stored once. Confidence gate, editable review panel, trusted confirmation write, and shared lab fact insertion now exist; live sample proof remains tracked separately.

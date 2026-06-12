@@ -44,6 +44,7 @@
     "web": "expo start --web",
     "build": "expo export --platform web",
     "chat:quality": "node scripts/mira-chat-quality-check.mjs",
+    "chat:known-user": "node scripts/chat-known-user.mjs",
     "chat:regression": "node scripts/chat-regression.mjs",
     "chat:regression:v3": "node scripts/chat-regression-v3.mjs",
     "orders:status-audit": "node scripts/order-status-write-audit.mjs",
