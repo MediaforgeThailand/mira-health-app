@@ -188,12 +188,12 @@ const requiredSnippets = [
   },
   {
     relativePath: 'app/r/[ref_code].tsx',
-    snippet: 'storeReferralCode(refCode)',
+    snippet: 'await storeReferralCode(refCode)',
     message: 'referral landing route must persist the normalized referral code before chat',
   },
   {
     relativePath: 'lib/ai/miraChat.ts',
-    snippet: 'ref_code: readStoredReferralCode() ?? undefined',
+    snippet: 'const refCode = await readStoredReferralCode();',
     message: 'chat orchestrator request must forward a stored referral code when present',
   },
   {
