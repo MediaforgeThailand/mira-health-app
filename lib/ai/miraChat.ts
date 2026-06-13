@@ -302,6 +302,8 @@ export async function loadHealthDataConsent(): Promise<HealthDataConsentState> {
 }
 
 export async function refreshActiveOrderPanel(sessionId?: string | null): Promise<ChatOrchestratorResponse> {
+  const refCode = await readStoredReferralCode();
+
   const result = await invokeFunction<ChatOrchestratorRequest, ChatOrchestratorResponse>('chat-orchestrator', {
     action: {
       type: 'refresh_order',
@@ -309,7 +311,7 @@ export async function refreshActiveOrderPanel(sessionId?: string | null): Promis
     channel: 'app',
     client_msg_id: crypto.randomUUID(),
     message: '',
-    ref_code: readStoredReferralCode() ?? undefined,
+    ref_code: refCode ?? undefined,
     session_id: sessionId ?? orchestratorSessionId,
     tenant_slug: defaultTenantSlug,
   });
@@ -329,13 +331,14 @@ async function callSupabaseOrchestrator({
   sessionId?: string | null;
 }): Promise<AskAiResult> {
   const startedAt = Date.now();
+  const refCode = await readStoredReferralCode();
 
   const result = await invokeFunction<ChatOrchestratorRequest, ChatOrchestratorResponse>('chat-orchestrator', {
     action: action ?? null,
     channel: 'app',
     client_msg_id: crypto.randomUUID(),
     message: question,
-    ref_code: readStoredReferralCode() ?? undefined,
+    ref_code: refCode ?? undefined,
     session_id: sessionId ?? orchestratorSessionId,
     tenant_slug: defaultTenantSlug,
   });
@@ -383,6 +386,8 @@ export async function requestPaymentSlipUpload({
   orderId: string;
   sessionId?: string | null;
 }) {
+  const refCode = await readStoredReferralCode();
+
   return invokeFunction<ChatOrchestratorRequest, ChatSlipUploadResponse>('chat-orchestrator', {
     action: {
       content_type: contentType,
@@ -392,7 +397,7 @@ export async function requestPaymentSlipUpload({
     channel: 'app',
     client_msg_id: crypto.randomUUID(),
     message: '',
-    ref_code: readStoredReferralCode() ?? undefined,
+    ref_code: refCode ?? undefined,
     session_id: sessionId ?? orchestratorSessionId,
     tenant_slug: defaultTenantSlug,
   });
