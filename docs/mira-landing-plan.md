@@ -387,6 +387,8 @@ Owner verdict on the first build: colors not CI blue, key messages under-communi
 
 DoD note: this pass supersedes the L1–L6 visual specs above where they conflict (copy in §3 was kept verbatim, with added claim lines); §7 checkbox state should be audited against the live build.
 
+**Second owner pass (same day):** owner supplied the real logos (`mira AI` orbit + `mira care`) — palette shifted from indigo to true CI blue (`--brand-deep #1D56DB`, `--brand #2E6BF6`, `--brand-bright #3F8EFC`, night `#051226`); wordmark is now "mira AI". Copy was cut hard for noise reduction: every section now reads pain-line (✗ one sentence) → solution headline → minimal support → mini-CTA; hero punch line is "ไม่ขอเงินเดือน ไม่มีวันหยุด ปิดการขายให้คุณตลอด 24 ชม."; capability-chip strips, verticals-intro section, and long sub-paragraphs were removed. §3 copy blocks above are therefore historical — the live components are the copy source of truth now.
+
 ## 9. Open questions for owner (answer at audit; none block L0–L7)
 
 1. **Domain**: mira.com is stated in the brief — confirm the actual domain to configure (mira.com is likely taken; e.g. `mira.co.th`, `usemira.ai`, …). Affects §5 metadata only.
