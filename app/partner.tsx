@@ -13,6 +13,7 @@ import {
   loadActiveHospitalProducts,
   type HospitalProduct,
 } from '@/lib/marketplace/hospitalProducts';
+import { createReferralShareLink } from '@/lib/marketplace/referralMock';
 import { showcaseDemoCommissions, showcaseDemoProducts, showcaseDemoReferrers, showcaseDemoTenant } from '@/lib/showcase/demoFixtures';
 import { supabase, supabaseConfigStatus } from '@/lib/supabase';
 import type {
@@ -100,6 +101,7 @@ export default function PartnerScreen() {
   const hasValidBuyerAge = Number.isInteger(buyerAgeNumber) && buyerAgeNumber >= 1 && buyerAgeNumber <= 120;
   const selectedBranch = branchChoices.find((branch) => branch.id === selectedBranchId) ?? null;
   const requiresBranchChoice = branchChoices.length > 1;
+  const shareLink = referrer ? createReferralShareLink(referrer.ref_code) : null;
   const canCreateOrder = Boolean(
     selectedProduct &&
       buyerName.trim().length > 1 &&
@@ -346,7 +348,7 @@ export default function PartnerScreen() {
           <View style={styles.shareBox}>
             <Text style={styles.shareLabel}>Share URL</Text>
             <Text selectable style={styles.shareValue}>
-              /r/{referrer?.ref_code ?? 'CODE'}
+              {shareLink ?? '/r/CODE'}
             </Text>
           </View>
         </View>
