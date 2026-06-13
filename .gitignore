@@ -53,3 +53,6 @@ expo-*.log
 .understand-anything/
 .chrome-profile-*/
 .codex-mira-landing-*.png
+.codex-figma-captures/
+.codex-test-artifacts/
+.codex-web-dist/

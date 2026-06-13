@@ -66,7 +66,9 @@
     "v2:schema-audit": "node scripts/v2-schema-audit.mjs",
     "v2:health-safety-audit": "node scripts/v2-health-safety-audit.mjs",
     "v2:client-audit": "node scripts/v2-client-audit.mjs",
-    "v2:verify": "npm run typecheck && npm run showcase:route-audit && npm run v2:type-safety-audit && npm run chat:quality && npm run orders:status-audit && npm run v2:schema-audit && npm run v2:open-questions-audit && npm run v2:local-readiness-audit && npm run v2:docs-audit && npm run v2:client-audit && npm run v2:edge-security-audit && npm run v2:health-safety-audit && npm run v2:pdpa-coverage-audit && npm run types:mirror-audit && npm run templates:mirror-audit && npm run v2:deploy-audit && npm run v2:deno-check && npm run v2:deno-test",
+    "referrals:store-test": "npx -y deno@2.8.2 test lib/referrals/__tests__/attributionCore_test.ts",
+    "referrals:link-audit": "node scripts/referral-link-audit.mjs",
+    "v2:verify": "npm run typecheck && npm run referrals:store-test && npm run referrals:link-audit && npm run showcase:route-audit && npm run v2:type-safety-audit && npm run chat:quality && npm run orders:status-audit && npm run v2:schema-audit && npm run v2:open-questions-audit && npm run v2:local-readiness-audit && npm run v2:docs-audit && npm run v2:client-audit && npm run v2:edge-security-audit && npm run v2:health-safety-audit && npm run v2:pdpa-coverage-audit && npm run types:mirror-audit && npm run templates:mirror-audit && npm run v2:deploy-audit && npm run v2:deno-check && npm run v2:deno-test",
     "typecheck": "tsc --noEmit"
   },
   "private": true

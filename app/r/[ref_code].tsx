@@ -1,38 +1,85 @@
-import { Link, useLocalSearchParams } from 'expo-router';
+import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { MiraDesign } from '@/constants/Design';
+import { createReferralAppLink } from '@/lib/marketplace/referralMock';
 import { normalizeRefCode, storeReferralCode } from '@/lib/referrals/attribution';
 
 export default function ReferralLandingScreen() {
   const params = useLocalSearchParams<{ ref_code?: string }>();
+  const router = useRouter();
   const refCode = useMemo(() => normalizeRefCode(String(params.ref_code ?? '')), [params.ref_code]);
+  const appLink = useMemo(() => (refCode ? createReferralAppLink(refCode) : null), [refCode]);
   const [storedCode, setStoredCode] = useState<string | null>(null);
+  const [attemptedAppOpen, setAttemptedAppOpen] = useState(false);
 
   useEffect(() => {
-    const stored = storeReferralCode(refCode);
-    setStoredCode(stored?.ref_code ?? null);
-  }, [refCode]);
+    let isMounted = true;
+
+    async function persistReferral() {
+      const stored = await storeReferralCode(refCode);
+
+      if (!isMounted) {
+        return;
+      }
+
+      setStoredCode(stored?.ref_code ?? null);
+
+      if (!stored) {
+        return;
+      }
+
+      if (Platform.OS !== 'web') {
+        router.replace('/prototype');
+        return;
+      }
+
+      if (appLink && isLikelyMobileWeb()) {
+        setAttemptedAppOpen(true);
+        await Linking.openURL(appLink).catch(() => undefined);
+      }
+    }
+
+    void persistReferral();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [appLink, refCode, router]);
 
   return (
     <View style={styles.screen}>
       <View style={styles.panel}>
         <Text style={styles.eyebrow}>Referral</Text>
-        <Text style={styles.title}>{storedCode ? 'Referral saved' : 'Referral code unavailable'}</Text>
+        <Text style={styles.title}>{storedCode ? 'บันทึก referral แล้ว' : 'ไม่พบ referral code ที่ใช้ได้'}</Text>
         <Text style={styles.body}>
           {storedCode
-            ? `Code ${storedCode} will be attached to eligible purchases during the attribution window.`
-            : 'Open a valid referral link to attach attribution before continuing.'}
+            ? `โค้ด ${storedCode} จะถูกแนบกับคำสั่งซื้อที่เข้าเงื่อนไขภายในช่วง attribution`
+            : 'เปิดลิงก์ referral ที่ถูกต้องก่อนเริ่มซื้อแพ็กเกจ'}
         </Text>
-        <Link href="/" asChild>
-          <Pressable style={styles.button}>
-            <Text style={styles.buttonText}>Open Overview</Text>
-          </Pressable>
-        </Link>
+        {attemptedAppOpen ? <Text style={styles.hint}>ถ้าแอปไม่เปิดอัตโนมัติ เลือกปุ่มด้านล่างได้เลย</Text> : null}
+        <View style={styles.actions}>
+          {appLink ? (
+            <Pressable onPress={() => void Linking.openURL(appLink)} style={styles.button}>
+              <Text style={styles.buttonText}>เปิดในแอป</Text>
+            </Pressable>
+          ) : null}
+          <Link href="/prototype" asChild>
+            <Pressable style={[styles.button, styles.secondaryButton]}>
+              <Text style={[styles.buttonText, styles.secondaryButtonText]}>เล่นต่อบนเว็บ</Text>
+            </Pressable>
+          </Link>
+        </View>
       </View>
     </View>
   );
+}
+
+function isLikelyMobileWeb() {
+  const userAgent = (globalThis as typeof globalThis & { navigator?: { userAgent?: string } }).navigator?.userAgent ?? '';
+
+  return /Android|iPhone|iPad|iPod/i.test(userAgent);
 }
 
 const styles = StyleSheet.create({
@@ -69,6 +116,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
   },
+  hint: {
+    color: MiraDesign.color.muted,
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 18,
+  },
+  actions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
   button: {
     alignItems: 'center',
     alignSelf: 'flex-start',
@@ -78,9 +136,17 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: 16,
   },
+  secondaryButton: {
+    backgroundColor: '#FFFFFF',
+    borderColor: MiraDesign.color.line,
+    borderWidth: 1,
+  },
   buttonText: {
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '900',
+  },
+  secondaryButtonText: {
+    color: MiraDesign.color.primaryDeep,
   },
 });

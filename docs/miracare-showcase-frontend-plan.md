@@ -85,7 +85,7 @@ Module → page mapping (truthful version):
 
 | Module | Pages (status) |
 |---|---|
-| 1. Referral Program | `/r/DRNOK2` (LIVE, public entry) → `/partner` (LIVE) → `/admin/referrers` (LIVE, admin auth) |
+| 1. Referral Program | `/r/DRNK22` (LIVE, public entry) → `/partner` (LIVE) → `/admin/referrers` (LIVE, admin auth) |
 | 2. Admin Panel | `/admin/catalog` (LIVE) → `/admin/orders` (LIVE) → `/admin/branches` (MOCKUP) → `/admin/dashboard` (MOCKUP) — referrers row appears here too but labeled "shared with Referral module" |
 | 3. AI Chat | `/chatbot` (LIVE, flagship) → `/orders` (MOCKUP → LIVE after V3-2) → `/package-detail` (LIVE, supporting) → `/prototype` (CONCEPT) → `/showcase/line-preview` (CONCEPT) |
 | 4. Health Dashboard | `/health` (LIVE) → `/health-check-results` (LIVE) → `/wearable-health` (LIVE) → `/health/lab-upload` (MOCKUP) → `/user-profile` (LIVE) |
