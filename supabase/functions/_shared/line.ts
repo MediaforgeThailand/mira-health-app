@@ -49,6 +49,11 @@ const CATEGORY_LIST_ALT = '\u0e40\u0e25\u0e37\u0e2d\u0e01\u0e2b\u0e21\u0e27\u0e1
 const BROWSE_CATEGORY_MESSAGE = '\u0e02\u0e2d\u0e14\u0e39\u0e41\u0e1e\u0e47\u0e01\u0e40\u0e01\u0e08\u0e43\u0e19\u0e2b\u0e21\u0e27\u0e14\u0e19\u0e35\u0e49';
 // "\u0e41\u0e1e\u0e47\u0e01\u0e40\u0e01\u0e08" (packages, unit suffix)
 const PACKAGE_UNIT_LABEL = '\u0e41\u0e1e\u0e47\u0e01\u0e40\u0e01\u0e08';
+// "\u0e01\u0e23\u0e2d\u0e01\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e1c\u0e39\u0e49\u0e23\u0e31\u0e1a\u0e1a\u0e23\u0e34\u0e01\u0e32\u0e23" (fill in the recipient's details)
+const ORDER_FORM_BUTTON_LABEL = '\u0e01\u0e23\u0e2d\u0e01\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e1c\u0e39\u0e49\u0e23\u0e31\u0e1a\u0e1a\u0e23\u0e34\u0e01\u0e32\u0e23';
+// "\u0e01\u0e14\u0e1b\u0e38\u0e48\u0e21\u0e14\u0e49\u0e32\u0e19\u0e25\u0e48\u0e32\u0e07\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e01\u0e23\u0e2d\u0e01\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e1c\u0e39\u0e49\u0e23\u0e31\u0e1a\u0e1a\u0e23\u0e34\u0e01\u0e32\u0e23\u0e04\u0e48\u0e30"
+const ORDER_FORM_PROMPT = '\u0e01\u0e14\u0e1b\u0e38\u0e48\u0e21\u0e14\u0e49\u0e32\u0e19\u0e25\u0e48\u0e32\u0e07\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e01\u0e23\u0e2d\u0e01\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e1c\u0e39\u0e49\u0e23\u0e31\u0e1a\u0e1a\u0e23\u0e34\u0e01\u0e32\u0e23\u0e04\u0e48\u0e30';
+const ORDER_FORM_ALT = '\u0e01\u0e23\u0e2d\u0e01\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e1c\u0e39\u0e49\u0e23\u0e31\u0e1a\u0e1a\u0e23\u0e34\u0e01\u0e32\u0e23';
 
 function requireEnv(key: string) {
   const value = Deno.env.get(key)?.trim();
@@ -69,6 +74,18 @@ function getTenantEnv(baseKey: string, tenantSlug: string) {
 
 export function requireTenantEnv(baseKey: string, tenantSlug: string) {
   return getTenantEnv(baseKey, tenantSlug) || requireEnv(baseKey);
+}
+
+// Builds the LIFF URL that opens the buyer-info form, or null when no LIFF app is
+// configured for the tenant yet (the caller then simply omits the form button).
+export function lineFormUrl(tenantSlug: string, orderId: string): string | null {
+  const liffId = getTenantEnv('LINE_LIFF_ID', tenantSlug) || Deno.env.get('LINE_LIFF_ID')?.trim();
+
+  if (!liffId) {
+    return null;
+  }
+
+  return `https://liff.line.me/${liffId}?order=${encodeURIComponent(orderId)}`;
 }
 
 export function requireLineChannelToken(tenantSlug: string) {
@@ -309,6 +326,53 @@ export function productLineFlexMessage(products: ChatProduct[]): LineFlexMessage
         type: 'bubble',
       })),
       type: 'carousel',
+    },
+    type: 'flex',
+  };
+}
+
+export function orderFormLineFlexMessage(formUrl: string, productName: string): LineFlexMessage {
+  return {
+    altText: ORDER_FORM_ALT,
+    contents: {
+      body: {
+        contents: [
+          {
+            size: 'md',
+            text: productName,
+            type: 'text',
+            weight: 'bold',
+            wrap: true,
+          },
+          {
+            color: '#4E5F59',
+            margin: 'sm',
+            size: 'sm',
+            text: ORDER_FORM_PROMPT,
+            type: 'text',
+            wrap: true,
+          },
+        ],
+        layout: 'vertical',
+        type: 'box',
+      },
+      footer: {
+        contents: [
+          {
+            action: {
+              label: ORDER_FORM_BUTTON_LABEL,
+              type: 'uri',
+              uri: formUrl,
+            },
+            color: '#163F34',
+            style: 'primary',
+            type: 'button',
+          },
+        ],
+        layout: 'vertical',
+        type: 'box',
+      },
+      type: 'bubble',
     },
     type: 'flex',
   };

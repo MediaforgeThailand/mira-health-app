@@ -4,7 +4,9 @@ import { HttpError, handleOptions, json, toErrorResponse } from '../_shared/http
 import {
   branchSelectionLineFlexMessage,
   categoryLineFlexMessage,
+  lineFormUrl,
   linePostbackToAction,
+  orderFormLineFlexMessage,
   orderPaymentLineFlexMessage,
   orderQrLineImageMessage,
   productLineFlexMessage,
@@ -81,7 +83,7 @@ async function orderLineMessages(order: NonNullable<OrderPanelState>): Promise<L
   ];
 }
 
-async function toLineMessages(response: ChatOrchestratorResponse) {
+async function toLineMessages(response: ChatOrchestratorResponse, tenantSlug: string) {
   const messages: LineMessage[] = [textLineMessage(response.text)];
   const products = productLineFlexMessage(response.products);
 
@@ -97,6 +99,12 @@ async function toLineMessages(response: ChatOrchestratorResponse) {
 
       if (branchMessage) {
         messages.push(branchMessage);
+      }
+    } else if (order.step === 'form') {
+      const formUrl = lineFormUrl(tenantSlug, order.id);
+
+      if (formUrl) {
+        messages.push(orderFormLineFlexMessage(formUrl, order.product_name));
       }
     } else {
       messages.push(...await orderLineMessages(order));
@@ -139,7 +147,7 @@ async function handleEvent(event: LineEvent, tenantSlug: string) {
       tenant_slug: tenantSlug,
     });
 
-    await replyLineMessages(replyToken, await toLineMessages(response), tenantSlug);
+    await replyLineMessages(replyToken, await toLineMessages(response, tenantSlug), tenantSlug);
     return;
   }
 
@@ -153,7 +161,7 @@ async function handleEvent(event: LineEvent, tenantSlug: string) {
       tenant_slug: tenantSlug,
     });
 
-    await replyLineMessages(replyToken, await toLineMessages(response), tenantSlug);
+    await replyLineMessages(replyToken, await toLineMessages(response, tenantSlug), tenantSlug);
     return;
   }
 
@@ -166,7 +174,7 @@ async function handleEvent(event: LineEvent, tenantSlug: string) {
       tenant_slug: tenantSlug,
     });
 
-    await replyLineMessages(replyToken, await toLineMessages(response), tenantSlug);
+    await replyLineMessages(replyToken, await toLineMessages(response, tenantSlug), tenantSlug);
   }
 }
 

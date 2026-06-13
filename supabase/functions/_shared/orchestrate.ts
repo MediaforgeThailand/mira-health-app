@@ -226,10 +226,14 @@ async function createOrderFromProduct({
     : null;
   const branches = await activeBranchesForProduct(tenant.id, product.id);
   const singleBranch = branches.length === 1 ? branches[0] : null;
+  const isLine = channel === 'line';
+  // V3-6 (LINE): always force an explicit branch choice (even a single-branch
+  // product) and never auto-fill the buyer phone from the account — the buyer may
+  // be someone other than the LINE account holder. App/PWA behaviour is unchanged.
   const order = await insertRow<OrderRow>('orders', {
     amount_baht: product.price_baht,
-    branch_id: singleBranch?.id ?? null,
-    buyer_phone: customer.phone,
+    branch_id: isLine ? null : (singleBranch?.id ?? null),
+    buyer_phone: isLine ? null : customer.phone,
     channel: channel === 'app' ? 'chat_app' : channel === 'line' ? 'chat_line' : 'chat_pwa',
     commission_scheme_snapshot: referrer?.commission_scheme ?? null,
     customer_id: customer.id,
@@ -237,7 +241,7 @@ async function createOrderFromProduct({
     qty: 1,
     referrer_id: referrerId,
     session_id: sessionId,
-    status: branches.length > 1 ? 'selecting_branch' : 'collecting_info',
+    status: (isLine ? branches.length >= 1 : branches.length > 1) ? 'selecting_branch' : 'collecting_info',
     tenant_id: tenant.id,
   }, {
     select: ORDER_PANEL_SELECT,
@@ -1184,7 +1188,10 @@ async function completeChatTurn({
 
   await updateSessionAfterAssistant(session.id, tenant.id, parsed.text);
 
-  activeOrder = channel === 'line' ? await updateCollectingOrderFromMessage(activeOrder, message) : activeOrder;
+  // V3-6: LINE buyer info is collected via the LIFF form (line-form edge function),
+  // not by conversational extraction, so a chat message never auto-fills the order.
+  // (updateCollectingOrderFromMessage is retained for reference but no longer called.)
+  void updateCollectingOrderFromMessage;
 
   void invokeInternalFunction('fact-extractor', { message_id: userPersist.row.id }).catch((error) => {
     console.warn('fact_extractor_invoke_failed', error instanceof Error ? error.message : error);

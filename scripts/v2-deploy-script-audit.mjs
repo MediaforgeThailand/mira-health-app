@@ -11,6 +11,7 @@ const expectedFunctions = [
   'admin-stripe-product-sync',
   'referrer-order',
   'line-webhook',
+  'line-form',
   'stripe-checkout',
   'stripe-promptpay-qr',
   'stripe-webhook',

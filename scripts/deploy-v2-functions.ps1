@@ -48,6 +48,7 @@ npx supabase functions deploy admin-order-action --project-ref $projectRef
 npx supabase functions deploy admin-stripe-product-sync --project-ref $projectRef
 npx supabase functions deploy referrer-order --project-ref $projectRef
 npx supabase functions deploy line-webhook --project-ref $projectRef --no-verify-jwt
+npx supabase functions deploy line-form --project-ref $projectRef --no-verify-jwt
 npx supabase functions deploy stripe-checkout --project-ref $projectRef
 npx supabase functions deploy stripe-promptpay-qr --project-ref $projectRef
 npx supabase functions deploy stripe-webhook --project-ref $projectRef --no-verify-jwt
