@@ -158,7 +158,7 @@ Glass bar (transparent over hero → `--night` glass after 80px scroll, GSAP). L
 
 Typed, auto-playing, looping (~20s, 1.5s idle between beats, then fade-reset). Steps:
 
-1. chip (system): `ลูกค้ามาจากลิงก์แนะนำของ คุณหมอนก · DRNOK2`
+1. chip (system): `ลูกค้ามาจากลิงก์แนะนำของ คุณหมอนก · DRNK22`
 2. user: `สนใจโปรแกรมตรวจสุขภาพให้คุณแม่ค่ะ อายุ 58`
 3. mira (typing indicator → text): `แนะนำ 2 โปรแกรมที่เหมาะกับคุณแม่อายุ 58 ปีค่ะ เลือกดูรายละเอียดได้เลย`
 4. product cards ×2 (fixture): `ตรวจสุขภาพ Premium 50+` `฿4,900` / `ตรวจหัวใจครบวงจร` `฿6,500` — badge `ตัวอย่าง`

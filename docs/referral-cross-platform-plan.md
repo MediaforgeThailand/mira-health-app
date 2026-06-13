@@ -160,7 +160,79 @@ working deep link (Task 2).
 
 ## 8. DoD checklist (fill ✅/❌ + date in each Task PR)
 
-- [ ] T1. Native attribution store persists + reads `ref_code`; read is async; web unchanged.
-- [ ] T2. `mirahealth://` unified; smart landing routes web/app + renders 2 CTAs; cold-start handled.
-- [ ] T3. sales-portal uses real referrer + `referrer-order` + single share link; mock generator retired.
-- [ ] T4. typecheck + v2:verify green; tests added; v2 plan §10 updated.
+- [✅ 2026-06-13] T1. Native attribution store persists + reads `ref_code`; read is async; web unchanged. Evidence: `lib/referrals/attributionCore.ts`, `lib/referrals/attribution.ts`, `npm run referrals:store-test`, `npm run v2:verify`.
+- [❌ 2026-06-13] T2. `mirahealth://` unified; smart landing routes web/app + renders 2 CTAs; cold-start handled. Code/config is in place (`app/r/[ref_code].tsx`, `app.config.js`, `EXPO_PUBLIC_WEB_ORIGIN`), and `npm run referrals:link-audit` confirms `mirahealth://r/<code>`, `mirahealth:///r/<code>`, and `https://<host>/r/<code>` resolve to the same Expo Router path. Installed-app https handoff remains pending owner live config for canonical host, AASA, Android asset links, Apple Team ID, and Android signing fingerprint.
+- [❌ 2026-06-13] T3. sales-portal uses real referrer + `referrer-order` + single share link; mock generator retired. Code path is complete and mock generator exports are retired, but the live DB proof that an assisted order appears in the admin queue is pending a signed-in referrer account/linked environment.
+- [✅ 2026-06-13] T4. typecheck + v2:verify green; tests added; v2 plan §10 updated. Evidence includes `npm run referrals:store-test`, `npm run referrals:link-audit`, and `npm run v2:verify`.
+
+---
+
+## 9. Finalization work order — CONTINUE HERE (2026-06-13)
+
+Tasks 1–4 are implemented in the working tree of `codex/referral-cross-platform` and
+`npm run typecheck` passes. Review confirms faithful execution (async SecureStore store,
+`mirahealth://` + `EXPO_PUBLIC_WEB_ORIGIN` smart link, sales-portal wired to `referrer-order`,
+mock generators retired, DoD marked truthfully). The items below close the job.
+**F1–F6 need no owner input — do them today.** The "Blocked on owner" list cannot be closed
+without config; leave those DoD items ❌.
+
+### F1 — Repo hygiene (artifacts must not be committed)
+- `.gitignore` covers `.codex-*.log` / `.codex-logs/` but NOT the new dirs. Add
+  `.codex-figma-captures/`, `.codex-test-artifacts/`, `.codex-web-dist/`.
+- Remove those dirs from the working tree. `.codex-web-dist` holds a stale web bundle that
+  still references the deleted mock symbols — do not let it ship.
+
+### F2 — Confirm deep-link scheme + cold start (verification)
+- `app.json` already declares `scheme: "mirahealth"` ✓ — confirm `mirahealth://r/<code>` AND
+  `https://<host>/r/<code>` both resolve to `app/r/[ref_code].tsx`.
+- Verify Expo Router handles the **cold-start initial URL** (app launched from a killed state
+  via the link still stores the code). Document the manual steps (or add a test) in the PR.
+
+Codex evidence 2026-06-13: `npm run referrals:link-audit` asserts Expo Router's native
+link extractor maps `mirahealth://r/DRNK22`, `mirahealth:///r/DRNK22`, and
+`https://care.example.test/r/DRNK22` to `r/DRNK22`, and that `app.config.js` derives iOS
+associated domains + Android App Links from `EXPO_PUBLIC_WEB_ORIGIN`. Manual device
+cold-start check for owner after config: install a build, kill the app, open
+`mirahealth://r/<valid_ref_code>`, confirm `/r/[ref_code]` stores the code, then send a chat
+message and verify the request includes `ref_code`.
+
+### F3 — Scaffold App/Universal Link association files (unblocks owner step)
+- Create `public/.well-known/apple-app-site-association` and `public/.well-known/assetlinks.json`
+  as templates with documented placeholders: `<APPLE_TEAM_ID>`, `<IOS_BUNDLE_ID>`,
+  `<ANDROID_PACKAGE>`, `<ANDROID_SHA256_FINGERPRINT>`. Add a one-line note that they must be
+  hosted at the `EXPO_PUBLIC_WEB_ORIGIN` host root. Do not invent secret values.
+
+### F4 — Full gate run
+- Run `npm run v2:verify` end-to-end and fix any red. If an audit needs adjustment, fix the
+  cause — never weaken an audit to go green (AGENTS.md §3). Refresh §8/§10 DoD evidence.
+
+### F5 — Scope-drift check on extra files
+- Justify or trim changes beyond the 4 named task files: `lib/showcase/registry.ts`,
+  `lib/showcase/demoFixtures.ts`, `scripts/v2-client-audit.mjs`, `docs/mira-landing-plan.md`,
+  `docs/miracare-showcase-frontend-plan.md`. They look necessary (register sales-portal as
+  LIVE + demo referrer fixtures) — confirm minimal and list them in the PR description.
+
+Codex review 2026-06-13: kept the extra-file changes because they are minimal referral-only
+alignment: showcase fixtures/docs moved from legacy invalid `DRNOK2` to Crockford-valid
+`DRNK22`, showcase registry points the demo referral entry at the valid code, and
+`v2-client-audit` now asserts the async attribution API instead of the old sync snippets.
+
+### F6 — Commit + PR
+- Commit the working tree on `codex/referral-cross-platform`, ideally split into commits
+  matching T1–T4 (+ one for F1–F5), each message referencing the plan task. Open the PR with a
+  summary + the DoD checklist state.
+
+### Blocked on owner (leave DoD ❌, document in PR — NOT closeable today)
+1. Canonical web host → set real `EXPO_PUBLIC_WEB_ORIGIN`.
+2. Apple Team ID + Android SHA-256 signing fingerprint → fill F3 templates + app config.
+3. Host `.well-known/*` on the web host; verify Universal/App Link OS routing on a device.
+4. Live assisted-order proof: signed-in referrer → `create_order` → admin confirm →
+   `commission_entries` row in the admin queue (closes T3).
+
+### Finalization DoD
+- [✅ 2026-06-13] F1. Artifact dirs gitignored + removed from tree.
+- [✅ 2026-06-13] F2. `mirahealth://` + `https` both route to `/r/[code]`; cold-start routing path verified by `npm run referrals:link-audit`.
+- [✅ 2026-06-13] F3. `.well-known` association templates added with placeholders.
+- [✅ 2026-06-13] F4. `npm run v2:verify` green.
+- [✅ 2026-06-13] F5. Extra-file changes justified/trimmed and documented.
+- [ ] F6. Committed (split by task) + PR opened.
