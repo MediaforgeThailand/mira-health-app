@@ -235,4 +235,4 @@ alignment: showcase fixtures/docs moved from legacy invalid `DRNOK2` to Crockfor
 - [✅ 2026-06-13] F3. `.well-known` association templates added with placeholders.
 - [✅ 2026-06-13] F4. `npm run v2:verify` green.
 - [✅ 2026-06-13] F5. Extra-file changes justified/trimmed and documented.
-- [ ] F6. Committed (split by task) + PR opened.
+- [✅ 2026-06-13] F6. Committed (split by task) + PR opened: https://github.com/MediaforgeThailand/mira-health-app/pull/13.
