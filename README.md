@@ -82,6 +82,7 @@ supabase functions deploy fact-extractor
 supabase functions deploy admin-order-action
 supabase functions deploy admin-stripe-product-sync
 supabase functions deploy referrer-order
+supabase functions deploy referral-bind
 supabase functions deploy line-webhook --no-verify-jwt
 supabase functions deploy stripe-checkout
 supabase functions deploy stripe-webhook --no-verify-jwt
