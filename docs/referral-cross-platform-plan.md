@@ -33,7 +33,7 @@ emits non-conformant codes. LINE OA is intentionally excluded.
 | DB schema | `referrers`, `commission_entries`, `customers.referred_by/referred_at`, `orders.referrer_id`, `orders.commission_scheme_snapshot`, `tenants.attribution_window_days` + RLS | `supabase/migrations/20260611040000_...phase4_referrals.sql`, `20260611010000_...foundations.sql`, `20260611060000_a1_commission_scheme_snapshot.sql` |
 | `ref_code` | 6-char Crockford base32, server-generated, immutable, unique per tenant | `20260611062000_b8_referrer_contract.sql` |
 | Commission compute | on `submitted → confirmed`, snapshot-based, status `pending` | `transition_order` in `20260612050000_...phase1_data_admin.sql`; `_shared/commissions.ts` |
-| Chat attribution | `maybeApplyReferralCode` + `resolveAttributedReferrerId`; request schema accepts `ref_code` on `app`/`pwa` | `supabase/functions/_shared/orchestrate.ts`, `_shared/referrals.ts` |
+| Chat attribution | `applyReferralCodeToCustomer` + `resolveAttributedReferrerId`; request schema accepts `ref_code` on `app`/`pwa` | `supabase/functions/_shared/orchestrate.ts`, `_shared/referrals.ts` |
 | Assisted purchase | `create_order` / `list_branches` / `payment_done` | `supabase/functions/referrer-order/index.ts`, `_shared/referrerOrder.ts` |
 | PWA capture | `/r/[ref_code]` → localStorage + cookie; carried in every chat call | `app/r/[ref_code].tsx`, `lib/referrals/attribution.ts`, `lib/ai/miraChat.ts` |
 | Referrer workspace (real) | reads referrer/commissions from DB, calls `referrer-order` | `app/partner.tsx` (use as the reference implementation) |
@@ -164,6 +164,7 @@ working deep link (Task 2).
 - [❌ 2026-06-13] T2. `mirahealth://` unified; smart landing routes web/app + renders 2 CTAs; cold-start handled. Code/config is in place (`app/r/[ref_code].tsx`, `app.config.js`, `EXPO_PUBLIC_WEB_ORIGIN`), and `npm run referrals:link-audit` confirms `mirahealth://r/<code>`, `mirahealth:///r/<code>`, and `https://<host>/r/<code>` resolve to the same Expo Router path. Installed-app https handoff remains pending owner live config for canonical host, AASA, Android asset links, Apple Team ID, and Android signing fingerprint.
 - [❌ 2026-06-13] T3. sales-portal uses real referrer + `referrer-order` + single share link; mock generator retired. Code path is complete and mock generator exports are retired, but the live DB proof that an assisted order appears in the admin queue is pending a signed-in referrer account/linked environment.
 - [✅ 2026-06-13] T4. typecheck + v2:verify green; tests added; v2 plan §10 updated. Evidence includes `npm run referrals:store-test`, `npm run referrals:link-audit`, and `npm run v2:verify`.
+- [✅ 2026-06-15] T5. Anonymous-click auth-time bind complete: shared first-touch bind helper, auth-gated `referral-bind`, client best-effort login/signup hook, mirrored types, and full `npm run v2:verify` green.
 
 ---
 
@@ -248,7 +249,7 @@ their first chat message. Backend-only; no mobile/Universal-Link dependency.
 
 ### Why this is needed (current gap)
 - `/r/<code>` already stores the code client-side (cross-platform store). ✅
-- `customers.referred_by` is only written today inside `maybeApplyReferralCode`, which runs
+- Before this work, `customers.referred_by` was only written inside `maybeApplyReferralCode`, which ran
   during the **first chat message** (`supabase/functions/_shared/orchestrate.ts:1183`). So a
   user who logs in but does not immediately chat stays unbound.
 - There is no bind trigger on login/signup. **That trigger is the work here.**
@@ -315,8 +316,8 @@ unchanged). `/r/<code>` keeps storing the code. No change to commission creation
 attribution window.
 
 ### DoD checklist (fill ✅/❌ + date in the PR)
-- [ ] R1. Bind rule extracted to `_shared/referrals.ts`; chat behavior unchanged.
-- [ ] R2. `referral-bind` edge function (auth-gated, idempotent, safe on bad codes).
-- [ ] R3. `useAuthSession` binds stored code on login/signup (best-effort, non-blocking).
-- [ ] R4. Types mirrored; `types:mirror-audit` green.
-- [ ] R5. Tests added; `typecheck` + `v2:verify` green; DoD updated.
+- [✅ 2026-06-15] R1. Bind rule extracted to `_shared/referrals.ts`; chat behavior unchanged via `applyReferralCodeToCustomer`.
+- [✅ 2026-06-15] R2. `referral-bind` edge function (auth-gated, idempotent, safe on bad codes) added and included in Deno/deploy/edge audits.
+- [✅ 2026-06-15] R3. `useAuthSession` binds stored code on login/signup and existing-session detection (best-effort, non-blocking).
+- [✅ 2026-06-15] R4. Types mirrored; `npm run types:mirror-audit` green.
+- [✅ 2026-06-15] R5. Tests added; `npm run typecheck` + `npm run v2:verify` green; DoD updated.

@@ -28,7 +28,7 @@ import {
   updateOrderFields,
 } from './orders.ts';
 import { callMiraPrompt, callOrderFieldExtractor } from './openai.ts';
-import { resolveAttributedReferrerId } from './referrals.ts';
+import { applyReferralCodeToCustomer, resolveAttributedReferrerId } from './referrals.ts';
 import { createSignedUploadUrl } from './storage.ts';
 import { ORDER_INFO_COMPLETE_NOTICE_TH, ORDER_PAYMENT_SUBMITTED_NOTICE_TH } from './templates.ts';
 import type {
@@ -169,38 +169,6 @@ async function productByCatalogKey(tenantId: string, catalogKey: string) {
     select: 'id,tenant_id,catalog_key,name,description,price_baht,category,image_url,branch_info,requires_appointment,active',
     tenant_id: `eq.${tenantId}`,
   });
-}
-
-async function maybeApplyReferralCode(customer: CustomerRow, tenant: TenantRow, refCode?: string) {
-  if (!refCode || customer.referred_by) {
-    return customer;
-  }
-
-  const referrer = await selectOne<ReferrerRow>('referrers', {
-    active: 'eq.true',
-    ref_code: `eq.${refCode}`,
-    select: 'id,tenant_id,ref_code,name,type,phone,auth_user_id,commission_scheme,active,created_at',
-    tenant_id: `eq.${tenant.id}`,
-  });
-
-  if (!referrer) {
-    return customer;
-  }
-
-  const rows = await updateRows<CustomerRow>(
-    'customers',
-    {
-      referred_at: nowIso(),
-      referred_by: referrer.id,
-    },
-    {
-      id: `eq.${customer.id}`,
-      select: 'id,tenant_id,auth_user_id,line_user_id,nickname,phone,referred_by,referred_at,created_at',
-      tenant_id: `eq.${tenant.id}`,
-    },
-  );
-
-  return rows[0] ?? customer;
 }
 
 async function createOrderFromProduct({
@@ -1180,7 +1148,7 @@ export async function orchestrateChat(
   const tenant = await assertTenant(request.tenant_slug);
   const authUserId = await resolveAuthUserId(authorization);
   let customer = await resolveOrCreateCustomer(tenant.id, authUserId);
-  customer = await maybeApplyReferralCode(customer, tenant, request.ref_code);
+  customer = await applyReferralCodeToCustomer(customer, tenant, request.ref_code);
   const session = await resolveOrCreateSession({
     channel: request.channel,
     customer,
