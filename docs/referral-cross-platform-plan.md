@@ -236,3 +236,87 @@ alignment: showcase fixtures/docs moved from legacy invalid `DRNOK2` to Crockfor
 - [✅ 2026-06-13] F4. `npm run v2:verify` green.
 - [✅ 2026-06-13] F5. Extra-file changes justified/trimmed and documented.
 - [✅ 2026-06-13] F6. Committed (split by task) + PR opened: https://github.com/MediaforgeThailand/mira-health-app/pull/13.
+
+---
+
+## 10. Backend work order — bind referral on auth (anonymous-click flow) (2026-06-15)
+
+### Goal
+A customer clicks a referral link **while logged out (anonymous)**, then signs up / logs in.
+The referral must be bound to that customer **the instant auth completes** — NOT deferred to
+their first chat message. Backend-only; no mobile/Universal-Link dependency.
+
+### Why this is needed (current gap)
+- `/r/<code>` already stores the code client-side (cross-platform store). ✅
+- `customers.referred_by` is only written today inside `maybeApplyReferralCode`, which runs
+  during the **first chat message** (`supabase/functions/_shared/orchestrate.ts:1183`). So a
+  user who logs in but does not immediately chat stays unbound.
+- There is no bind trigger on login/signup. **That trigger is the work here.**
+
+### Owner decisions (locked)
+- **D7 — Anonymous-first.** Most clicks are logged-out. Earliest possible bind = the moment
+  login/signup succeeds. Click-time binding is impossible (no `auth_user_id` yet) — do not try.
+- **D8 — Keep existing attribution rules.** First-touch: if `customers.referred_by` is already
+  set, never overwrite. Only active codes bind. The 30-day window stays enforced at ORDER time
+  via `resolveAttributedReferrerId` (do NOT add a window check at bind time — match current
+  behavior exactly).
+
+### Guardrails (AGENTS.md)
+- **No schema/migration change** — `referred_by` / `referred_at` already exist.
+- Do not touch the protected core (prompt, markers, order state machine, `transition_order`)
+  or the LINE path.
+- New cross-platform request/response types must be mirrored in BOTH
+  `supabase/functions/_shared/types.ts` and `lib/types/api.ts` (CI `types:mirror-audit`).
+- Reuse the existing binding rules — do not fork the logic (see R1).
+
+### Tasks (one PR, in order)
+
+**R1 — Extract the bind rule into one shared function**
+- Move the body of `maybeApplyReferralCode` (active-code lookup + `!customer.referred_by`
+  first-touch guard + write `referred_by`/`referred_at`) into a shared helper in
+  `supabase/functions/_shared/referrals.ts`, e.g.
+  `applyReferralCodeToCustomer(customer, tenant, refCode): Promise<CustomerRow>`.
+- `orchestrate.ts` calls the shared helper instead — **chat behavior must be unchanged.**
+- DoD: existing chat/attribution tests still pass; rule lives in exactly one place.
+
+**R2 — New edge function `referral-bind`**
+- `supabase/functions/_shared/referralBind.ts`: zod schema `{ tenant_slug, ref_code }`
+  (`ref_code` uses the existing `^[0-9A-HJKMNP-TV-Z]{6}$` pattern).
+- `supabase/functions/referral-bind/index.ts`: POST only; **JWT verification ON** (needs the
+  caller's auth). Flow: `resolveAuthUserId(authorization)` → `resolveOrCreateCustomer` →
+  `applyReferralCodeToCustomer` → return `{ bound: boolean, already_referred: boolean }`.
+- Invalid/inactive code → return `{ bound: false }` (200), do not 500. Idempotent: a customer
+  already referred returns `already_referred: true` and is left untouched.
+- DoD: calling with a valid code sets `referred_by`; second call is a no-op; inactive code is
+  a safe no-op.
+
+**R3 — Client: bind on login/signup**
+- In `lib/auth/useAuthSession.ts`, after `signInWithEmailPassword` / `signUpWithEmailPassword`
+  succeed and `ensureProfile` runs, read `await readStoredReferralCode()`; if present, call
+  `invokeFunction('referral-bind', { tenant_slug, ref_code })` **best-effort** (failure must
+  NOT block login; swallow + optionally log).
+- Also attempt the bind once when an already-authenticated session is detected with a stored
+  code (covers "logged in earlier, clicked link later"). Guard against duplicate calls.
+- DoD: log in with a stored code and no chat → `customers.referred_by` is set immediately.
+
+**R4 — Mirror types**
+- Add the `referral-bind` request/response types to `_shared/types.ts` and `lib/types/api.ts`;
+  `npm run types:mirror-audit` green.
+
+**R5 — Tests + verify + bookkeeping**
+- Unit-test the shared helper: first-touch no-overwrite, inactive/unknown code = no-op,
+  fresh customer binds. Add a `referral-bind` deno test if it fits existing patterns.
+- `npm run typecheck` + `npm run v2:verify` green.
+- Add a §8 DoD line for this work; update `docs/miracare-v2-product-plan.md` §10 if relevant.
+
+### What stays as-is
+Chat-path binding remains as a **safety net** (now via the R1 shared helper, behavior
+unchanged). `/r/<code>` keeps storing the code. No change to commission creation or the
+attribution window.
+
+### DoD checklist (fill ✅/❌ + date in the PR)
+- [ ] R1. Bind rule extracted to `_shared/referrals.ts`; chat behavior unchanged.
+- [ ] R2. `referral-bind` edge function (auth-gated, idempotent, safe on bad codes).
+- [ ] R3. `useAuthSession` binds stored code on login/signup (best-effort, non-blocking).
+- [ ] R4. Types mirrored; `types:mirror-audit` green.
+- [ ] R5. Tests added; `typecheck` + `v2:verify` green; DoD updated.
