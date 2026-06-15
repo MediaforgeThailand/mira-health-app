@@ -385,6 +385,16 @@ export type ReferralBindResponse = {
   bound: boolean;
 };
 
+export type ReferralSelfProvisionRequest = {
+  tenant_slug: string;
+};
+
+export type ReferralSelfProvisionResponse = {
+  created: boolean;
+  ref_code: string;
+  referrer_id: string;
+};
+
 export type LabIngestRequest = {
   collected_date?: string;
   customer_id: string;
