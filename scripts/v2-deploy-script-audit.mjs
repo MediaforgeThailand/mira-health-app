@@ -8,6 +8,7 @@ const expectedFunctions = [
   'chat-orchestrator',
   'fact-extractor',
   'admin-order-action',
+  'admin-members',
   'admin-stripe-product-sync',
   'referrer-order',
   'referral-bind',
