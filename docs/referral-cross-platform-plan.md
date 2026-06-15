@@ -410,3 +410,98 @@ edge function that enforces eligibility itself (sanctioned pattern, AGENTS.md §
 - [ ] S3. Deploy script (JWT on) + deploy/edge/deno audits updated.
 - [ ] S4. sales-portal one-tap "create my code" wired; zero input; shows single share link.
 - [ ] S5. Tests added; `typecheck` + `v2:verify` green; v2 §5.2 non-goal updated (owner-approved).
+
+---
+
+## 12. Admin work order — tenant member management UI (2026-06-15)
+
+### Goal
+Give tenant admins a screen to see and manage who belongs to the tenant and their role
+(`tenant_staff` / `tenant_admin`). Today `tenant_members` can only be edited via SQL / the
+Supabase console — there is **no admin UI** (verified: `app/admin/*` has orders, catalog,
+branches, referrers only).
+
+### Why it pairs with §11 (build this first)
+§11 self-service eligibility = tenant membership (D9). Without a member-management UI an admin
+cannot add a doctor/staff as `tenant_staff`, so they can never self-provision a code. §12 closes
+the loop: **admin adds member (§12) → member self-provisions code (§11).** Recommended order:
+ship §12 then §11 (they are independent but §12 is the practical prerequisite).
+
+### Decisions (defaults — change only if owner objects)
+- **D12 — Access:** `tenant_admin` / `superadmin` only.
+- **D13 — Add existing signed-up users by email (MVP).** Inviting brand-new users (auth account
+  creation + invite email) is a follow-up, NOT in this PR. If the email has no auth account,
+  return a clear "ask them to sign up first" message.
+- **D14 — Assignable roles:** `tenant_staff`, `tenant_admin` only. `superadmin` is not
+  assignable from this UI.
+- **D15 — Lockout guard:** cannot remove or demote the last `tenant_admin`; confirm prompt on
+  self-demote / self-remove.
+
+### Why no schema change
+`tenant_members` already exists with RLS (`tenant_members_admin_all` lets admins write,
+`tenant_members_self_read`). No migration. An edge function is still needed because (a) mapping
+an email → `auth_user_id` requires the Supabase **auth admin API** (auth.users is not
+client-readable) and (b) the list must show email/name and the last-admin guard must be
+enforced server-side.
+
+### Tasks (one PR, in order)
+
+**M1 — Edge function `admin-members`**
+- `supabase/functions/_shared/adminMembers.ts`: zod discriminated union on `action` —
+  `list` | `add {email, role}` | `set_role {auth_user_id, role}` | `remove {auth_user_id}`,
+  each with `tenant_slug`.
+- `supabase/functions/admin-members/index.ts`: POST only, **JWT verification ON**. Every action:
+  1. `resolveAuthUserId(authorization)` → `assertTenant(tenant_slug)`.
+  2. **Admin gate (explicit — service role bypasses RLS):** caller must be `tenant_admin` /
+     `superadmin` in this tenant → else `403`.
+  3. Dispatch:
+     - `list`: select `tenant_members` for the tenant; enrich each with email (auth admin
+       lookup) + `profiles.display_name`. Return `[{ auth_user_id, email, name, role }]`.
+     - `add`: resolve auth user by email; none → `404` "user must sign up first"; else upsert
+       `tenant_members (tenant_id, auth_user_id, role)` (idempotent).
+     - `set_role`: validate role ∈ {`tenant_staff`,`tenant_admin`}; update.
+     - `remove`: delete; **block if it removes the last `tenant_admin`** (count check) → `409`.
+- DoD: non-admin → 403; add existing user works + idempotent; last-admin removal blocked.
+
+**M2 — Mirror types**
+- `AdminMembersRequest` / `AdminMembersResponse` (member row shape) in
+  `_shared/types.ts` + `lib/types/api.ts`; `types:mirror-audit` green.
+
+**M3 — Deploy + audits**
+- Add `admin-members` to `scripts/deploy-v2-functions.ps1` **without** `--no-verify-jwt`, plus
+  the `v2:deploy-script-audit`, `v2-edge-security-audit`, and `v2:deno-check` lists.
+
+**M4 — Frontend `app/admin/members.tsx` + `components/admin/AdminMembers.tsx`**
+- Admin-only gate (reuse the `tenant_members` role check pattern from
+  `components/admin/ReferrersAdmin.tsx`).
+- List members (name, email, role); add-by-email form with a role select; change-role control;
+  remove with confirm + lockout message. Thai UI, `MiraDesign` tokens, calls `admin-members`.
+- Add a tile/link in `app/admin-panel.tsx`.
+
+**M5 — Tests + verify + bookkeeping**
+- Unit-test the core with DI: admin gate, add idempotency, last-admin guard.
+- `npm run typecheck` + `npm run v2:verify` green; register the route if `showcase:route-audit`
+  requires it; update `docs/miracare-v2-product-plan.md` §6 (Admin Panel) to list the new
+  member-management screen.
+
+### Guardrails (AGENTS.md)
+- Admin-gated; tenant-scoped; service role only inside the function.
+- No schema change (reuse `tenant_members` + RLS). JWT on. Types mirrored.
+- Lockout guard mandatory (no tenant can be left without an admin).
+- Do not touch the protected core, order state machine, or the LINE path.
+
+### DoD checklist (fill ✅/❌ + date in the PR)
+- [ ] M1. `admin-members` edge function (admin-gated; list/add/set_role/remove; last-admin guard).
+- [ ] M2. Types mirrored; `types:mirror-audit` green.
+- [ ] M3. Deploy script (JWT on) + deploy/edge/deno audits updated.
+- [ ] M4. `admin/members` screen + admin-panel link; admin-only; add-by-email + role + remove.
+- [ ] M5. Tests added; `typecheck` + `v2:verify` green; v2 §6 updated.
+
+---
+
+## Build order for §11 + §12 (handoff summary)
+1. **§12 (M1–M5)** — admin member-management UI → admins can onboard doctors/staff as
+   `tenant_staff`.
+2. **§11 (S1–S5)** — referrer self-service → onboarded members tap once to get their code.
+Independent PRs; §12 first makes §11 usable end-to-end. Both reuse existing tables (no
+migration), keep service-role inside edge functions, JWT on, types mirrored.
