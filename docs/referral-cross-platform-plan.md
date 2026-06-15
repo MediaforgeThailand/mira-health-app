@@ -388,6 +388,9 @@ edge function that enforces eligibility itself (sanctioned pattern, AGENTS.md §
   referrer → shows the existing single share link/QR (`createReferralShareLink(ref_code)`).
   No form fields. If a referrer already exists, skip the button (current behavior).
 - Keep the not-signed-in demo fallback as-is.
+- **Mobile-first requirement:** referral self-service must be designed from the mobile viewport
+  up. The one-tap create button, share link, QR/code display, and signed-in/error states must
+  be usable on phone widths without relying on a desktop two-column layout.
 
 **S5 — Tests + verify + bookkeeping**
 - Extract the provision core (eligibility + idempotent insert) so it is unit-testable with DI,
@@ -405,11 +408,11 @@ edge function that enforces eligibility itself (sanctioned pattern, AGENTS.md §
 - Do not touch the protected core, order state machine, or the LINE path.
 
 ### DoD checklist (fill ✅/❌ + date in the PR)
-- [ ] S1. `referral-self-provision` edge function (auth-gated, eligibility-checked, idempotent).
-- [ ] S2. Types mirrored; `types:mirror-audit` green.
-- [ ] S3. Deploy script (JWT on) + deploy/edge/deno audits updated.
-- [ ] S4. sales-portal one-tap "create my code" wired; zero input; shows single share link.
-- [ ] S5. Tests added; `typecheck` + `v2:verify` green; v2 §5.2 non-goal updated (owner-approved).
+- [x] ✅ 2026-06-15 S1. `referral-self-provision` edge function (auth-gated, eligibility-checked, idempotent).
+- [x] ✅ 2026-06-15 S2. Types mirrored; `types:mirror-audit` green.
+- [x] ✅ 2026-06-15 S3. Deploy script (JWT on) + deploy/edge/deno audits updated.
+- [x] ✅ 2026-06-15 S4. sales-portal one-tap "create my code" wired; zero input; shows single share link; mobile-first states added.
+- [x] ✅ 2026-06-15 S5. Tests added; `typecheck` + `v2:verify` green; v2 §5.2 non-goal updated (owner-approved).
 
 ---
 

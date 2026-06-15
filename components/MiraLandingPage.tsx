@@ -92,7 +92,7 @@ export default function MiraLandingPage() {
                 <Text style={styles.brandText}>Mira</Text>
               </View>
               {!isCompact ? (
-                <Link href={{ pathname: '/showcase/[module]', params: { module: 'ai-chat' } }} asChild>
+                <Link href={{ pathname: '/tour/[module]', params: { module: 'ai-chat' } }} asChild>
                   <Pressable style={styles.navPill}>
                     <Text style={styles.navPillText}>Product Tour</Text>
                   </Pressable>
@@ -115,7 +115,7 @@ export default function MiraLandingPage() {
                   <Text style={styles.primaryButtonText}>ขอดูเดโม</Text>
                   <SymbolView name={{ android: 'arrow_forward', ios: 'arrow.right', web: 'arrow_forward' }} size={18} tintColor={landingColor.canvasDark} />
                 </Pressable>
-                <Link href={{ pathname: '/showcase/[module]', params: { module: 'referral' } }} asChild>
+                <Link href={{ pathname: '/tour/[module]', params: { module: 'referral' } }} asChild>
                   <Pressable style={styles.secondaryButton}>
                     <Text style={styles.secondaryButtonText}>ดู Referral Flow</Text>
                   </Pressable>

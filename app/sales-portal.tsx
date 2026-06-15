@@ -22,6 +22,8 @@ import type {
   CommissionEntryRow,
   OrderPanelBranch,
   OrderPanelState,
+  ReferralSelfProvisionRequest,
+  ReferralSelfProvisionResponse,
   ReferrerOrderBranchesResponse,
   ReferrerOrderRequest,
   ReferrerOrderResponse,
@@ -33,6 +35,10 @@ type SalesTab = 'dashboard' | 'products' | 'referral';
 type TenantInfo = {
   display_name: string;
   id: string;
+};
+
+type TenantMemberInfo = {
+  role: string;
 };
 
 type CommissionWithOrder = CommissionEntryRow & {
@@ -167,6 +173,7 @@ export default function SalesPortalScreen() {
   const { width } = useWindowDimensions();
   const [activeTab, setActiveTab] = useState<SalesTab>('products');
   const [tenant, setTenant] = useState<TenantInfo | null>(null);
+  const [memberRole, setMemberRole] = useState<string | null>(null);
   const [referrer, setReferrer] = useState<ReferrerRow | null>(null);
   const [products, setProducts] = useState<HospitalProduct[]>([]);
   const [commissions, setCommissions] = useState<CommissionWithOrder[]>([]);
@@ -183,6 +190,7 @@ export default function SalesPortalScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingBranches, setIsLoadingBranches] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isProvisioning, setIsProvisioning] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const isDemoMode = !auth.session || !supabaseConfigStatus.isConfigured;
@@ -194,6 +202,7 @@ export default function SalesPortalScreen() {
   const requiresBranchChoice = branchChoices.length > 1;
   const shareLink = referrer ? createReferralShareLink(referrer.ref_code) : null;
   const isCompact = width < 840;
+  const canSelfProvision = Boolean(auth.session && !isDemoMode && tenant && memberRole && !referrer && !isProvisioning);
   const canCreateOrder = Boolean(
     selectedProduct &&
       referrer &&
@@ -229,6 +238,17 @@ export default function SalesPortalScreen() {
       throw new Error(tenantError?.message ?? `Tenant "${defaultTenantSlug}" is not available.`);
     }
 
+    const { data: memberRow, error: memberError } = await supabase
+      .from('tenant_members')
+      .select('role')
+      .eq('tenant_id', (tenantRow as TenantInfo).id)
+      .eq('auth_user_id', auth.user.id)
+      .maybeSingle();
+
+    if (memberError) {
+      throw new Error(memberError.message);
+    }
+
     const { data: referrerRow, error: referrerError } = await supabase
       .from('referrers')
       .select('id,tenant_id,ref_code,name,type,phone,auth_user_id,commission_scheme,active,created_at')
@@ -242,6 +262,7 @@ export default function SalesPortalScreen() {
     }
 
     setTenant(tenantRow as TenantInfo);
+    setMemberRole(String((memberRow as TenantMemberInfo | null)?.role ?? '') || null);
     setReferrer((referrerRow as ReferrerRow | null) ?? null);
     setProducts(await loadActiveHospitalProducts(80));
 
@@ -273,6 +294,7 @@ export default function SalesPortalScreen() {
 
       if (isDemoMode) {
         setTenant({ display_name: showcaseDemoTenant.display_name, id: showcaseDemoTenant.id });
+        setMemberRole(null);
         setReferrer(showcaseDemoReferrers[0] ?? null);
         setProducts(showcaseDemoProducts);
         setCommissions(showcaseDemoCommissions as unknown as CommissionWithOrder[]);
@@ -438,6 +460,29 @@ export default function SalesPortalScreen() {
     }
   }
 
+  async function provisionReferralCode() {
+    if (!canSelfProvision) {
+      return;
+    }
+
+    try {
+      setIsProvisioning(true);
+      setError(null);
+      setMessage(null);
+      const result = await invokeFunction<ReferralSelfProvisionRequest, ReferralSelfProvisionResponse>('referral-self-provision', {
+        tenant_slug: defaultTenantSlug,
+      });
+
+      setMessage(result.created ? 'สร้าง referral code ของฉันเรียบร้อยแล้ว' : 'พบ referral code เดิมของบัญชีนี้แล้ว');
+      await loadSalesPortalData();
+      setActiveTab('referral');
+    } catch (provisionError) {
+      setError(provisionError instanceof Error ? provisionError.message : 'ไม่สามารถสร้าง referral code ได้');
+    } finally {
+      setIsProvisioning(false);
+    }
+  }
+
   async function copyShareLink() {
     if (!shareLink) {
       return;
@@ -474,13 +519,25 @@ export default function SalesPortalScreen() {
 
         {!referrer && !isLoading ? (
           <View style={styles.noticeInline}>
-            <Text style={styles.noticeTitle}>ยังไม่มี referrer ที่ผูกกับบัญชีนี้</Text>
-            <Text style={styles.noticeBody}>ให้ tenant admin สร้าง referrer profile และตั้งค่า auth_user_id เป็นบัญชีนี้ก่อนใช้งานจริง</Text>
-            <Link href="/admin/referrers" asChild>
-              <Pressable style={styles.secondaryAction}>
-                <Text style={styles.secondaryActionText}>เปิดหน้า Referrers Admin</Text>
+            <Text style={styles.noticeTitle}>{canSelfProvision ? 'สร้าง referral code ของฉัน' : 'ยังไม่มี referrer ที่ผูกกับบัญชีนี้'}</Text>
+            <Text style={styles.noticeBody}>
+              {canSelfProvision
+                ? 'บัญชีนี้เป็นสมาชิกของ tenant แล้ว กดครั้งเดียวเพื่อสร้างโค้ด active ทันทีโดยไม่ต้องกรอกข้อมูล'
+                : memberRole
+                  ? 'ระบบยังไม่พบ referrer profile ที่ active สำหรับบัญชีนี้'
+                  : 'ให้ tenant admin เพิ่มบัญชีนี้เป็นสมาชิก tenant ก่อน แล้วจึงสร้าง referral code ได้'}
+            </Text>
+            {canSelfProvision ? (
+              <Pressable disabled={isProvisioning} onPress={() => void provisionReferralCode()} style={[styles.primaryButton, isProvisioning ? styles.disabled : null]}>
+                <Text style={styles.primaryButtonText}>{isProvisioning ? 'กำลังสร้าง' : 'สร้าง referral code ของฉัน'}</Text>
               </Pressable>
-            </Link>
+            ) : (
+              <Link href="/admin/referrers" asChild>
+                <Pressable style={styles.secondaryAction}>
+                  <Text style={styles.secondaryActionText}>เปิดหน้า Referrers Admin</Text>
+                </Pressable>
+              </Link>
+            )}
           </View>
         ) : null}
 
@@ -538,7 +595,16 @@ export default function SalesPortalScreen() {
           />
         ) : null}
 
-        {activeTab === 'referral' ? <ReferralPanel onCopy={() => void copyShareLink()} referrer={referrer} shareLink={shareLink} /> : null}
+        {activeTab === 'referral' ? (
+          <ReferralPanel
+            canSelfProvision={canSelfProvision}
+            isProvisioning={isProvisioning}
+            onCopy={() => void copyShareLink()}
+            onProvision={() => void provisionReferralCode()}
+            referrer={referrer}
+            shareLink={shareLink}
+          />
+        ) : null}
 
         {activeTab === 'dashboard' ? (
           <DashboardPanel commissions={commissions} referrer={referrer} selectedProduct={selectedProduct} totals={totals} />
@@ -736,7 +802,21 @@ function ProductsWorkspace({
   );
 }
 
-function ReferralPanel({ onCopy, referrer, shareLink }: { onCopy: () => void; referrer: ReferrerRow | null; shareLink: string | null }) {
+function ReferralPanel({
+  canSelfProvision,
+  isProvisioning,
+  onCopy,
+  onProvision,
+  referrer,
+  shareLink,
+}: {
+  canSelfProvision: boolean;
+  isProvisioning: boolean;
+  onCopy: () => void;
+  onProvision: () => void;
+  referrer: ReferrerRow | null;
+  shareLink: string | null;
+}) {
   return (
     <View style={styles.twoColumn}>
       <View style={styles.panel}>
@@ -753,8 +833,16 @@ function ReferralPanel({ onCopy, referrer, shareLink }: { onCopy: () => void; re
               <Text style={styles.primaryButtonText}>คัดลอกลิงก์</Text>
             </Pressable>
           </>
+        ) : canSelfProvision ? (
+          <View style={styles.selfProvisionBox}>
+            <Text style={styles.selfProvisionTitle}>สร้างโค้ดของคุณได้ทันที</Text>
+            <Text style={styles.selfProvisionBody}>ไม่ต้องกรอกข้อมูล ระบบจะใช้ชื่อบัญชีของคุณและ commission default ของ tenant</Text>
+            <Pressable disabled={isProvisioning} onPress={onProvision} style={[styles.primaryButton, isProvisioning ? styles.disabled : null]}>
+              <Text style={styles.primaryButtonText}>{isProvisioning ? 'กำลังสร้าง' : 'สร้าง referral code ของฉัน'}</Text>
+            </Pressable>
+          </View>
         ) : (
-          <EmptyState body="ยังไม่มี referrer profile ที่ active สำหรับบัญชีนี้" title="ยังสร้างลิงก์ไม่ได้" />
+          <EmptyState body="บัญชีนี้ต้องเป็นสมาชิก tenant ก่อนจึงจะสร้าง code ได้" title="ยังสร้างลิงก์ไม่ได้" />
         )}
       </View>
       <View style={styles.panel}>
@@ -1277,6 +1365,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '900',
     lineHeight: 20,
+  },
+  selfProvisionBox: {
+    backgroundColor: '#F7FBFA',
+    borderColor: MiraDesign.color.line,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 10,
+    padding: 14,
+  },
+  selfProvisionTitle: {
+    color: MiraDesign.color.ink,
+    fontSize: 17,
+    fontWeight: '900',
+  },
+  selfProvisionBody: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 13,
+    lineHeight: 19,
   },
   detailList: {
     gap: 10,
