@@ -127,6 +127,7 @@ Base: the old `hospital-portal.tsx`, `hospital-products.tsx`, and `admin-booking
 - **Orders queue (primary screen):** all orders (chat + referrer), filter by status/date/channel; detail view: buyer info, product, slip image, conversation link (read-only transcript), referrer. Actions: confirm payment, set booking datetime, mark booked/done/cancelled, add note. Status changes notify customer in-chat/LINE ("จองคิววันที่ ... เรียบร้อยค่ะ") via a templated system message (NOT model-generated).
 - **Catalog CRUD:** name, preview image (storage upload), description, price, category, active, branch info. This is the single catalog feeding chat + refer.
 - **Referrers & commissions:** CRUD referrers, scheme config, approve/pay commissions, performance table.
+- **Team members (owner-approved 2026-06-15):** tenant admins/superadmins manage `tenant_members` at `/admin/members`; add existing signed-up users by email, assign only `tenant_staff`/`tenant_admin`, and block removal/demotion of the last admin. This unlocks staff self-service referral code creation in `docs/referral-cross-platform-plan.md` §11.
 - **Conversation oversight:** list sessions, flagged ones first (emergency-escalated, complaint keywords); read-only.
 - Roles: `tenant_admin`, `tenant_staff` (orders only), `superadmin` (MediaForge).
 

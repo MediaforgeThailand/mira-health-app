@@ -4,6 +4,8 @@ import path from 'node:path';
 const repoRoot = process.cwd();
 
 const files = {
+  adminMembers: 'supabase/functions/admin-members/index.ts',
+  adminMembersShared: 'supabase/functions/_shared/adminMembers.ts',
   adminOrderAction: 'supabase/functions/admin-order-action/index.ts',
   chatOrchestrator: 'supabase/functions/chat-orchestrator/index.ts',
   db: 'supabase/functions/_shared/db.ts',
@@ -32,6 +34,7 @@ const files = {
 };
 
 const v2EdgeFunctions = {
+  adminMembers: files.adminMembers,
   adminOrderAction: files.adminOrderAction,
   chatOrchestrator: files.chatOrchestrator,
   factExtractor: files.factExtractor,
@@ -203,6 +206,20 @@ expect(
     sources.adminOrderAction.includes('tenant_id: `in.(${tenantFilter})`') &&
     sources.adminOrderAction.includes('tenant_id: `eq.${order.tenant_id}`'),
   'admin order actions must load orders through the authenticated staff member tenant allow-list',
+);
+
+expect(
+  'admin members tenant admin gate',
+  sources.adminMembers.includes('resolveAuthUserId(req.headers.get') &&
+    sources.adminMembers.includes('loadAdminMembersContext(body.tenant_slug, authUserId)') &&
+    sources.adminMembers.includes('handleAdminMembersRequest(body, context, adminMembersDeps)') &&
+    sources.adminMembersShared.includes('requireAdminMembership(members, context.authUserId)') &&
+    sources.adminMembersShared.includes('Only tenant admins can manage members for this tenant.') &&
+    sources.adminMembersShared.includes('assertCanReduceAdmin') &&
+    sources.adminMembersShared.includes('LAST_ADMIN') &&
+    sources.adminMembersShared.includes('findAuthUserByEmail') &&
+    sources.adminMembersShared.includes('User must sign up before they can be added to this tenant.'),
+  'admin-members must require a Supabase JWT, resolve the tenant, require tenant_admin/superadmin, add existing auth users by email, and block last-admin removal/demotion',
 );
 
 expect(

@@ -305,6 +305,45 @@ export type AdminSlipUrlResponse = {
   storage_path: string | null;
 };
 
+export type AdminMemberRole = 'superadmin' | 'tenant_admin' | 'tenant_staff';
+
+export type AdminMemberAssignableRole = 'tenant_admin' | 'tenant_staff';
+
+export type AdminMemberRow = {
+  auth_user_id: string;
+  email: string | null;
+  name: string | null;
+  role: AdminMemberRole;
+};
+
+export type AdminMembersRequest =
+  | {
+      action: 'list';
+      tenant_slug: string;
+    }
+  | {
+      action: 'add';
+      email: string;
+      role: AdminMemberAssignableRole;
+      tenant_slug: string;
+    }
+  | {
+      action: 'set_role';
+      auth_user_id: string;
+      role: AdminMemberAssignableRole;
+      tenant_slug: string;
+    }
+  | {
+      action: 'remove';
+      auth_user_id: string;
+      tenant_slug: string;
+    };
+
+export type AdminMembersResponse = {
+  members: AdminMemberRow[];
+  removed_auth_user_id?: string;
+};
+
 export type ReferrerOrderRequest =
   | {
       action: 'create_order';
