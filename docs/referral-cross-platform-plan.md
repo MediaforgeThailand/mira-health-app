@@ -321,3 +321,92 @@ attribution window.
 - [✅ 2026-06-15] R3. `useAuthSession` binds stored code on login/signup and existing-session detection (best-effort, non-blocking).
 - [✅ 2026-06-15] R4. Types mirrored; `npm run types:mirror-audit` green.
 - [✅ 2026-06-15] R5. Tests added; `npm run typecheck` + `npm run v2:verify` green; DoD updated.
+
+---
+
+## 11. Backend work order — referrer self-service (zero-input code) (2026-06-15)
+
+### Goal
+A logged-in **tenant member** (doctor/staff = `tenant_staff` or `tenant_admin`) can generate
+their own referral code with **zero data entry** — one tap, no form. The code is then shared
+with customers; the existing bind-on-auth + attribution + commission pipeline (§10, v2 §5)
+takes it from there.
+
+### Owner decision — reverses a prior DECIDED non-goal
+`docs/miracare-v2-product-plan.md` §5.2 previously said "no referrer self-signup (admin
+creates referrers)." **Owner (taksin/MediaForge) reverses this on 2026-06-15** for tenant
+members only. Update that line in §5.2 in the same PR (owner-approved). Locked sub-decisions:
+- **D9 — Eligibility = tenant membership.** Only users present in `tenant_members`
+  (`tenant_staff` / `tenant_admin` / `superadmin`) for the tenant may self-provision. No new
+  "doctor" role; if a doctor needs a code, an admin adds them as `tenant_staff` first.
+- **D10 — Rate = tenant default.** Self-provisioned referrers get the existing
+  `referrers.commission_scheme` DB default (`{"mode":"percent","default":10,"by_category":{}}`).
+  Do not collect a rate. Admin can edit later via the existing admin referrer screen.
+- **D11 — Active immediately.** New self-provisioned referrer rows are `active = true` at once.
+
+### Why this is small
+`referrers` already has everything needed — `commission_scheme` defaults to 10% in the DB,
+`ref_code` auto-generates via the `referrers_ref_code_guard` trigger, and `referrers_own_read`
+RLS already lets a user read their own row. **No migration / no schema change.** The only
+blocker is `referrers_admin_insert` RLS (admin-only insert) → bypass it through a service-role
+edge function that enforces eligibility itself (sanctioned pattern, AGENTS.md §2).
+
+### Tasks (one PR, in order)
+
+**S1 — Edge function `referral-self-provision`**
+- `supabase/functions/_shared/referralSelfProvision.ts`: zod schema `{ tenant_slug }`.
+- `supabase/functions/referral-self-provision/index.ts`: POST only; **JWT verification ON**.
+  Flow:
+  1. `resolveAuthUserId(authorization)` → `assertTenant(tenant_slug)`.
+  2. **Eligibility check (explicit — service role bypasses RLS):** select
+     `tenant_members` where `(tenant_id, auth_user_id)`; if none → `403`.
+  3. **Idempotent:** select existing `referrers` by `(tenant_id, auth_user_id)`; if found,
+     return it (do not create a second).
+  4. Else `insertRow('referrers', { tenant_id, auth_user_id, name, type: 'staff', active: true })`
+     — omit `commission_scheme` (DB default 10%) and `ref_code` (trigger generates).
+     - `name`: derive with zero input — read `profiles` (`display_name` / `full_name`) for the
+       auth user; fall back to the auth email handle; final fallback `'Staff referrer'`.
+     - `type`: `'staff'` (the `referrers.type` check allows doctor/nurse/creator/staff; rate is
+       uniform per D10 so the distinction is cosmetic — keep `'staff'`).
+  5. Return `{ ref_code, referrer_id, created: boolean }`.
+- DoD: a tenant member with no referrer gets a code; second call returns the same code
+  (`created:false`); a non-member gets 403.
+
+**S2 — Mirror types**
+- Add `ReferralSelfProvisionRequest` / `ReferralSelfProvisionResponse` to
+  `supabase/functions/_shared/types.ts` and `lib/types/api.ts`; `types:mirror-audit` green.
+
+**S3 — Wire into deploy + audits**
+- Add `referral-self-provision` to `scripts/deploy-v2-functions.ps1` **without**
+  `--no-verify-jwt`, to the `v2:deploy-script-audit.mjs` allowlist, the
+  `v2-edge-security-audit.mjs` map, and the `v2:deno-check` function list.
+
+**S4 — Frontend: one-tap create**
+- In `app/sales-portal.tsx` (and `app/partner.tsx` if it shares the path): when the referrer
+  lookup by `auth_user_id` returns none AND the signed-in user is a tenant member, render a
+  **"สร้าง referral code ของฉัน"** button → calls `referral-self-provision` → reloads the
+  referrer → shows the existing single share link/QR (`createReferralShareLink(ref_code)`).
+  No form fields. If a referrer already exists, skip the button (current behavior).
+- Keep the not-signed-in demo fallback as-is.
+
+**S5 — Tests + verify + bookkeeping**
+- Extract the provision core (eligibility + idempotent insert) so it is unit-testable with DI,
+  mirroring `applyReferralCodeToCustomer`. Test: non-member denied, fresh member creates with
+  default 10% scheme + generated code, second call idempotent.
+- `npm run typecheck` + `npm run v2:verify` green.
+- Update `docs/miracare-v2-product-plan.md` §5.2 non-goal line (owner-approved reversal) and
+  add a §8/§10-style DoD line here.
+
+### Guardrails (AGENTS.md)
+- **No migration / schema change** — reuse `referrers` (default scheme + ref_code trigger).
+- Service-role usage stays inside the edge function; eligibility enforced in code, not RLS.
+- JWT verification ON for the new function.
+- Cross-platform types mirrored (`types:mirror-audit`).
+- Do not touch the protected core, order state machine, or the LINE path.
+
+### DoD checklist (fill ✅/❌ + date in the PR)
+- [ ] S1. `referral-self-provision` edge function (auth-gated, eligibility-checked, idempotent).
+- [ ] S2. Types mirrored; `types:mirror-audit` green.
+- [ ] S3. Deploy script (JWT on) + deploy/edge/deno audits updated.
+- [ ] S4. sales-portal one-tap "create my code" wired; zero input; shows single share link.
+- [ ] S5. Tests added; `typecheck` + `v2:verify` green; v2 §5.2 non-goal updated (owner-approved).

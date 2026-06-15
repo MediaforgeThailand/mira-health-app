@@ -119,7 +119,7 @@ Actors: tenant marketing team creates **referrers** (doctor / nurse / creator). 
 - **Commission ledger:** on order → `confirmed` by admin, a `commission_entries` row is computed (scheme snapshot, amount, status pending→approved→paid). Referrer view shows earnings; admin approves/marks paid (manual payout in v2).
 
 ### 5.2 Non-goals v2
-No automated payouts, no multi-level referrals, no referrer self-signup (admin creates referrers).
+No automated payouts, no multi-level referrals. **Referrer self-service (owner-approved 2026-06-15):** tenant members (`tenant_staff`/`tenant_admin`) may self-provision their own referrer code with zero input (default tenant commission scheme, active immediately) via the `referral-self-provision` edge function — see `docs/referral-cross-platform-plan.md` §11. Non-members still cannot self-signup; admins still create/manage referrers for non-members and edit schemes.
 
 ## 6. Module: Admin Panel (tenant staff)
 
