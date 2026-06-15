@@ -31,6 +31,12 @@ const adminActions = [
     meta: 'booking',
     title: 'Orders queue',
   },
+  {
+    body: 'เพิ่มหมอและพนักงานด้วยอีเมล เปลี่ยน role และถอดสิทธิ์โดยไม่ให้ tenant เหลือศูนย์ admin',
+    href: '/admin/members',
+    meta: 'team access',
+    title: 'Team members',
+  },
 ] as const;
 
 function getProductStatusTone(product: HospitalProduct): 'amber' | 'blue' | 'danger' | 'mint' {

@@ -45,6 +45,7 @@ Write-Output "Deploying MiraCare v2 edge functions to Supabase project $projectR
 npx supabase functions deploy chat-orchestrator --project-ref $projectRef
 npx supabase functions deploy fact-extractor --project-ref $projectRef
 npx supabase functions deploy admin-order-action --project-ref $projectRef
+npx supabase functions deploy admin-members --project-ref $projectRef
 npx supabase functions deploy admin-stripe-product-sync --project-ref $projectRef
 npx supabase functions deploy referrer-order --project-ref $projectRef
 npx supabase functions deploy referral-bind --project-ref $projectRef

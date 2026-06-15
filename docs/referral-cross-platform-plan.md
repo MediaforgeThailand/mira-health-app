@@ -494,11 +494,11 @@ enforced server-side.
 - Do not touch the protected core, order state machine, or the LINE path.
 
 ### DoD checklist (fill ✅/❌ + date in the PR)
-- [ ] M1. `admin-members` edge function (admin-gated; list/add/set_role/remove; last-admin guard).
-- [ ] M2. Types mirrored; `types:mirror-audit` green.
-- [ ] M3. Deploy script (JWT on) + deploy/edge/deno audits updated.
-- [ ] M4. `admin/members` screen + admin-panel link; admin-only; add-by-email + role + remove.
-- [ ] M5. Tests added; `typecheck` + `v2:verify` green; v2 §6 updated.
+- [x] ✅ 2026-06-15 M1. `admin-members` edge function (admin-gated; list/add/set_role/remove; last-admin guard).
+- [x] ✅ 2026-06-15 M2. Types mirrored; `types:mirror-audit` green.
+- [x] ✅ 2026-06-15 M3. Deploy script (JWT on) + deploy/edge/deno audits updated; live deploy not run by agent.
+- [x] ✅ 2026-06-15 M4. `admin/members` screen + admin-panel link; admin-only; add-by-email + role + remove.
+- [x] ✅ 2026-06-15 M5. Tests added; `typecheck` + `v2:verify` green; v2 §6 updated.
 
 ---
 
