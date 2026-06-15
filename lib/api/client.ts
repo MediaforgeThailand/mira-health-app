@@ -25,7 +25,7 @@ export async function invokeFunction<TRequest extends Record<string, unknown>, T
   });
 
   if (error) {
-    throw new Error(error.message);
+    throw new Error((await functionErrorMessage(error)) ?? error.message);
   }
 
   const envelope = data as ApiEnvelope<TResponse> | TResponse | null;
@@ -43,4 +43,46 @@ export async function invokeFunction<TRequest extends Record<string, unknown>, T
   }
 
   return envelope as TResponse;
+}
+
+async function functionErrorMessage(error: unknown) {
+  const response = functionErrorResponse(error);
+
+  if (!response) {
+    return null;
+  }
+
+  try {
+    const payload = await response.clone().json() as Partial<ApiEnvelope<never>>;
+
+    if (payload && typeof payload === 'object' && payload.ok === false && payload.error?.message) {
+      return payload.error.message;
+    }
+  } catch {
+    try {
+      const text = await response.clone().text();
+
+      return text.trim() || null;
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
+
+function functionErrorResponse(error: unknown): Response | null {
+  if (!error || typeof error !== 'object' || !('context' in error)) {
+    return null;
+  }
+
+  const context = (error as { context?: unknown }).context;
+
+  if (!context || typeof context !== 'object') {
+    return null;
+  }
+
+  const maybeResponse = context as Partial<Response>;
+
+  return typeof maybeResponse.clone === 'function' ? maybeResponse as Response : null;
 }

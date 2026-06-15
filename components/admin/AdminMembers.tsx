@@ -39,6 +39,24 @@ function canSubmitEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
+function adminMembersErrorMessage(error: unknown, fallback: string) {
+  const message = error instanceof Error ? error.message : fallback;
+
+  if (message === 'User must sign up before they can be added to this tenant.') {
+    return 'บัญชีปลายทางยังไม่ได้สมัครใช้งานในระบบ ให้เจ้าของอีเมล signup ก่อน แล้วค่อยเพิ่มเป็นสมาชิกทีม';
+  }
+
+  if (message === 'Only tenant admins can manage members for this tenant.') {
+    return 'บัญชีนี้ไม่มีสิทธิ์จัดการสมาชิกทีม ต้องเป็น tenant_admin หรือ superadmin';
+  }
+
+  if (message === 'This tenant must keep at least one admin.') {
+    return 'ต้องเหลือผู้ดูแล tenant อย่างน้อย 1 คน';
+  }
+
+  return message;
+}
+
 function confirmAsync(title: string, message: string) {
   if (Platform.OS === 'web') {
     const confirm = (globalThis as typeof globalThis & { confirm?: (value: string) => boolean }).confirm;
@@ -97,7 +115,7 @@ export function AdminMembers({ title = 'จัดการสมาชิกท�
       await invokeMembers({ action: 'list', tenant_slug: defaultTenantSlug });
     } catch (loadError) {
       setMembers([]);
-      setError(loadError instanceof Error ? loadError.message : 'โหลดสมาชิกทีมไม่สำเร็จ');
+      setError(adminMembersErrorMessage(loadError, 'โหลดสมาชิกทีมไม่สำเร็จ'));
     } finally {
       setIsLoading(false);
     }
@@ -132,7 +150,7 @@ export function AdminMembers({ title = 'จัดการสมาชิกท�
       setNewRole('tenant_staff');
       setMessage('เพิ่มสมาชิกเรียบร้อยแล้ว');
     } catch (addError) {
-      setError(addError instanceof Error ? addError.message : 'เพิ่มสมาชิกไม่สำเร็จ');
+      setError(adminMembersErrorMessage(addError, 'เพิ่มสมาชิกไม่สำเร็จ'));
     } finally {
       setBusyKey(null);
     }
@@ -163,7 +181,7 @@ export function AdminMembers({ title = 'จัดการสมาชิกท�
       });
       setMessage('อัปเดต role เรียบร้อยแล้ว');
     } catch (roleError) {
-      setError(roleError instanceof Error ? roleError.message : 'อัปเดต role ไม่สำเร็จ');
+      setError(adminMembersErrorMessage(roleError, 'อัปเดต role ไม่สำเร็จ'));
     } finally {
       setBusyKey(null);
     }
@@ -192,7 +210,7 @@ export function AdminMembers({ title = 'จัดการสมาชิกท�
       });
       setMessage('ลบสมาชิกเรียบร้อยแล้ว');
     } catch (removeError) {
-      setError(removeError instanceof Error ? removeError.message : 'ลบสมาชิกไม่สำเร็จ');
+      setError(adminMembersErrorMessage(removeError, 'ลบสมาชิกไม่สำเร็จ'));
     } finally {
       setBusyKey(null);
     }
