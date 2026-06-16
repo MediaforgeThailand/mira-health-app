@@ -79,6 +79,14 @@ export type ProductCategoryRow = {
   tenant_id: string;
 };
 
+export type TenantSettingsRow = {
+  branding: Record<string, unknown>;
+  tenant_id: string;
+  updated_at: string;
+  vertical: string;
+  vocabulary: Record<string, unknown>;
+};
+
 export type OrderStatusInfo = {
   amount_baht: number;
   booking_at: string | null;

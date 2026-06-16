@@ -110,6 +110,75 @@ export const showcaseDemoProducts: HospitalProduct[] = [
   },
 ];
 
+// Beauty-clinic demo set — lets sales show the same back office speaking a
+// different vertical's language via /admin/catalog?tour=admin&vertical=beauty_clinic.
+export const showcaseBeautyDemoCategories: ProductCategoryOption[] = [
+  { active: true, icon: '✨', imageUrl: null, key: 'facial', labelTh: 'ทรีตเมนต์ผิวหน้า', sort: 1 },
+  { active: true, icon: '🔆', imageUrl: null, key: 'laser', labelTh: 'เลเซอร์/ผิวพรรณ', sort: 2 },
+  { active: true, icon: '💉', imageUrl: null, key: 'injection', labelTh: 'ฉีด/ฟิลเลอร์', sort: 3 },
+];
+
+export const showcaseBeautyDemoProducts: HospitalProduct[] = [
+  {
+    branchIds: ['demo-branch-asoke', 'demo-branch-siam'],
+    branches: showcaseDemoBranches,
+    catalogKey: 'facial-hydra-glow',
+    category: 'facial',
+    commissionRate: 0.05,
+    createdAt: '2026-06-01T09:00:00.000Z',
+    description: 'คอร์สทรีตเมนต์ผิวหน้า Hydra Glow เติมความชุ่มชื้นและฟื้นฟูผิวหมองคล้ำ พร้อมประเมินสภาพผิวก่อนทำ',
+    hospitalAddress: 'อโศก / สยาม',
+    hospitalName: 'MiraCare Beauty Clinic',
+    id: 'demo-product-hydra-glow',
+    includes: ['ประเมินสภาพผิว', 'มาส์กไฮยา', 'นวดหน้า', 'ลงเซรั่ม'],
+    imageUrl: null,
+    priceAmount: 1990,
+    ragEmbeddingStatus: 'embedded',
+    ragStatus: 'published',
+    requiresAppointment: true,
+    reviewStatus: 'approved',
+    status: 'active',
+    tags: ['ผิวหน้า', 'ความชุ่มชื้น'],
+    tenantId: 'demo-tenant',
+    title: 'ทรีตเมนต์ผิวหน้า Hydra Glow',
+  },
+  {
+    branchIds: ['demo-branch-asoke'],
+    branches: [showcaseDemoBranches[0]],
+    catalogKey: 'laser-underarm-6',
+    category: 'laser',
+    commissionRate: 0.05,
+    createdAt: '2026-06-02T09:00:00.000Z',
+    description: 'คอร์สเลเซอร์กำจัดขนรักแร้ 6 ครั้ง ลดปัญหาขนคุดและรอยดำ พร้อมปรึกษาก่อนเริ่มคอร์ส',
+    hospitalAddress: 'สาขาอโศก',
+    hospitalName: 'MiraCare Beauty Clinic',
+    id: 'demo-product-laser-underarm',
+    includes: ['ปรึกษาแพทย์ผิวหนัง', 'เลเซอร์กำจัดขน 6 ครั้ง'],
+    imageUrl: null,
+    priceAmount: 4500,
+    ragEmbeddingStatus: 'embedded',
+    ragStatus: 'published',
+    requiresAppointment: true,
+    reviewStatus: 'approved',
+    status: 'active',
+    tags: ['เลเซอร์', 'กำจัดขน'],
+    tenantId: 'demo-tenant',
+    title: 'เลเซอร์กำจัดขนรักแร้ 6 ครั้ง',
+  },
+];
+
+export function demoCatalogForVertical(vertical: string): {
+  branches: BranchSummary[];
+  categories: ProductCategoryOption[];
+  products: HospitalProduct[];
+} {
+  if (vertical === 'beauty_clinic') {
+    return { branches: showcaseDemoBranches, categories: showcaseBeautyDemoCategories, products: showcaseBeautyDemoProducts };
+  }
+
+  return { branches: showcaseDemoBranches, categories: showcaseDemoCategories, products: showcaseDemoProducts };
+}
+
 export const showcaseDemoOrders: OrderStatusInfo[] = [
   {
     amount_baht: 2990,

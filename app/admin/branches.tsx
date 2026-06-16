@@ -186,7 +186,7 @@ export default function AdminBranchesScreen() {
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <View style={[styles.topBar, !isWide ? styles.topBarStack : null]}>
           <View style={styles.titleGroup}>
-            <Text style={styles.eyebrow}>หลังบ้านโรงพยาบาล</Text>
+            <Text style={styles.eyebrow}>หลังบ้าน</Text>
             <Text style={styles.title}>จัดการสาขา</Text>
             <Text style={styles.subtitle}>
               Tenant: {tenantContext?.display_name ?? defaultTenantSlug}

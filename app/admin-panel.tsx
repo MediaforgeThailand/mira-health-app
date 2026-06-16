@@ -8,6 +8,7 @@ import { MiraDesign } from '@/constants/Design';
 import { useAuthSession } from '@/lib/auth/useAuthSession';
 import { loadManagedHospitalProducts, loadTenantMemberContext, type HospitalProduct } from '@/lib/marketplace/hospitalProducts';
 import { supabase } from '@/lib/supabase';
+import { useTenantConfig } from '@/lib/tenant/useTenantConfig';
 
 type BookingPreviewOrder = {
   amount_baht: number;
@@ -82,6 +83,7 @@ function formatMoney(amount: number) {
 
 export default function AdminPanelScreen() {
   const auth = useAuthSession();
+  const vocab = useTenantConfig().config.vocabulary;
   const [bookingOrders, setBookingOrders] = useState<BookingPreviewOrder[]>([]);
   const [products, setProducts] = useState<HospitalProduct[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
@@ -179,9 +181,9 @@ export default function AdminPanelScreen() {
     <Screen>
       <BrandHeader
         compact
-        eyebrow="หลังบ้านโรงพยาบาล"
+        eyebrow="หลังบ้าน"
         title="ศูนย์ปฏิบัติการหลังบ้าน"
-        subtitle="ศูนย์กลางสำหรับ admin จัดการสินค้าโรงพยาบาล review RAG และเช็ค order ที่ต้องนัดหมายหลังชำระเงิน"
+        subtitle={`ศูนย์กลางสำหรับ admin จัดการ${vocab.productTerm} review RAG และเช็ค order ที่ต้องนัดหมายหลังชำระเงิน`}
       />
 
       {!auth.session ? (
@@ -199,9 +201,9 @@ export default function AdminPanelScreen() {
 
       <View style={styles.statGrid}>
         <StatTile detail="รอทีมตรวจสอบและอนุมัติ" label="รอตรวจ" value={`${stats.pendingReview}`} />
-        <StatTile detail="แพ็กเกจที่ลูกค้าเห็นอยู่ตอนนี้" label="เปิดขาย" value={`${stats.active}`} />
+        <StatTile detail={`${vocab.productTerm}ที่ลูกค้าเห็นอยู่ตอนนี้`} label="เปิดขาย" value={`${stats.active}`} />
         <StatTile detail="ต้อง retry embedding" label="RAG error" value={`${stats.embeddingErrors}`} />
-        <StatTile detail="รอโรงพยาบาลโทรนัด" label="คิวจอง" value={`${stats.bookingWaiting}`} />
+        <StatTile detail="รอทีมงานโทรนัด" label="คิวจอง" value={`${stats.bookingWaiting}`} />
       </View>
 
       <SectionHeader title="งานหลักของแอดมิน" meta="product + booking" />
@@ -225,8 +227,8 @@ export default function AdminPanelScreen() {
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
         {reviewQueue.length === 0 ? (
           <Card>
-            <Text style={styles.emptyTitle}>ยังไม่มีสินค้าในคิวตรวจ</Text>
-            <Text style={styles.body}>เมื่อทีมโรงพยาบาลส่งสินค้าใหม่ หรือ embedding ล้มเหลว รายการจะขึ้นตรงนี้ให้ admin เข้าไปจัดการ</Text>
+            <Text style={styles.emptyTitle}>{`ยังไม่มี${vocab.productTerm}ในคิวตรวจ`}</Text>
+            <Text style={styles.body}>{`เมื่อทีมงานส่ง${vocab.productTerm}ใหม่ หรือ embedding ล้มเหลว รายการจะขึ้นตรงนี้ให้ admin เข้าไปจัดการ`}</Text>
           </Card>
         ) : (
           reviewQueue.map((product) => (

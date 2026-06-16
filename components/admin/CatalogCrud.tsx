@@ -32,13 +32,15 @@ import {
   type ProductCategoryOption,
   type TenantMemberContext,
 } from '@/lib/marketplace/hospitalProducts';
-import { showcaseDemoBranches, showcaseDemoCategories, showcaseDemoProducts, showcaseDemoTenantContext } from '@/lib/showcase/demoFixtures';
+import { demoCatalogForVertical, showcaseDemoTenantContext } from '@/lib/showcase/demoFixtures';
 import { supabaseConfigStatus } from '@/lib/supabase';
+import { useTenantConfig } from '@/lib/tenant/useTenantConfig';
+import { catalogScreenCopy } from '@/lib/tenant/vocabulary';
 
 const emptyDraft: HospitalProductDraft = {
   branchInfo: '',
   branchIds: [],
-  category: 'checkup',
+  category: 'general',
   description: '',
   hospitalAddress: '',
   hospitalMapQuery: '',
@@ -143,9 +145,12 @@ function stripeFilterLabel(filter: StripeFilter) {
   return 'ทั้งหมด';
 }
 
-export function CatalogCrud({ title = 'จัดการสินค้าโรงพยาบาล' }: { title?: string }) {
+export function CatalogCrud({ title }: { title?: string }) {
   const auth = useAuthSession();
   const { tour } = useLocalSearchParams<{ tour?: string }>();
+  const { config: tenantConfig } = useTenantConfig();
+  const vocab = tenantConfig.vocabulary;
+  const copy = catalogScreenCopy(vocab);
   const { width } = useWindowDimensions();
   const webViewportWidth = typeof window !== 'undefined' ? window.innerWidth : 0;
   const viewportWidth = width > 0 ? width : webViewportWidth;
@@ -272,11 +277,12 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
   const lastRefreshedText = lastRefreshedAt ? `รีเฟรชล่าสุด ${formatShortDateTime(lastRefreshedAt)}` : 'รอข้อมูลล่าสุด';
 
   function loadDemoCatalog(reason: string | null = null) {
+    const demo = demoCatalogForVertical(tenantConfig.vertical);
     setDemoFallbackReason(reason);
     setTenantContext(showcaseDemoTenantContext);
-    setProducts(showcaseDemoProducts);
-    setBranches(showcaseDemoBranches);
-    setCategories(showcaseDemoCategories);
+    setProducts(demo.products);
+    setBranches(demo.branches);
+    setCategories(demo.categories);
     setLastRefreshedAt(new Date().toISOString());
   }
 
@@ -606,7 +612,7 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
   function openNewProduct() {
     setEditingProduct(null);
     setIsEditorOpen(true);
-    setDraft(emptyDraft);
+    setDraft({ ...emptyDraft, category: activeCategoryOptions[0]?.key ?? emptyDraft.category });
     setMessage(null);
     setError(null);
   }
@@ -632,10 +638,10 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <View style={[styles.headerCard, !isWide ? styles.headerCardStack : null]}>
           <View style={styles.titleGroup}>
-            <Text style={styles.eyebrow}>หลังบ้านโรงพยาบาล / สินค้าคงคลัง</Text>
-            <Text style={styles.title}>{title || 'จัดการสินค้าโรงพยาบาล'}</Text>
+            <Text style={styles.eyebrow}>{copy.eyebrow}</Text>
+            <Text style={styles.title}>{title || copy.title}</Text>
             <Text style={styles.subtitle}>
-              จัดการสินค้าที่ใช้ใน mobile catalog, chat checkout, RAG answers, Stripe/payment sync และ workflow ของ Referral
+              {`จัดการ${vocab.productTerm}ที่ใช้ใน mobile catalog, chat checkout, RAG answers, Stripe/payment sync และ workflow ของ Referral`}
             </Text>
             <View style={styles.statusPillRow}>
               <StatusBadge label={isDemoMode ? 'โหมดตัวอย่าง' : 'Live mode'} tone={isDemoMode ? 'warning' : 'success'} />
@@ -671,7 +677,7 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
             </Link>
             <Pressable onPress={openNewProduct} style={styles.primaryButton}>
               <SymbolView name={{ android: 'add', ios: 'plus', web: 'add' }} size={20} tintColor="#FFFFFF" />
-              <Text style={styles.primaryButtonText}>เพิ่มสินค้า</Text>
+              <Text style={styles.primaryButtonText}>{copy.addProduct}</Text>
             </Pressable>
           </View>
         </View>
@@ -705,7 +711,7 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
           <StatCard
             detail="ครอบคลุมทุกสถานะ"
             icon={{ android: 'deployed_code', ios: 'cube', web: 'deployed_code' }}
-            label="สินค้าทั้งหมด"
+            label={copy.totalLabel}
             tone="blue"
             value={`${summary.total}`}
           />
@@ -760,7 +766,7 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
               <View style={styles.editorPanel}>
             <View style={styles.panelHeader}>
               <View>
-                <Text style={styles.panelTitle}>{editingProduct ? 'แก้ไขสินค้า' : 'เพิ่มสินค้า'}</Text>
+                <Text style={styles.panelTitle}>{editingProduct ? copy.editProduct : copy.addProduct}</Text>
                 <Text style={styles.panelMeta}>{editingProduct ? `Key: ${editingProduct.catalogKey}` : 'สร้าง catalog key ตอนบันทึก'}</Text>
               </View>
               {editingProduct ? (
@@ -770,16 +776,16 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
               ) : null}
             </View>
 
-            <Field label="ชื่อสินค้า" onChangeText={(value) => updateDraft('title', value)} value={draft.title} />
+            <Field label={copy.nameField} onChangeText={(value) => updateDraft('title', value)} value={draft.title} />
             <Field label="รายละเอียด" multiline onChangeText={(value) => updateDraft('description', value)} value={draft.description} />
             <View style={styles.twoColumn}>
               <Field label="ราคา THB" onChangeText={(value) => updateDraft('priceAmount', value)} value={draft.priceAmount} />
               <View style={styles.imageField}>
-                <Text style={styles.fieldLabel}>รูปสินค้า</Text>
+                <Text style={styles.fieldLabel}>{copy.imageField}</Text>
                 <View style={styles.imageInputRow}>
                   <TextInput
                     onChangeText={(value) => updateDraft('imageUrl', value)}
-                    placeholder="Public URL หรือรูปสินค้าที่อัปโหลดแล้ว"
+                    placeholder={`Public URL หรือรูป${vocab.productTerm}ที่อัปโหลดแล้ว`}
                     placeholderTextColor={MiraDesign.color.showcaseNavySoft}
                     style={[styles.input, styles.imageUrlInput]}
                     value={draft.imageUrl ?? ''}
@@ -919,11 +925,15 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
             {message ? <Text style={styles.successText}>{message}</Text> : null}
 
             <Pressable disabled={!canSave || isSaving} onPress={saveDraft} style={[styles.saveButton, !canSave || isSaving ? styles.disabled : null]}>
-              <Text style={styles.saveButtonText}>{isSaving ? 'กำลังบันทึก' : editingProduct ? 'บันทึกสินค้า' : 'สร้างสินค้า'}</Text>
+              <Text style={styles.saveButtonText}>{isSaving ? 'กำลังบันทึก' : editingProduct ? copy.saveProduct : copy.createProduct}</Text>
             </Pressable>
               </View>
             ) : (
-              <ReferralWorkspaceCard tenantName={tenantContext?.display_name ?? defaultTenantSlug} />
+              <ReferralWorkspaceCard
+                productTerm={vocab.productTerm}
+                providerTerm={vocab.providerTerm}
+                tenantName={tenantContext?.display_name ?? defaultTenantSlug}
+              />
             )}
             </View>
           ) : null}
@@ -931,7 +941,7 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
           <View style={styles.listPane}>
             <View style={[styles.inventoryHeader, !isWide ? styles.inventoryHeaderStack : null]}>
               <View>
-                <Text style={styles.inventoryTitle}>รายการสินค้า</Text>
+                <Text style={styles.inventoryTitle}>{copy.inventoryTitle}</Text>
                 <Text style={styles.inventoryMeta}>
                   {isLoading ? 'กำลังโหลดสินค้า' : `แสดง ${filteredProducts.length.toLocaleString('th-TH')} จาก ${products.length.toLocaleString('th-TH')} รายการ`}
                 </Text>
@@ -966,6 +976,7 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
               onStripeChange={setStripeFilter}
               onToggleFilters={() => setFiltersOpen((current) => !current)}
               query={query}
+              searchPlaceholder={copy.searchPlaceholder}
               statusOptions={visibleStatusFilters}
               onQueryChange={setQuery}
             />
@@ -976,9 +987,15 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
             {isLoading && products.length === 0 ? (
               <ProductSkeleton />
             ) : products.length === 0 ? (
-              <ProductEmptyState canCreate={canEditCatalog} onCreate={openNewProduct} />
+              <ProductEmptyState
+                addLabel={copy.addProduct}
+                body={copy.emptyBody}
+                canCreate={canEditCatalog}
+                onCreate={openNewProduct}
+                title={copy.emptyTitle}
+              />
             ) : filteredProducts.length === 0 ? (
-              <ProductNoResultsState onClear={clearFilters} />
+              <ProductNoResultsState onClear={clearFilters} productTerm={vocab.productTerm} />
             ) : (
               filteredProducts.map((product) => (
                 <ProductRow
@@ -1004,7 +1021,7 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
                 <View style={styles.editorPanel}>
                   <View style={styles.panelHeader}>
                     <View>
-                      <Text style={styles.panelTitle}>{editingProduct ? 'แก้ไขสินค้า' : 'เพิ่มสินค้า'}</Text>
+                      <Text style={styles.panelTitle}>{editingProduct ? copy.editProduct : copy.addProduct}</Text>
                       <Text style={styles.panelMeta}>{editingProduct ? `Key: ${editingProduct.catalogKey}` : 'สร้าง catalog key ตอนบันทึก'}</Text>
                     </View>
                     {editingProduct ? (
@@ -1014,16 +1031,16 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
                     ) : null}
                   </View>
 
-                  <Field label="ชื่อสินค้า" onChangeText={(value) => updateDraft('title', value)} value={draft.title} />
+                  <Field label={copy.nameField} onChangeText={(value) => updateDraft('title', value)} value={draft.title} />
                   <Field label="รายละเอียด" multiline onChangeText={(value) => updateDraft('description', value)} value={draft.description} />
                   <View style={styles.twoColumn}>
                     <Field label="ราคา THB" onChangeText={(value) => updateDraft('priceAmount', value)} value={draft.priceAmount} />
                     <View style={styles.imageField}>
-                      <Text style={styles.fieldLabel}>รูปสินค้า</Text>
+                      <Text style={styles.fieldLabel}>{copy.imageField}</Text>
                       <View style={styles.imageInputRow}>
                         <TextInput
                           onChangeText={(value) => updateDraft('imageUrl', value)}
-                          placeholder="Public URL หรือรูปสินค้าที่อัปโหลดแล้ว"
+                          placeholder={`Public URL หรือรูป${vocab.productTerm}ที่อัปโหลดแล้ว`}
                           placeholderTextColor={MiraDesign.color.showcaseNavySoft}
                           style={[styles.input, styles.imageUrlInput]}
                           value={draft.imageUrl ?? ''}
@@ -1163,11 +1180,15 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
                   {message ? <Text style={styles.successText}>{message}</Text> : null}
 
                   <Pressable disabled={!canSave || isSaving} onPress={saveDraft} style={[styles.saveButton, !canSave || isSaving ? styles.disabled : null]}>
-                    <Text style={styles.saveButtonText}>{isSaving ? 'กำลังบันทึก' : editingProduct ? 'บันทึกสินค้า' : 'สร้างสินค้า'}</Text>
+                    <Text style={styles.saveButtonText}>{isSaving ? 'กำลังบันทึก' : editingProduct ? copy.saveProduct : copy.createProduct}</Text>
                   </Pressable>
                 </View>
               ) : (
-                <ReferralWorkspaceCard tenantName={tenantContext?.display_name ?? defaultTenantSlug} />
+                <ReferralWorkspaceCard
+                productTerm={vocab.productTerm}
+                providerTerm={vocab.providerTerm}
+                tenantName={tenantContext?.display_name ?? defaultTenantSlug}
+              />
               )}
             </View>
           ) : null}
@@ -1220,7 +1241,7 @@ function StatCard({
   );
 }
 
-function ReferralWorkspaceCard({ tenantName }: { tenantName: string }) {
+function ReferralWorkspaceCard({ productTerm, providerTerm, tenantName }: { productTerm: string; providerTerm: string; tenantName: string }) {
   return (
     <View style={styles.referralPanel}>
       <View style={styles.referralHeader}>
@@ -1228,13 +1249,13 @@ function ReferralWorkspaceCard({ tenantName }: { tenantName: string }) {
           <Text style={styles.referralTitle}>พื้นที่ Referral</Text>
           <Text style={styles.referralLink}>{tenantName}</Text>
         </View>
-        <Text style={styles.waitingBadge}>พร้อมเลือกสินค้า</Text>
+        <Text style={styles.waitingBadge}>{`พร้อมเลือก${productTerm}`}</Text>
       </View>
       <View style={styles.referralCallout}>
         <SymbolView name={{ android: 'person_add', ios: 'person.badge.plus', web: 'person_add' }} size={26} tintColor={MiraDesign.color.showcaseBlue} />
         <View style={styles.referralCopy}>
-          <Text style={styles.referralCalloutTitle}>เลือกสินค้าจากรายการเพื่อสร้าง referral code</Text>
-          <Text style={styles.referralBody}>ใช้กับพาร์ทเนอร์ของโรงพยาบาลโดยไม่เปลี่ยนข้อมูล catalog หรือสถานะสินค้า</Text>
+          <Text style={styles.referralCalloutTitle}>{`เลือก${productTerm}จากรายการเพื่อสร้าง referral code`}</Text>
+          <Text style={styles.referralBody}>{`ใช้กับพาร์ทเนอร์ของ${providerTerm}โดยไม่เปลี่ยนข้อมูล catalog หรือสถานะ${productTerm}`}</Text>
         </View>
       </View>
     </View>
@@ -1274,6 +1295,7 @@ function ProductToolbar({
   onStripeChange,
   onToggleFilters,
   query,
+  searchPlaceholder,
   statusOptions,
 }: {
   activeCategory: ProductCategory | 'all';
@@ -1292,6 +1314,7 @@ function ProductToolbar({
   onStripeChange: (filter: StripeFilter) => void;
   onToggleFilters: () => void;
   query: string;
+  searchPlaceholder: string;
   statusOptions: StatusFilter[];
 }) {
   return (
@@ -1301,7 +1324,7 @@ function ProductToolbar({
           <SymbolView name={{ android: 'search', ios: 'magnifyingglass', web: 'search' }} size={18} tintColor={MiraDesign.color.showcaseNavySoft} />
           <TextInput
             onChangeText={onQueryChange}
-            placeholder="ค้นหาชื่อสินค้า โรงพยาบาล หมวดหมู่ สาขา หรือ tag"
+            placeholder={searchPlaceholder}
             placeholderTextColor={MiraDesign.color.showcaseNavySoft}
             style={styles.searchInput}
             value={query}
@@ -1571,27 +1594,37 @@ function ProductSkeleton() {
   );
 }
 
-function ProductEmptyState({ canCreate, onCreate }: { canCreate: boolean; onCreate: () => void }) {
+function ProductEmptyState({
+  addLabel,
+  body,
+  canCreate,
+  onCreate,
+  title,
+}: {
+  addLabel: string;
+  body: string;
+  canCreate: boolean;
+  onCreate: () => void;
+  title: string;
+}) {
   return (
     <View style={styles.emptyState}>
-      <Text style={styles.emptyTitle}>ยังไม่มีสินค้าใน catalog</Text>
-      <Text style={styles.emptyBody}>
-        เพิ่มสินค้าโรงพยาบาลเพื่อใช้ใน mobile catalog, chat checkout, RAG answers และ referral workflow
-      </Text>
+      <Text style={styles.emptyTitle}>{title}</Text>
+      <Text style={styles.emptyBody}>{body}</Text>
       {canCreate ? (
         <Pressable onPress={onCreate} style={styles.emptyAction}>
-          <Text style={styles.emptyActionText}>เพิ่มสินค้า</Text>
+          <Text style={styles.emptyActionText}>{addLabel}</Text>
         </Pressable>
       ) : null}
     </View>
   );
 }
 
-function ProductNoResultsState({ onClear }: { onClear: () => void }) {
+function ProductNoResultsState({ onClear, productTerm }: { onClear: () => void; productTerm: string }) {
   return (
     <View style={styles.emptyState}>
-      <Text style={styles.emptyTitle}>ไม่พบสินค้าที่ตรงกับตัวกรอง</Text>
-      <Text style={styles.emptyBody}>ลองล้างตัวกรองหรือค้นหาด้วยชื่อสินค้า หมวดหมู่ หรือสาขาอื่น</Text>
+      <Text style={styles.emptyTitle}>{`ไม่พบ${productTerm}ที่ตรงกับตัวกรอง`}</Text>
+      <Text style={styles.emptyBody}>{`ลองล้างตัวกรองหรือค้นหาด้วยชื่อ${productTerm} หมวดหมู่ หรือสาขาอื่น`}</Text>
       <Pressable onPress={onClear} style={styles.emptySecondaryAction}>
         <Text style={styles.emptySecondaryActionText}>ล้างตัวกรอง</Text>
       </Pressable>

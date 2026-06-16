@@ -1256,10 +1256,10 @@ function OrdersHeader({
     <View style={styles.headerCard}>
       <View style={styles.headerMain}>
         <View style={styles.titleGroup}>
-          <Text style={styles.eyebrow}>หลังบ้านโรงพยาบาล / คำสั่งซื้อ</Text>
+          <Text style={styles.eyebrow}>หลังบ้าน · คำสั่งซื้อ</Text>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>
-            คำสั่งซื้อจาก chat checkout สำหรับตรวจการชำระเงิน ติดตามลูกค้า และบันทึกนัดหมายให้ทีมโรงพยาบาลทำงานต่อได้เร็วขึ้น
+            คำสั่งซื้อจาก chat checkout สำหรับตรวจการชำระเงิน ติดตามลูกค้า และบันทึกนัดหมายให้ทีมงานทำงานต่อได้เร็วขึ้น
           </Text>
         </View>
         <View style={styles.headerActions}>

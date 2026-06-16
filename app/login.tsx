@@ -32,7 +32,7 @@ const modeCopy: Record<LoginMode, LoginCopy> = {
     defaultRedirect: '/admin-panel',
     eyebrow: 'Admin Panel',
     footerLabel: 'Admin',
-    hint: 'สำหรับทีมงานโรงพยาบาลเท่านั้น ต้องมีสิทธิ์ใน tenant_members ก่อนจึงจะอ่านหรือแก้ข้อมูล backend ได้',
+    hint: 'สำหรับทีมงานเท่านั้น ต้องมีสิทธิ์ใน tenant_members ก่อนจึงจะอ่านหรือแก้ข้อมูล backend ได้',
     primaryLabel: 'เข้าสู่ระบบทีมงาน',
     tone: 'blue',
     title: 'เข้าสู่ระบบ Admin Panel',

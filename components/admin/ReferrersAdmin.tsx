@@ -63,7 +63,7 @@ const referrerTypeLabels: Record<ReferrerType, string> = {
   creator: 'ครีเอเตอร์',
   doctor: 'แพทย์',
   nurse: 'พยาบาล',
-  staff: 'ทีมโรงพยาบาล',
+  staff: 'ทีมงาน',
 };
 
 function fromJoin<T>(value: T | T[] | null | undefined) {

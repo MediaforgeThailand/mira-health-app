@@ -10,6 +10,7 @@ import {
   type HospitalProduct,
 } from '@/lib/marketplace/hospitalProducts';
 import { showcaseDemoProducts } from '@/lib/showcase/demoFixtures';
+import { useTenantConfig } from '@/lib/tenant/useTenantConfig';
 
 function resolveParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
@@ -21,6 +22,7 @@ function formatMoney(amount: number) {
 
 export default function PackageDetailScreen() {
   const params = useLocalSearchParams();
+  const vocab = useTenantConfig().config.vocabulary;
   const productId = resolveParam(params.productId);
   const catalogKey = resolveParam(params.catalogKey);
   const [products, setProducts] = useState<HospitalProduct[]>([]);
@@ -59,7 +61,7 @@ export default function PackageDetailScreen() {
   if (isLoading) {
     return (
       <Screen>
-        <BrandHeader eyebrow="รายละเอียดแพ็กเกจ" title="กำลังโหลดแพ็กเกจ" compact />
+        <BrandHeader eyebrow={`รายละเอียด${vocab.productTerm}`} title={`กำลังโหลด${vocab.productTerm}`} compact />
       </Screen>
     );
   }
@@ -67,7 +69,7 @@ export default function PackageDetailScreen() {
   if (!product) {
     return (
       <Screen>
-        <BrandHeader eyebrow="รายละเอียดแพ็กเกจ" title="ยังไม่พบแพ็กเกจ" subtitle="แพ็กเกจนี้ยังไม่เปิดใช้งานในแค็ตตาล็อกของ tenant" compact />
+        <BrandHeader eyebrow={`รายละเอียด${vocab.productTerm}`} title={`ยังไม่พบ${vocab.productTerm}`} subtitle={`${vocab.productTerm}นี้ยังไม่เปิดใช้งานในแค็ตตาล็อกของ tenant`} compact />
         <Link href="/" asChild>
           <ActionButton label="กลับหน้าโมดูล" variant="secondary" />
         </Link>
@@ -80,9 +82,9 @@ export default function PackageDetailScreen() {
   return (
     <Screen>
       <BrandHeader
-        eyebrow="รายละเอียดแพ็กเกจ"
+        eyebrow={`รายละเอียด${vocab.productTerm}`}
         title={product.title}
-        subtitle={`${product.hospitalName} - ${product.hospitalAddress ?? product.location ?? 'ยืนยันกับโรงพยาบาล'}`}
+        subtitle={`${product.hospitalName} - ${product.hospitalAddress ?? product.location ?? `ยืนยันกับ${vocab.providerTerm}`}`}
         compact
       />
 
@@ -101,11 +103,11 @@ export default function PackageDetailScreen() {
         <View style={styles.detailGrid}>
           <Detail label="รหัสแค็ตตาล็อก" value={product.catalogKey} />
           <Detail label="การจอง" value={product.requiresAppointment ? 'ต้องนัดหมาย' : 'Walk-in ได้'} />
-          <Detail label="สาขา" value={product.hospitalAddress ?? product.location ?? 'ยืนยันกับโรงพยาบาล'} />
+          <Detail label={vocab.branchTerm} value={product.hospitalAddress ?? product.location ?? `ยืนยันกับ${vocab.providerTerm}`} />
         </View>
       </Card>
 
-      <SectionHeader title="รายการที่รวมในแพ็กเกจ" meta={`${includes.length} รายการ`} />
+      <SectionHeader title={`รายการที่รวมใน${vocab.productTerm}`} meta={`${includes.length} รายการ`} />
       {includes.map((item, index) => (
         <View key={`${item}-${index}`} style={styles.includeRow}>
           <Text style={styles.includeNumber}>{index + 1}</Text>
