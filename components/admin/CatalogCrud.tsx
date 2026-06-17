@@ -869,6 +869,16 @@ export function CatalogCrud({ title }: { title?: string }) {
             <Pressable disabled={!canSave || isSaving} onPress={saveDraft} style={[styles.saveButton, !canSave || isSaving ? styles.disabled : null]}>
               <Text style={styles.saveButtonText}>{isSaving ? 'กำลังบันทึก' : editingProduct ? copy.saveProduct : copy.createProduct}</Text>
             </Pressable>
+            {editingProduct ? (
+              <ProductEditorActions
+                disabled={Boolean(busyProductId) || isBulkSyncing || !canEditCatalog}
+                isBusy={busyProductId === editingProduct.id}
+                onArchive={() => changeStatus(editingProduct, 'archived')}
+                onRestore={() => changeStatus(editingProduct, 'active')}
+                onSyncStripe={() => syncStripeProduct(editingProduct)}
+                product={editingProduct}
+              />
+            ) : null}
               </View>
             ) : (
               <ReferralWorkspaceCard
@@ -940,21 +950,17 @@ export function CatalogCrud({ title }: { title?: string }) {
             ) : filteredProducts.length === 0 ? (
               <ProductNoResultsState onClear={clearFilters} productTerm={vocab.productTerm} />
             ) : (
-              filteredProducts.map((product) => (
-                <ProductRow
-                  key={product.id}
-                  disabled={Boolean(busyProductId) || isBulkSyncing || !canEditCatalog}
-                  isBusy={busyProductId === product.id}
-                  onArchive={() => changeStatus(product, 'archived')}
-                  onEdit={() => editProduct(product)}
-                  onRestore={() => changeStatus(product, 'active')}
-                  onSyncStripe={() => syncStripeProduct(product)}
-                  product={product}
-                  productCategoryLabel={categoryOptions.find((category) => category.key === product.category)?.labelTh ?? getProductCategoryLabel(product.category)}
-                  selected={editingProduct?.id === product.id}
-                  disabledReason={disabledActionHint}
-                />
-              ))
+              <View style={styles.productGrid}>
+                {filteredProducts.map((product) => (
+                  <ProductRow
+                    key={product.id}
+                    onEdit={() => editProduct(product)}
+                    product={product}
+                    productCategoryLabel={categoryOptions.find((category) => category.key === product.category)?.labelTh ?? getProductCategoryLabel(product.category)}
+                    selected={editingProduct?.id === product.id}
+                  />
+                ))}
+              </View>
             )}
           </View>
 
@@ -1125,6 +1131,16 @@ export function CatalogCrud({ title }: { title?: string }) {
                   <Pressable disabled={!canSave || isSaving} onPress={saveDraft} style={[styles.saveButton, !canSave || isSaving ? styles.disabled : null]}>
                     <Text style={styles.saveButtonText}>{isSaving ? 'กำลังบันทึก' : editingProduct ? copy.saveProduct : copy.createProduct}</Text>
                   </Pressable>
+                  {editingProduct ? (
+                    <ProductEditorActions
+                      disabled={Boolean(busyProductId) || isBulkSyncing || !canEditCatalog}
+                      isBusy={busyProductId === editingProduct.id}
+                      onArchive={() => changeStatus(editingProduct, 'archived')}
+                      onRestore={() => changeStatus(editingProduct, 'active')}
+                      onSyncStripe={() => syncStripeProduct(editingProduct)}
+                      product={editingProduct}
+                    />
+                  ) : null}
                 </View>
               ) : (
                 <ReferralWorkspaceCard
@@ -1431,76 +1447,79 @@ function FilterChip({ active, label, onPress }: { active: boolean; label: string
 }
 
 function ProductRow({
-  disabled,
-  disabledReason,
-  isBusy,
-  onArchive,
   onEdit,
-  onRestore,
-  onSyncStripe,
   product,
   productCategoryLabel,
   selected,
 }: {
-  disabled: boolean;
-  disabledReason: string | null;
-  isBusy: boolean;
-  onArchive: () => void;
   onEdit: () => void;
-  onRestore: () => void;
-  onSyncStripe: () => void;
   product: HospitalProduct;
   productCategoryLabel: string;
   selected: boolean;
 }) {
-  const isActive = product.status === 'active';
-  const ragStatus = getRagReadiness(product);
-  const stripeStatus = getStripeStatus(product);
-  const branchCount = product.branches.length;
-  const metaLine = [
-    product.catalogKey,
-    `${product.priceAmount.toLocaleString('th-TH')} บาท`,
-    productCategoryLabel,
-    branchCount > 0 ? `${branchCount} สาขา` : null,
-  ]
-    .filter(Boolean)
-    .join(' · ');
-
   return (
-    <View style={[styles.productCard, selected ? styles.productCardSelected : null]}>
-      {selected ? <View style={styles.selectedRail} /> : null}
-      <View style={styles.pCardBody}>
-        <View style={styles.pCardHead}>
-          <Text numberOfLines={1} style={styles.pCardTitle}>
-            {product.title}
-          </Text>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      onPress={onEdit}
+      style={[styles.gridCard, selected ? styles.gridCardSelected : null, product.status === 'archived' ? styles.gridCardArchived : null]}
+    >
+      <View style={styles.gridThumb}>
+        {product.imageUrl ? (
+          <Image resizeMode="cover" source={{ uri: product.imageUrl }} style={styles.gridImage} />
+        ) : (
+          <View style={styles.gridImagePlaceholder}>
+            <SymbolView name={categoryIcon(product.category)} size={38} tintColor={MiraDesign.color.primary} />
+          </View>
+        )}
+        <View style={styles.gridStatusWrap}>
           <StatusBadge label={productStatusLabel(product.status)} tone={getProductStatusTone(product.status)} />
         </View>
-        <Text numberOfLines={1} style={styles.pCardMeta}>
-          {metaLine}
-        </Text>
-        <Text numberOfLines={1} style={styles.pCardStatusLine}>
-          RAG: {ragStatus.label} · Stripe: {stripeStatus.label}
-        </Text>
-        <View style={styles.pCardActions}>
-          <Pressable accessibilityRole="button" onPress={onEdit} style={styles.pCardBtn}>
-            <Text style={styles.pCardBtnText}>แก้ไข</Text>
-          </Pressable>
-          <Pressable accessibilityRole="button" disabled={disabled} onPress={onSyncStripe} style={[styles.pCardBtn, disabled ? styles.disabled : null]}>
-            <Text style={styles.pCardBtnText}>{isBusy ? 'กำลังซิงก์' : 'ซิงก์ Stripe'}</Text>
-          </Pressable>
-          {isActive ? (
-            <Pressable accessibilityRole="button" disabled={disabled} onPress={onArchive} style={[styles.pCardBtnDanger, disabled ? styles.disabled : null]}>
-              <Text style={styles.pCardBtnDangerText}>{isBusy ? 'กำลังเก็บ' : 'เก็บถาวร'}</Text>
-            </Pressable>
-          ) : (
-            <Pressable accessibilityRole="button" disabled={disabled} onPress={onRestore} style={[styles.pCardBtn, disabled ? styles.disabled : null]}>
-              <Text style={styles.pCardBtnText}>{isBusy ? 'กำลังกู้คืน' : 'กู้คืน'}</Text>
-            </Pressable>
-          )}
-        </View>
-        {disabledReason ? <Text style={styles.disabledHint}>{disabledReason}</Text> : null}
       </View>
+      <View style={styles.gridInfo}>
+        <Text numberOfLines={2} style={styles.gridTitle}>
+          {product.title}
+        </Text>
+        <Text numberOfLines={1} style={styles.gridCategory}>
+          {productCategoryLabel}
+        </Text>
+        <Text style={styles.gridPrice}>฿{product.priceAmount.toLocaleString('th-TH')}</Text>
+      </View>
+    </Pressable>
+  );
+}
+
+function ProductEditorActions({
+  disabled,
+  isBusy,
+  onArchive,
+  onRestore,
+  onSyncStripe,
+  product,
+}: {
+  disabled: boolean;
+  isBusy: boolean;
+  onArchive: () => void;
+  onRestore: () => void;
+  onSyncStripe: () => void;
+  product: HospitalProduct;
+}) {
+  const isActive = product.status === 'active';
+
+  return (
+    <View style={styles.editorActions}>
+      <Pressable accessibilityRole="button" disabled={disabled} onPress={onSyncStripe} style={[styles.editorActionBtn, disabled ? styles.disabled : null]}>
+        <Text style={styles.editorActionText}>{isBusy ? 'กำลังซิงก์' : 'ซิงก์ Stripe'}</Text>
+      </Pressable>
+      {isActive ? (
+        <Pressable accessibilityRole="button" disabled={disabled} onPress={onArchive} style={[styles.editorActionDanger, disabled ? styles.disabled : null]}>
+          <Text style={styles.editorActionDangerText}>{isBusy ? 'กำลังเก็บ' : 'เก็บถาวร'}</Text>
+        </Pressable>
+      ) : (
+        <Pressable accessibilityRole="button" disabled={disabled} onPress={onRestore} style={[styles.editorActionBtn, disabled ? styles.disabled : null]}>
+          <Text style={styles.editorActionText}>{isBusy ? 'กำลังกู้คืน' : 'กู้คืน'}</Text>
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -2861,6 +2880,107 @@ const styles = StyleSheet.create({
   filterApplyBtnText: {
     color: '#FFFFFF',
     fontSize: 13,
+    fontWeight: '800',
+  },
+  productGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 14,
+  },
+  gridCard: {
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
+    borderRadius: 14,
+    borderWidth: 1,
+    cursor: 'pointer',
+    flexBasis: 210,
+    flexGrow: 1,
+    minWidth: 190,
+    overflow: 'hidden',
+    ...softShadow,
+  },
+  gridCardSelected: {
+    backgroundColor: MiraDesign.color.surfaceSoft,
+    borderColor: MiraDesign.color.primary,
+  },
+  gridCardArchived: {
+    opacity: 0.7,
+  },
+  gridThumb: {
+    backgroundColor: MiraDesign.color.surfaceSoft,
+    height: 148,
+    position: 'relative',
+    width: '100%',
+  },
+  gridImage: {
+    height: '100%',
+    width: '100%',
+  },
+  gridImagePlaceholder: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.primarySoft,
+    height: '100%',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  gridStatusWrap: {
+    left: 10,
+    position: 'absolute',
+    top: 10,
+  },
+  gridInfo: {
+    gap: 3,
+    padding: 12,
+  },
+  gridTitle: {
+    color: MiraDesign.color.ink,
+    fontSize: 14.5,
+    fontWeight: '800',
+    lineHeight: 19,
+  },
+  gridCategory: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  gridPrice: {
+    color: MiraDesign.color.primaryDeep,
+    fontSize: 15,
+    fontWeight: '900',
+    marginTop: 2,
+  },
+  editorActions: {
+    borderColor: MiraDesign.color.line,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+    paddingTop: 12,
+  },
+  editorActionBtn: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.surfaceSoft,
+    borderRadius: 8,
+    cursor: 'pointer',
+    flex: 1,
+    paddingVertical: 9,
+  },
+  editorActionText: {
+    color: MiraDesign.color.primaryDeep,
+    fontSize: 12.5,
+    fontWeight: '800',
+  },
+  editorActionDanger: {
+    alignItems: 'center',
+    backgroundColor: '#FCE7E7',
+    borderRadius: 8,
+    cursor: 'pointer',
+    flex: 1,
+    paddingVertical: 9,
+  },
+  editorActionDangerText: {
+    color: MiraDesign.color.danger,
+    fontSize: 12.5,
     fontWeight: '800',
   },
   emptyState: {
