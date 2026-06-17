@@ -1137,6 +1137,24 @@ export function CatalogCrud({ title }: { title?: string }) {
           ) : null}
         </View>
       </ScrollView>
+
+      {filtersOpen ? (
+        <CatalogFilterPanel
+          activeCategory={categoryFilter}
+          activeRag={ragFilter}
+          activeStatus={statusFilter}
+          activeStripe={stripeFilter}
+          categories={visibleCategoryOptions}
+          isMobile={isMobile}
+          onCategoryChange={setCategoryFilter}
+          onClear={clearFilters}
+          onClose={() => setFiltersOpen(false)}
+          onRagChange={setRagFilter}
+          onStatusChange={setStatusFilter}
+          onStripeChange={setStripeFilter}
+          statusOptions={visibleStatusFilters}
+        />
+      ) : null}
     </View>
   );
 }
@@ -1296,9 +1314,50 @@ function ProductToolbar({
           </Pressable>
         ) : null}
       </View>
+    </View>
+  );
+}
 
-      {filtersOpen ? (
-        <View style={styles.filterGrid}>
+function CatalogFilterPanel({
+  activeCategory,
+  activeRag,
+  activeStatus,
+  activeStripe,
+  categories,
+  isMobile,
+  onCategoryChange,
+  onClear,
+  onClose,
+  onRagChange,
+  onStatusChange,
+  onStripeChange,
+  statusOptions,
+}: {
+  activeCategory: ProductCategory | 'all';
+  activeRag: RagFilter;
+  activeStatus: StatusFilter;
+  activeStripe: StripeFilter;
+  categories: ProductCategoryOption[];
+  isMobile: boolean;
+  onCategoryChange: (category: ProductCategory | 'all') => void;
+  onClear: () => void;
+  onClose: () => void;
+  onRagChange: (filter: RagFilter) => void;
+  onStatusChange: (status: StatusFilter) => void;
+  onStripeChange: (filter: StripeFilter) => void;
+  statusOptions: StatusFilter[];
+}) {
+  return (
+    <View style={styles.filterOverlay}>
+      <Pressable accessibilityLabel="ปิดตัวกรอง" onPress={onClose} style={styles.filterBackdrop} />
+      <View style={[styles.filterPanel, isMobile ? styles.filterPanelSheet : styles.filterPanelDesktop]}>
+        <View style={styles.filterPanelHeader}>
+          <Text style={styles.filterPanelTitle}>ตัวกรอง</Text>
+          <Pressable accessibilityLabel="ปิด" accessibilityRole="button" onPress={onClose} style={styles.filterCloseBtn}>
+            <SymbolView name={{ android: 'close', ios: 'xmark', web: 'close' }} size={18} tintColor={MiraDesign.color.inkSoft} />
+          </Pressable>
+        </View>
+        <View style={styles.filterPanelBody}>
           <FilterGroup label="สถานะ">
             {statusOptions.map((status) => (
               <FilterChip
@@ -1341,7 +1400,15 @@ function ProductToolbar({
             ))}
           </FilterGroup>
         </View>
-      ) : null}
+        <View style={styles.filterPanelFooter}>
+          <Pressable accessibilityRole="button" onPress={onClear} style={styles.filterClearBtn}>
+            <Text style={styles.filterClearBtnText}>ล้างค่า</Text>
+          </Pressable>
+          <Pressable accessibilityRole="button" onPress={onClose} style={styles.filterApplyBtn}>
+            <Text style={styles.filterApplyBtnText}>เสร็จสิ้น</Text>
+          </Pressable>
+        </View>
+      </View>
     </View>
   );
 }
@@ -1387,108 +1454,53 @@ function ProductRow({
   selected: boolean;
 }) {
   const isActive = product.status === 'active';
-  const branchNames = product.branches.map((branch) => branch.name);
-  const stripeStatus = getStripeStatus(product);
   const ragStatus = getRagReadiness(product);
-  const embeddingStatus = getEmbeddingStatus(product);
-  const tags = (product.tags.length > 0 ? product.tags : product.includes).slice(0, 3);
-  const nextAction = getNextCatalogAction(product);
-  const createdOrUpdatedAt = getProductTimestamp(product);
-  const stripeActionLabel = isBusy
-    ? 'กำลังซิงก์'
-    : product.stripeProductId && product.stripePriceId
-      ? 'ซิงก์ Stripe อีกครั้ง'
-      : 'ซิงก์ Stripe';
+  const stripeStatus = getStripeStatus(product);
+  const branchCount = product.branches.length;
+  const metaLine = [
+    product.catalogKey,
+    `${product.priceAmount.toLocaleString('th-TH')} บาท`,
+    productCategoryLabel,
+    branchCount > 0 ? `${branchCount} สาขา` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
-    <View style={[styles.productCard, selected ? styles.productCardSelected : null, product.status === 'archived' ? styles.productCardArchived : null]}>
+    <View style={[styles.productCard, selected ? styles.productCardSelected : null]}>
       {selected ? <View style={styles.selectedRail} /> : null}
-      <View style={styles.productCardTop}>
-        <ProductVisual product={product} />
-        <View style={styles.productMain}>
-          <View style={styles.productHead}>
-            <View style={styles.productTitleGroup}>
-              <Text numberOfLines={2} style={styles.productTitle}>{product.title}</Text>
-              <Text numberOfLines={1} style={styles.productKey}>
-                {product.hospitalName || 'Mira Partner Hospital'} · {product.catalogKey}
-              </Text>
-            </View>
-            <View style={styles.rowPills}>
-              <StatusBadge label={productStatusLabel(product.status)} tone={getProductStatusTone(product.status)} />
-              <StatusBadge label={productCategoryLabel} tone="muted" />
-            </View>
-          </View>
-          <Text numberOfLines={2} style={styles.productDescription}>
-            {product.description}
+      <View style={styles.pCardBody}>
+        <View style={styles.pCardHead}>
+          <Text numberOfLines={1} style={styles.pCardTitle}>
+            {product.title}
           </Text>
-          <View style={styles.tagRow}>
-            {tags.map((tag) => (
-              <Text key={tag} numberOfLines={1} style={styles.tagPill}>
-                {tag}
-              </Text>
-            ))}
-            <Text numberOfLines={1} style={styles.timestampPill}>{createdOrUpdatedAt}</Text>
-          </View>
+          <StatusBadge label={productStatusLabel(product.status)} tone={getProductStatusTone(product.status)} />
         </View>
-      </View>
-
-      <View style={styles.productFactRow}>
-        <ProductFact label="ราคา" value={`${product.priceAmount.toLocaleString('th-TH')} บาท`} />
-        <ProductFact label="ค่าคอมมิชชัน" value={formatCommissionPercent(product.commissionRate)} />
-        <ProductFact label="สาขา" value={branchNames.length > 0 ? `${branchNames.length} สาขา` : 'ยังไม่ผูกสาขา'} />
-        <ProductFact label="การจอง" value={product.requiresAppointment ? 'ต้องนัดหมาย' : 'Walk-in ได้'} />
-      </View>
-
-      <View style={styles.branchRow}>
-        {branchNames.length > 0 ? (
-          branchNames.slice(0, 4).map((branchName) => (
-            <Text key={branchName} numberOfLines={1} style={styles.branchChip}>{branchName}</Text>
-          ))
-        ) : (
-          <Text style={styles.branchPlaceholder}>{product.hospitalAddress || 'ยังไม่ผูกสาขา'}</Text>
-        )}
-      </View>
-
-      <View style={styles.readinessCluster}>
-        <ReadinessBadge label="สถานะ" value={productStatusLabel(product.status)} tone={getProductStatusTone(product.status)} />
-        <ReadinessBadge label="RAG" value={ragStatus.label} tone={ragStatus.tone} />
-        <ReadinessBadge label="Stripe" value={stripeStatus.label} tone={stripeStatus.tone} />
-        <ReadinessBadge label="Embedding" value={embeddingStatus.label} tone={embeddingStatus.tone} />
-      </View>
-
-      <View style={styles.nextActionRow}>
-        <View style={styles.nextActionCopy}>
-          <Text style={styles.nextActionLabel}>งานถัดไป</Text>
-          <Text style={styles.nextActionText}>{nextAction}</Text>
-        </View>
-        <View style={styles.productFooter}>
-          <Pressable onPress={onEdit} style={styles.editButton}>
-            <SymbolView name={{ android: 'edit', ios: 'pencil', web: 'edit' }} size={17} tintColor={MiraDesign.color.primary} />
-            <Text style={styles.editButtonText}>แก้ไข</Text>
+        <Text numberOfLines={1} style={styles.pCardMeta}>
+          {metaLine}
+        </Text>
+        <Text numberOfLines={1} style={styles.pCardStatusLine}>
+          RAG: {ragStatus.label} · Stripe: {stripeStatus.label}
+        </Text>
+        <View style={styles.pCardActions}>
+          <Pressable accessibilityRole="button" onPress={onEdit} style={styles.pCardBtn}>
+            <Text style={styles.pCardBtnText}>แก้ไข</Text>
           </Pressable>
-          <Pressable disabled={disabled} onPress={onSyncStripe} style={[styles.stripeButton, disabled ? styles.disabled : null]}>
-            <SymbolView name={{ android: 'database', ios: 'cylinder.split.1x2', web: 'database' }} size={17} tintColor={MiraDesign.color.inkSoft} />
-            <Text style={styles.stripeButtonText}>{stripeActionLabel}</Text>
+          <Pressable accessibilityRole="button" disabled={disabled} onPress={onSyncStripe} style={[styles.pCardBtn, disabled ? styles.disabled : null]}>
+            <Text style={styles.pCardBtnText}>{isBusy ? 'กำลังซิงก์' : 'ซิงก์ Stripe'}</Text>
           </Pressable>
-          <Link href="/admin/referrers" asChild>
-            <Pressable style={styles.referralButton}>
-              <SymbolView name={{ android: 'person_add', ios: 'person.badge.plus', web: 'person_add' }} size={17} tintColor={MiraDesign.color.primaryDeep} />
-              <Text style={styles.referralButtonText}>สร้าง Referral</Text>
-            </Pressable>
-          </Link>
           {isActive ? (
-            <Pressable disabled={disabled} onPress={onArchive} style={[styles.dangerButton, disabled ? styles.disabled : null]}>
-              <Text style={styles.dangerButtonText}>{isBusy ? 'กำลังเก็บ' : 'เก็บถาวร'}</Text>
+            <Pressable accessibilityRole="button" disabled={disabled} onPress={onArchive} style={[styles.pCardBtnDanger, disabled ? styles.disabled : null]}>
+              <Text style={styles.pCardBtnDangerText}>{isBusy ? 'กำลังเก็บ' : 'เก็บถาวร'}</Text>
             </Pressable>
           ) : (
-            <Pressable disabled={disabled} onPress={onRestore} style={[styles.restoreButton, disabled ? styles.disabled : null]}>
-              <Text style={styles.restoreButtonText}>{isBusy ? 'กำลังกู้คืน' : 'กู้คืน'}</Text>
+            <Pressable accessibilityRole="button" disabled={disabled} onPress={onRestore} style={[styles.pCardBtn, disabled ? styles.disabled : null]}>
+              <Text style={styles.pCardBtnText}>{isBusy ? 'กำลังกู้คืน' : 'กู้คืน'}</Text>
             </Pressable>
           )}
         </View>
+        {disabledReason ? <Text style={styles.disabledHint}>{disabledReason}</Text> : null}
       </View>
-
-      {disabledReason ? <Text style={styles.disabledHint}>{disabledReason}</Text> : null}
     </View>
   );
 }
@@ -2177,15 +2189,6 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
     width: 328,
   },
-  filterPanel: {
-    backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.line,
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 12,
-    padding: 14,
-    ...softShadow,
-  },
   sideTitle: {
     color: MiraDesign.color.ink,
     fontSize: 16,
@@ -2286,6 +2289,7 @@ const styles = StyleSheet.create({
     ...softShadow,
   },
   listPane: {
+    alignSelf: 'stretch',
     backgroundColor: '#FFFFFF',
     borderColor: '#D8E4EE',
     borderRadius: 8,
@@ -2294,7 +2298,6 @@ const styles = StyleSheet.create({
     gap: 12,
     minWidth: 0,
     padding: 14,
-    width: '100%',
     ...softShadow,
   },
   panelHeader: {
@@ -2767,6 +2770,99 @@ const styles = StyleSheet.create({
   filterChipTextActive: {
     color: '#FFFFFF',
   },
+  filterOverlay: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 50,
+  },
+  filterBackdrop: {
+    backgroundColor: 'rgba(15, 42, 46, 0.34)',
+    bottom: 0,
+    cursor: 'pointer',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  filterPanel: {
+    backgroundColor: MiraDesign.color.surface,
+    position: 'absolute',
+    ...softShadow,
+  },
+  filterPanelDesktop: {
+    borderColor: MiraDesign.color.line,
+    borderLeftWidth: 1,
+    bottom: 0,
+    right: 0,
+    top: 0,
+    width: 360,
+  },
+  filterPanelSheet: {
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    bottom: 0,
+    left: 0,
+    maxHeight: '84%',
+    right: 0,
+  },
+  filterPanelHeader: {
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderColor: MiraDesign.color.line,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+  },
+  filterPanelTitle: {
+    color: MiraDesign.color.ink,
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  filterCloseBtn: {
+    cursor: 'pointer',
+    padding: 4,
+  },
+  filterPanelBody: {
+    gap: 18,
+    padding: 18,
+  },
+  filterPanelFooter: {
+    borderColor: MiraDesign.color.line,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    padding: 16,
+  },
+  filterClearBtn: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.surfaceSoft,
+    borderRadius: 10,
+    cursor: 'pointer',
+    flex: 1,
+    paddingVertical: 11,
+  },
+  filterClearBtnText: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  filterApplyBtn: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.primary,
+    borderRadius: 10,
+    cursor: 'pointer',
+    flex: 1,
+    paddingVertical: 11,
+  },
+  filterApplyBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+  },
   emptyState: {
     backgroundColor: '#F8FBFD',
     borderColor: '#D8E4EE',
@@ -2862,19 +2958,73 @@ const styles = StyleSheet.create({
     width: 86,
   },
   productCard: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#D8E4EE',
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
-    gap: 12,
     overflow: 'hidden',
     padding: 14,
     position: 'relative',
     ...softShadow,
   },
+  pCardBody: {
+    gap: 6,
+  },
+  pCardHead: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'space-between',
+  },
+  pCardTitle: {
+    color: MiraDesign.color.ink,
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  pCardMeta: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 12.5,
+    fontWeight: '600',
+  },
+  pCardStatusLine: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  pCardActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 4,
+  },
+  pCardBtn: {
+    backgroundColor: MiraDesign.color.surfaceSoft,
+    borderRadius: 8,
+    cursor: 'pointer',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  pCardBtnText: {
+    color: MiraDesign.color.primaryDeep,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  pCardBtnDanger: {
+    backgroundColor: '#FCE7E7',
+    borderRadius: 8,
+    cursor: 'pointer',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  pCardBtnDangerText: {
+    color: MiraDesign.color.danger,
+    fontSize: 12,
+    fontWeight: '800',
+  },
   productCardSelected: {
-    backgroundColor: '#F3F8FF',
-    borderColor: '#AFCDF6',
+    backgroundColor: MiraDesign.color.surfaceSoft,
+    borderColor: MiraDesign.color.primary,
   },
   productCardArchived: {
     opacity: 0.78,
