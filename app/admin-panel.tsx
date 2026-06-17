@@ -1,9 +1,10 @@
 import { Link } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AdminShell } from '@/components/admin/AdminShell';
-import { ActionButton, BrandHeader, Card, Pill, Screen, SectionHeader, StatTile } from '@/components/MiraUI';
+import { AdminBadge, AdminCard, AdminHeader, AdminScreen, EmptyState, SectionTitle, SummaryChips } from '@/components/admin/adminUi';
 import { MiraDesign } from '@/constants/Design';
 import { useAuthSession } from '@/lib/auth/useAuthSession';
 import { loadManagedHospitalProducts, loadTenantMemberContext, type HospitalProduct } from '@/lib/marketplace/hospitalProducts';
@@ -178,201 +179,190 @@ export default function AdminPanelScreen() {
 
   return (
     <AdminShell>
-    <Screen>
-      <BrandHeader
-        compact
-        eyebrow="หลังบ้าน"
-        title="ศูนย์ปฏิบัติการหลังบ้าน"
-        subtitle={`ศูนย์กลางสำหรับ admin จัดการ${vocab.productTerm} review RAG และเช็ค order ที่ต้องนัดหมายหลังชำระเงิน`}
-      />
+      <AdminScreen>
+        <AdminHeader
+          actions={
+            !auth.session ? (
+              <Link href={{ pathname: '/login', params: { mode: 'admin', redirect: '/admin-panel' } }} asChild>
+                <Pressable accessibilityRole="link" style={styles.loginButton}>
+                  <SymbolView name={{ android: 'login', ios: 'person.crop.circle', web: 'login' }} size={16} tintColor="#FFFFFF" />
+                  <Text style={styles.loginButtonText}>เข้าสู่ระบบ</Text>
+                </Pressable>
+              </Link>
+            ) : null
+          }
+          eyebrow="หลังบ้าน"
+          modeLabel={auth.session ? 'ใช้งานจริง' : 'โหมดตัวอย่าง'}
+          modeTone={auth.session ? 'primary' : 'amber'}
+          note={!auth.session ? 'โหมดตัวอย่าง: ดู workflow ได้ · action จริงต้องใช้บัญชีที่มีสิทธิ์' : null}
+          title="ศูนย์ปฏิบัติการ"
+        />
 
-      {!auth.session ? (
-        <Card style={styles.noticeCard}>
-          <View style={styles.noticeTop}>
-            <Text style={styles.noticeTitle}>ยังไม่ได้ login เป็น admin/staff</Text>
-              <Pill label="ดูอย่างเดียว" tone="amber" />
-          </View>
-          <Text style={styles.body}>หน้า admin panel เปิดให้ดู workflow ได้ แต่ action จริงอย่าง approve, archive, retry embedding และ booking save ต้องใช้ account ที่มีสิทธิ์</Text>
-          <Link href={{ pathname: '/login', params: { mode: 'admin', redirect: '/admin-panel' } }} asChild>
-            <ActionButton label="เข้าสู่ระบบแอดมิน" />
-          </Link>
-        </Card>
-      ) : null}
+        <SummaryChips
+          items={[
+            { key: 'review', label: 'รอตรวจ', value: stats.pendingReview },
+            { key: 'active', label: 'เปิดขาย', value: stats.active },
+            { key: 'rag', label: 'RAG error', value: stats.embeddingErrors },
+            { key: 'booking', label: 'คิวจอง', value: stats.bookingWaiting },
+          ]}
+        />
 
-      <View style={styles.statGrid}>
-        <StatTile detail="รอทีมตรวจสอบและอนุมัติ" label="รอตรวจ" value={`${stats.pendingReview}`} />
-        <StatTile detail={`${vocab.productTerm}ที่ลูกค้าเห็นอยู่ตอนนี้`} label="เปิดขาย" value={`${stats.active}`} />
-        <StatTile detail="ต้อง retry embedding" label="RAG error" value={`${stats.embeddingErrors}`} />
-        <StatTile detail="รอทีมงานโทรนัด" label="คิวจอง" value={`${stats.bookingWaiting}`} />
-      </View>
+        <SectionTitle title="งานหลัก" />
+        <View style={styles.actionGrid}>
+          {adminActions.map((action) => (
+            <Link key={action.href} href={action.href} asChild>
+              <Pressable accessibilityRole="link" style={styles.actionCard}>
+                <View style={styles.actionTop}>
+                  <Text style={styles.actionMeta}>{action.meta}</Text>
+                  <SymbolView name={{ android: 'chevron_right', ios: 'chevron.right', web: 'chevron_right' }} size={16} tintColor={MiraDesign.color.inkSoft} />
+                </View>
+                <Text style={styles.actionTitle}>{action.title}</Text>
+                <Text numberOfLines={2} style={styles.actionBody}>
+                  {action.body}
+                </Text>
+              </Pressable>
+            </Link>
+          ))}
+        </View>
 
-      <SectionHeader title="งานหลักของแอดมิน" meta="product + booking" />
-      <View style={styles.actionGrid}>
-        {adminActions.map((action) => (
-          <Link key={action.href} href={action.href} asChild>
-            <Pressable style={styles.actionCard}>
-              <View style={styles.actionTop}>
-                <Text style={styles.actionMeta}>{action.meta}</Text>
-                <Text style={styles.actionArrow}>เปิด</Text>
-              </View>
-              <Text style={styles.actionTitle}>{action.title}</Text>
-              <Text style={styles.body}>{action.body}</Text>
-            </Pressable>
-          </Link>
-        ))}
-      </View>
-
-      <SectionHeader title="คิวตรวจสินค้า" meta={isLoadingProducts ? 'กำลังโหลด' : `${reviewQueue.length} รายการ`} />
-      <View style={styles.queueList}>
+        <SectionTitle meta={isLoadingProducts ? 'กำลังโหลด' : `${reviewQueue.length} รายการ`} title="คิวตรวจสินค้า" />
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
         {reviewQueue.length === 0 ? (
-          <Card>
-            <Text style={styles.emptyTitle}>{`ยังไม่มี${vocab.productTerm}ในคิวตรวจ`}</Text>
-            <Text style={styles.body}>{`เมื่อทีมงานส่ง${vocab.productTerm}ใหม่ หรือ embedding ล้มเหลว รายการจะขึ้นตรงนี้ให้ admin เข้าไปจัดการ`}</Text>
-          </Card>
+          <EmptyState
+            body={`เมื่อทีมงานส่ง${vocab.productTerm}ใหม่ หรือ embedding ล้มเหลว รายการจะขึ้นที่นี่`}
+            icon={{ android: 'fact_check', ios: 'checklist', web: 'fact_check' }}
+            title={`ยังไม่มี${vocab.productTerm}ในคิวตรวจ`}
+          />
         ) : (
-          reviewQueue.map((product) => (
-            <Card key={product.id} style={styles.queueCard}>
-              <View style={styles.queueTop}>
-                <View style={styles.queueCopy}>
-                  <Text style={styles.queueTitle}>{product.title}</Text>
-                  <Text style={styles.queueMeta}>{product.hospitalName}</Text>
+          <View style={styles.queueList}>
+            {reviewQueue.map((product) => (
+              <AdminCard key={product.id}>
+                <View style={styles.queueRow}>
+                  <Text numberOfLines={1} style={styles.queueTitle}>
+                    {product.title}
+                  </Text>
+                  <AdminBadge
+                    label={product.ragEmbeddingStatus === 'error' ? 'embedding error' : product.status}
+                    tone={product.ragEmbeddingStatus === 'error' || product.status === 'rejected' ? 'danger' : product.status === 'pending_review' ? 'amber' : 'success'}
+                  />
                 </View>
-                <Pill label={product.ragEmbeddingStatus === 'error' ? 'embedding error' : product.status} tone={getProductStatusTone(product)} />
-              </View>
-              <Text numberOfLines={2} style={styles.body}>{product.description}</Text>
-            </Card>
-          ))
+                <Text numberOfLines={1} style={styles.queueMeta}>
+                  {product.hospitalName}
+                </Text>
+              </AdminCard>
+            ))}
+          </View>
         )}
-      </View>
 
-      <SectionHeader title="สถานะการจองล่าสุด" meta={`${bookingOrders.length} order`} />
-      <View style={styles.queueList}>
+        <SectionTitle meta={`${bookingOrders.length} รายการ`} title="การจองล่าสุด" />
         {bookingOrders.length === 0 ? (
-          <Card>
-            <Text style={styles.emptyTitle}>ยังไม่มีออเดอร์ที่ชำระแล้วในคิว</Text>
-            <Text style={styles.body}>เมื่อออเดอร์เข้าสถานะรอตรวจ รายการจะขึ้นที่นี่และในคิวคำสั่งซื้อหลัก</Text>
-          </Card>
+          <EmptyState
+            body="เมื่อออเดอร์เข้าสถานะรอตรวจ จะแสดงที่นี่และในคิวคำสั่งซื้อ"
+            icon={{ android: 'event_available', ios: 'calendar', web: 'event_available' }}
+            title="ยังไม่มีออเดอร์ที่ชำระแล้ว"
+          />
         ) : (
-          bookingOrders.map((order) => {
-            const product = embeddedOne(order.products);
+          <View style={styles.queueList}>
+            {bookingOrders.map((order) => {
+              const product = embeddedOne(order.products);
 
-            return (
-              <Card key={order.id} style={styles.queueCard}>
-                <View style={styles.queueTop}>
-                  <View style={styles.queueCopy}>
-                    <Text style={styles.queueTitle}>{product?.name ?? 'ไม่พบสินค้า'}</Text>
-                    <Text style={styles.queueMeta}>{order.id} · {formatMoney(order.amount_baht)}</Text>
+              return (
+                <AdminCard key={order.id}>
+                  <View style={styles.queueRow}>
+                    <Text numberOfLines={1} style={styles.queueTitle}>
+                      {product?.name ?? 'ไม่พบสินค้า'}
+                    </Text>
+                    <AdminBadge label={getBookingStatusLabel(order.status)} tone={order.status === 'booked' ? 'success' : 'amber'} />
                   </View>
-                  <Pill label={getBookingStatusLabel(order.status)} tone={order.status === 'booked' ? 'mint' : 'amber'} />
-                </View>
-                <Text style={styles.body}>{order.buyer_name ?? 'Unnamed buyer'} · {order.buyer_phone ?? '-'}</Text>
-              </Card>
-            );
-          })
+                  <Text numberOfLines={1} style={styles.queueMeta}>
+                    {(order.buyer_name ?? 'ไม่ระบุชื่อ')} · {formatMoney(order.amount_baht)}
+                  </Text>
+                </AdminCard>
+              );
+            })}
+          </View>
         )}
-      </View>
-    </Screen>
+      </AdminScreen>
     </AdminShell>
   );
 }
 
 const styles = StyleSheet.create({
-  actionArrow: {
-    color: MiraDesign.color.showcaseBlue,
-    fontSize: 12,
-    fontWeight: '900',
-  },
-  actionCard: {
-    backgroundColor: MiraDesign.color.showcaseSurface,
-    borderColor: MiraDesign.color.showcaseLine,
+  loginButton: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.primary,
     borderRadius: 8,
-    borderWidth: 1,
-    flex: 1,
-    gap: MiraDesign.space.sm,
-    minWidth: 240,
-    padding: MiraDesign.space.lg,
+    cursor: 'pointer',
+    flexDirection: 'row',
+    gap: 6,
+    height: 38,
+    paddingHorizontal: 14,
+  },
+  loginButtonText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
   },
   actionGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: MiraDesign.space.md,
+    gap: 10,
   },
-  actionMeta: {
-    color: MiraDesign.color.showcaseBlueDeep,
-    fontSize: 11,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-  },
-  actionTitle: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 18,
-    fontWeight: '900',
+  actionCard: {
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
+    borderRadius: 8,
+    borderWidth: 1,
+    cursor: 'pointer',
+    flexBasis: 220,
+    flexGrow: 1,
+    gap: 6,
+    padding: 12,
   },
   actionTop: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  body: {
-    color: MiraDesign.color.showcaseNavySoft,
-    fontSize: 13,
-    lineHeight: 19,
+  actionMeta: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
   },
-  emptyTitle: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 16,
+  actionTitle: {
+    color: MiraDesign.color.ink,
+    fontSize: 15,
     fontWeight: '900',
+  },
+  actionBody: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 12,
+    lineHeight: 17,
   },
   errorText: {
     color: MiraDesign.color.danger,
     fontSize: 13,
     fontWeight: '800',
-    lineHeight: 18,
-  },
-  noticeCard: {
-    backgroundColor: '#FFF8E7',
-    borderColor: '#F3D17B',
-  },
-  noticeTitle: {
-    color: '#6F5100',
-    fontSize: 16,
-    fontWeight: '900',
-  },
-  noticeTop: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  queueCard: {
-    borderRadius: 8,
-  },
-  queueCopy: {
-    flex: 1,
-    gap: MiraDesign.space.xs,
   },
   queueList: {
-    gap: MiraDesign.space.md,
+    gap: 8,
   },
-  queueMeta: {
-    color: MiraDesign.color.showcaseNavySoft,
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  queueTitle: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 16,
-    fontWeight: '900',
-  },
-  queueTop: {
-    alignItems: 'flex-start',
+  queueRow: {
+    alignItems: 'center',
     flexDirection: 'row',
-    gap: MiraDesign.space.md,
+    gap: 8,
     justifyContent: 'space-between',
   },
-  statGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: MiraDesign.space.md,
+  queueTitle: {
+    color: MiraDesign.color.ink,
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  queueMeta: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

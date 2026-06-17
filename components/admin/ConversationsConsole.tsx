@@ -3,7 +3,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
-import { Pill } from '@/components/MiraUI';
+import { AdminBadge, AdminHeader } from '@/components/admin/adminUi';
 import { MiraDesign, softShadow } from '@/constants/Design';
 import { invokeFunction } from '@/lib/api/client';
 import { useAuthSession } from '@/lib/auth/useAuthSession';
@@ -195,54 +195,54 @@ export function ConversationsConsole() {
   const isHuman = !isDemoMode && selectedSession?.agent_mode === 'human';
 
   return (
-    <View style={[styles.shell, isCompact ? styles.shellCompact : null]}>
-      {/* Inbox */}
-      <View style={[styles.inbox, isCompact ? styles.inboxCompact : null]}>
-        <Text style={styles.inboxTitle}>กล่องข้อความรวม</Text>
-        <View style={styles.filterRow}>
-          {CHANNEL_FILTERS.map((filter) => {
-            const active = channelFilter === filter.key;
+    <View style={styles.page}>
+      <AdminHeader
+        eyebrow="หลังบ้าน / กล่องข้อความ"
+        modeLabel={isDemoMode ? 'โหมดตัวอย่าง' : 'ใช้งานจริง'}
+        modeTone={isDemoMode ? 'amber' : 'primary'}
+        note={isDemoMode ? 'โหมดตัวอย่าง: แสดง transcript ตัวอย่างแบบอ่านอย่างเดียว' : null}
+        title="กล่องข้อความ"
+      />
+      <View style={[styles.shell, isCompact ? styles.shellCompact : null]}>
+        {/* Inbox */}
+        <View style={[styles.inbox, isCompact ? styles.inboxCompact : null]}>
+          <View style={styles.filterRow}>
+            {CHANNEL_FILTERS.map((filter) => {
+              const active = channelFilter === filter.key;
 
-            return (
-              <Pressable
-                key={filter.key}
-                onPress={() => setChannelFilter(filter.key)}
-                style={[styles.filterChip, active ? styles.filterChipActive : null]}
-              >
-                <Text style={[styles.filterChipText, active ? styles.filterChipTextActive : null]}>{filter.label}</Text>
-              </Pressable>
-            );
-          })}
+              return (
+                <Pressable key={filter.key} onPress={() => setChannelFilter(filter.key)} style={[styles.filterChip, active ? styles.filterChipActive : null]}>
+                  <Text style={[styles.filterChipText, active ? styles.filterChipTextActive : null]}>{filter.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          {sessionsQuery.isLoading && !isDemoMode ? <ActivityIndicator color={MiraDesign.color.primary} /> : null}
+          <ScrollView contentContainerStyle={styles.inboxList} showsVerticalScrollIndicator={false}>
+            {visibleSessions.map((row) => {
+              const active = row.id === activeSelectedId;
+
+              return (
+                <Pressable key={row.id} onPress={() => setSelectedId(row.id)} style={[styles.inboxRow, active ? styles.inboxRowActive : null]}>
+                  <View style={styles.inboxRowTop}>
+                    <Text numberOfLines={1} style={styles.inboxName}>
+                      {customerLabel(row)}
+                    </Text>
+                    <AdminBadge label={row.agent_mode === 'human' ? 'คนดูแล' : 'AI'} tone={row.agent_mode === 'human' ? 'amber' : 'blue'} />
+                  </View>
+                  <View style={styles.inboxRowBottom}>
+                    <ChannelBadge channel={row.channel} />
+                    <Text style={styles.inboxTime}>{formatTime(row.last_message_at)}</Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+            {visibleSessions.length === 0 ? <Text style={styles.muted}>ยังไม่มีแชต</Text> : null}
+          </ScrollView>
         </View>
-        {sessionsQuery.isLoading && !isDemoMode ? <ActivityIndicator color={MiraDesign.color.showcaseBlue} /> : null}
-        {isDemoMode ? <Text style={styles.demoNote}>โหมดตัวอย่าง: แสดง transcript ตัวอย่างแบบอ่านอย่างเดียว</Text> : null}
-        <ScrollView contentContainerStyle={styles.inboxList}>
-          {visibleSessions.map((row) => {
-            const active = row.id === activeSelectedId;
 
-            return (
-              <Pressable
-                key={row.id}
-                onPress={() => setSelectedId(row.id)}
-                style={[styles.inboxRow, active ? styles.inboxRowActive : null]}
-              >
-                <View style={styles.inboxRowTop}>
-                  <Text numberOfLines={1} style={styles.inboxName}>{customerLabel(row)}</Text>
-                  <Pill label={row.agent_mode === 'human' ? 'คนดูแล' : 'AI'} tone={row.agent_mode === 'human' ? 'amber' : 'blue'} />
-                </View>
-                <View style={styles.inboxRowBottom}>
-                  <ChannelBadge channel={row.channel} />
-                  <Text style={styles.inboxTime}>{formatTime(row.last_message_at)}</Text>
-                </View>
-              </Pressable>
-            );
-          })}
-          {visibleSessions.length === 0 ? <Text style={styles.muted}>ยังไม่มีแชต</Text> : null}
-        </ScrollView>
-      </View>
-
-      {/* Thread */}
-      <View style={styles.thread}>
+        {/* Thread */}
+        <View style={styles.thread}>
         {!selectedSession ? (
           <View style={styles.center}>
             <Text style={styles.muted}>เลือกห้องแชตทางซ้ายเพื่อดูบทสนทนา</Text>
@@ -304,56 +304,56 @@ export function ConversationsConsole() {
             </View>
           </>
         )}
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  shell: { flex: 1, flexDirection: 'row', gap: 16, padding: 16 },
+  page: { backgroundColor: MiraDesign.color.canvas, flex: 1, gap: 12, padding: 16 },
+  shell: { flex: 1, flexDirection: 'row', gap: 12, minHeight: 0 },
   shellCompact: { flexDirection: 'column' },
-  inbox: { backgroundColor: '#fff', borderColor: MiraDesign.color.showcaseLine, borderRadius: MiraDesign.radius.md, borderWidth: 1, gap: 10, padding: 14, width: 280, ...softShadow },
-  inboxCompact: { maxHeight: 260, width: '100%' },
-  inboxTitle: { color: MiraDesign.color.showcaseNavy, fontSize: 16, fontWeight: '900' },
+  inbox: { backgroundColor: MiraDesign.color.surface, borderColor: MiraDesign.color.line, borderRadius: 8, borderWidth: 1, gap: 10, padding: 12, width: 288 },
+  inboxCompact: { maxHeight: 280, width: '100%' },
   filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  filterChip: { backgroundColor: '#F1F5F9', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 },
-  filterChipActive: { backgroundColor: MiraDesign.color.showcaseBlue },
-  filterChipText: { color: MiraDesign.color.showcaseNavySoft, fontSize: 12, fontWeight: '800' },
-  filterChipTextActive: { color: '#fff' },
+  filterChip: { backgroundColor: MiraDesign.color.surfaceSoft, borderRadius: 999, cursor: 'pointer', paddingHorizontal: 12, paddingVertical: 6 },
+  filterChipActive: { backgroundColor: MiraDesign.color.primary },
+  filterChipText: { color: MiraDesign.color.inkSoft, fontSize: 12, fontWeight: '800' },
+  filterChipTextActive: { color: '#FFFFFF' },
   inboxList: { gap: 8 },
-  demoNote: { backgroundColor: MiraDesign.color.showcaseBlueSoft, borderRadius: MiraDesign.radius.sm, color: MiraDesign.color.showcaseNavy, fontSize: 12, fontWeight: '800', padding: 10 },
-  inboxRow: { borderColor: MiraDesign.color.showcaseLine, borderRadius: MiraDesign.radius.sm, borderWidth: 1, gap: 6, padding: 12 },
-  inboxRowActive: { backgroundColor: MiraDesign.color.showcaseBlueSoft, borderColor: MiraDesign.color.showcaseBlue },
+  inboxRow: { borderColor: MiraDesign.color.line, borderRadius: 8, borderWidth: 1, cursor: 'pointer', gap: 6, padding: 10 },
+  inboxRowActive: { backgroundColor: MiraDesign.color.surfaceSoft, borderColor: MiraDesign.color.primary },
   inboxRowTop: { alignItems: 'center', flexDirection: 'row', gap: 8, justifyContent: 'space-between' },
   inboxRowBottom: { alignItems: 'center', flexDirection: 'row', gap: 8, justifyContent: 'space-between' },
-  inboxName: { color: MiraDesign.color.showcaseNavy, flexShrink: 1, fontSize: 14, fontWeight: '800' },
-  inboxTime: { color: MiraDesign.color.showcaseNavySoft, fontSize: 12 },
+  inboxName: { color: MiraDesign.color.ink, flexShrink: 1, fontSize: 14, fontWeight: '800' },
+  inboxTime: { color: MiraDesign.color.inkSoft, fontSize: 12 },
   channelBadge: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
   channelBadgeText: { fontSize: 11, fontWeight: '800' },
-  thread: { backgroundColor: '#fff', borderColor: MiraDesign.color.showcaseLine, borderRadius: MiraDesign.radius.md, borderWidth: 1, flex: 1, minWidth: 0, ...softShadow },
-  threadHeader: { alignItems: 'center', borderBottomColor: MiraDesign.color.showcaseLine, borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', padding: 14 },
+  thread: { backgroundColor: MiraDesign.color.surface, borderColor: MiraDesign.color.line, borderRadius: 8, borderWidth: 1, flex: 1, minWidth: 0, overflow: 'hidden' },
+  threadHeader: { alignItems: 'center', borderBottomColor: MiraDesign.color.line, borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', padding: 12 },
   threadTitleWrap: { alignItems: 'center', flexDirection: 'row', gap: 8 },
-  threadTitle: { color: MiraDesign.color.showcaseNavy, fontSize: 16, fontWeight: '900' },
-  modeBtn: { borderRadius: MiraDesign.radius.sm, paddingHorizontal: 14, paddingVertical: 8 },
-  modeBtnTakeover: { backgroundColor: MiraDesign.color.showcaseBlue },
-  modeBtnReturn: { backgroundColor: MiraDesign.color.showcaseNavySoft },
-  modeBtnText: { color: '#fff', fontSize: 13, fontWeight: '800' },
+  threadTitle: { color: MiraDesign.color.ink, fontSize: 16, fontWeight: '900' },
+  modeBtn: { borderRadius: 8, cursor: 'pointer', paddingHorizontal: 14, paddingVertical: 9 },
+  modeBtnTakeover: { backgroundColor: MiraDesign.color.primary },
+  modeBtnReturn: { backgroundColor: MiraDesign.color.inkSoft },
+  modeBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
   messages: { gap: 8, padding: 14 },
   bubbleRow: { flexDirection: 'row' },
   bubbleRowLeft: { justifyContent: 'flex-start' },
   bubbleRowRight: { justifyContent: 'flex-end' },
   bubble: { borderRadius: 14, gap: 4, maxWidth: '78%', padding: 10 },
-  bubbleCustomer: { backgroundColor: '#EEF2F6' },
-  bubbleAgent: { backgroundColor: MiraDesign.color.showcaseBlue },
-  bubbleTextCustomer: { color: MiraDesign.color.showcaseNavy, fontSize: 14 },
-  bubbleTextAgent: { color: '#fff', fontSize: 14 },
-  bubbleMeta: { color: MiraDesign.color.showcaseNavySoft, fontSize: 10 },
-  composer: { alignItems: 'flex-end', borderTopColor: MiraDesign.color.showcaseLine, borderTopWidth: 1, flexDirection: 'row', gap: 8, padding: 12 },
-  input: { backgroundColor: '#F6FAFF', borderColor: MiraDesign.color.showcaseLine, borderRadius: MiraDesign.radius.sm, borderWidth: 1, color: MiraDesign.color.showcaseNavy, flex: 1, maxHeight: 120, minHeight: 44, padding: 10 },
-  sendBtn: { backgroundColor: MiraDesign.color.showcaseBlue, borderRadius: MiraDesign.radius.sm, paddingHorizontal: 20, paddingVertical: 12 },
+  bubbleCustomer: { backgroundColor: MiraDesign.color.surfaceSoft },
+  bubbleAgent: { backgroundColor: MiraDesign.color.primary },
+  bubbleTextCustomer: { color: MiraDesign.color.ink, fontSize: 14 },
+  bubbleTextAgent: { color: '#FFFFFF', fontSize: 14 },
+  bubbleMeta: { color: MiraDesign.color.inkSoft, fontSize: 10 },
+  composer: { alignItems: 'flex-end', borderTopColor: MiraDesign.color.line, borderTopWidth: 1, flexDirection: 'row', gap: 8, padding: 12 },
+  input: { backgroundColor: '#FBFDFE', borderColor: MiraDesign.color.line, borderRadius: 8, borderWidth: 1, color: MiraDesign.color.ink, flex: 1, maxHeight: 120, minHeight: 44, padding: 10 },
+  sendBtn: { backgroundColor: MiraDesign.color.primary, borderRadius: 8, cursor: 'pointer', paddingHorizontal: 20, paddingVertical: 12 },
   sendBtnDisabled: { opacity: 0.4 },
-  sendBtnText: { color: '#fff', fontSize: 14, fontWeight: '800' },
+  sendBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
   center: { alignItems: 'center', flex: 1, justifyContent: 'center', padding: 24 },
-  muted: { color: MiraDesign.color.showcaseNavySoft, fontSize: 13 },
-  error: { color: '#B42318', fontSize: 12, paddingHorizontal: 14 },
+  muted: { color: MiraDesign.color.inkSoft, fontSize: 13 },
+  error: { color: MiraDesign.color.danger, fontSize: 12, paddingHorizontal: 14 },
 });

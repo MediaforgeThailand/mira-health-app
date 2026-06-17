@@ -1,9 +1,10 @@
 import { Link, useLocalSearchParams } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
-import { Pill } from '@/components/MiraUI';
-import { MiraDesign, softShadow } from '@/constants/Design';
+import { AdminBadge, AdminCard, AdminHeader, AdminScreen, DefList, DefRow, EmptyState, SectionTitle, SummaryChips } from '@/components/admin/adminUi';
+import { MiraDesign } from '@/constants/Design';
 import { useAuthSession } from '@/lib/auth/useAuthSession';
 import {
   defaultTenantSlug,
@@ -154,13 +155,13 @@ function topProductLabel(orders: DashboardOrder[], products: HospitalProduct[]) 
   return [...counts.values()].sort((left, right) => right.count - left.count || right.revenue - left.revenue)[0] ?? null;
 }
 
-function orderStatusTone(status: OrderRow['status']): 'amber' | 'blue' | 'danger' | 'mint' {
+function orderStatusTone(status: OrderRow['status']): 'amber' | 'blue' | 'danger' | 'success' {
   if (status === 'cancelled') {
     return 'danger';
   }
 
   if (status === 'done' || status === 'booked') {
-    return 'mint';
+    return 'success';
   }
 
   if (status === 'submitted' || status === 'confirmed') {
@@ -368,145 +369,123 @@ export default function AdminDashboardScreen() {
   const recentOrders = orders.slice(0, 6);
 
   return (
-    <View style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={[styles.topBar, !isWide ? styles.topBarStack : null]}>
-          <View style={styles.titleGroup}>
-            <Text style={styles.eyebrow}>Admin Live Dashboard</Text>
-            <Text style={styles.title}>ภาพรวมหลังบ้าน</Text>
-            <Text style={styles.subtitle}>
-              {tenantContext ? `${tenantContext.display_name} · ${tenantContext.role}` : defaultTenantSlug}
-              {' · '}ข้อมูลจาก backend เดียวกับ catalog, orders, branches และ referral
-            </Text>
-          </View>
-          <View style={styles.topActions}>
-            <Pill label={isDemoMode ? 'โหมดตัวอย่าง' : 'เชื่อมต่อระบบจริง'} tone={isDemoMode ? 'amber' : 'mint'} />
-            <Pressable disabled={isLoading} onPress={() => void refreshDashboard()} style={[styles.secondaryButton, isLoading ? styles.disabled : null]}>
-              <Text style={styles.secondaryButtonText}>{isLoading ? 'กำลังโหลด' : 'รีเฟรช'}</Text>
-            </Pressable>
-          </View>
-        </View>
+    <AdminScreen>
+      <AdminHeader
+        actions={
+          <Pressable
+            accessibilityLabel="รีเฟรช"
+            accessibilityRole="button"
+            disabled={isLoading}
+            onPress={() => void refreshDashboard()}
+            style={[styles.headerBtn, isLoading ? styles.disabled : null]}
+          >
+            <SymbolView name={{ android: 'refresh', ios: 'arrow.clockwise', web: 'refresh' }} size={16} tintColor={MiraDesign.color.primaryDeep} />
+            <Text style={styles.headerBtnText}>{isLoading ? 'กำลังโหลด' : 'รีเฟรช'}</Text>
+          </Pressable>
+        }
+        eyebrow="หลังบ้าน / รายงาน"
+        metaText={tenantContext ? `${tenantContext.display_name} · ${tenantContext.role}` : defaultTenantSlug}
+        modeLabel={isDemoMode ? 'โหมดตัวอย่าง' : 'ใช้งานจริง'}
+        modeTone={isDemoMode ? 'amber' : 'primary'}
+        note={
+          isDemoMode
+            ? demoFallbackReason
+              ? `โหมดตัวอย่าง: ${demoFallbackReason}`
+              : 'โหมดตัวอย่าง: login ด้วยบัญชี tenant admin/staff เพื่อดูข้อมูลจริง'
+            : null
+        }
+        title="ภาพรวมหลังบ้าน"
+      />
 
-        {isDemoMode ? (
-          <View style={styles.notice}>
-            <Text style={styles.noticeTitle}>โหมดตัวอย่าง</Text>
-            <Text style={styles.noticeBody}>
-              {demoFallbackReason
-                ? `กำลังแสดงข้อมูลตัวอย่าง เพราะ ${demoFallbackReason}`
-                : 'หน้านี้จะแสดงข้อมูลจริงทันทีเมื่อ login ด้วยบัญชี tenant admin/staff ที่มีสิทธิ์อ่าน backend'}
-            </Text>
-          </View>
-        ) : null}
-        {error ? <Banner tone="error" text={error} /> : null}
-        {message ? <Banner tone="success" text={message} /> : null}
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {message ? <Text style={styles.successText}>{message}</Text> : null}
 
-        <View style={styles.metrics}>
-          <Metric detail="นับจากสถานะที่ผ่าน payment/admin queue" label="ยอดขาย 30 วัน" value={formatMoney(stats.paidRevenue30)} />
-          <Metric detail={`${stats.totalOrders30} รายการใน 30 วันล่าสุด`} label="ออเดอร์ 30 วัน" value={`${stats.totalOrders30}`} />
-          <Metric detail={`${stats.activeQueue} รายการรอทีมหลังบ้านดำเนินการ`} label="คิวที่ต้องดูแล" value={`${stats.activeQueue}`} />
-          <Metric detail={`${stats.activeProducts}/${stats.totalProducts} เปิดขาย`} label="สินค้า active" value={`${stats.activeProducts}`} />
-          <Metric detail={`${stats.ragReady} รายการ embedded`} label="RAG พร้อมใช้" value={`${stats.ragReady}`} />
-          <Metric detail={`รอ approve/pay ${formatMoney(stats.pendingCommission)}`} label="สมาชิก ref" value={`${stats.referrersActive}`} />
-        </View>
+      <SummaryChips
+        items={[
+          { key: 'rev', label: 'ยอดขาย 30 วัน', value: formatMoney(stats.paidRevenue30) },
+          { key: 'ord', label: 'ออเดอร์ 30 วัน', value: stats.totalOrders30 },
+          { key: 'queue', label: 'คิวที่ต้องดูแล', value: stats.activeQueue },
+          { key: 'prod', label: 'สินค้า active', value: stats.activeProducts },
+          { key: 'rag', label: 'RAG พร้อม', value: stats.ragReady },
+          { key: 'ref', label: 'สมาชิก ref', value: stats.referrersActive },
+        ]}
+      />
 
-        <View style={[styles.grid, !isWide ? styles.gridStack : null]}>
-          <View style={styles.chartPane}>
-            <View style={styles.panelHeader}>
-              <View>
-                <Text style={styles.panelTitle}>ออเดอร์ 7 วันล่าสุด</Text>
-                <Text style={styles.panelMeta}>จำนวนรายการจาก backend</Text>
-              </View>
+      <View style={[styles.grid, !isWide ? styles.gridStack : null]}>
+        <View style={styles.chartCard}>
+          <SectionTitle
+            action={
               <Link href={{ pathname: '/admin/orders', params: { tour: 'admin' } }} asChild>
-                <Pressable style={styles.textButton}>
-                  <Text style={styles.textButtonLabel}>เปิดคิว</Text>
+                <Pressable accessibilityRole="link" style={styles.smallBtn}>
+                  <Text style={styles.smallBtnText}>เปิดคิว</Text>
                 </Pressable>
               </Link>
-            </View>
-            <View style={styles.chart}>
-              {weeklySeries.map((point) => (
-                <View key={point.key} style={styles.barSlot}>
-                  <View style={styles.barTrack}>
-                    <View style={[styles.barFill, { height: `${Math.max(10, (point.orders / maxWeeklyOrders) * 100)}%` }]} />
-                  </View>
-                  <Text style={styles.barValue}>{point.orders}</Text>
-                  <Text style={styles.barLabel}>{point.label}</Text>
+            }
+            meta="7 วันล่าสุด"
+            title="ออเดอร์รายวัน"
+          />
+          <View style={styles.chart}>
+            {weeklySeries.map((point) => (
+              <View key={point.key} style={styles.barSlot}>
+                <View style={styles.barTrack}>
+                  <View style={[styles.barFill, { height: `${Math.max(8, (point.orders / maxWeeklyOrders) * 100)}%` }]} />
                 </View>
+                <Text style={styles.barValue}>{point.orders}</Text>
+                <Text style={styles.barLabel}>{point.label}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.sideCol}>
+          <AdminCard>
+            <Text style={styles.cardLabel}>สินค้าขายดี</Text>
+            <Text numberOfLines={1} style={styles.cardBig}>
+              {topProduct?.name ?? '-'}
+            </Text>
+            <Text style={styles.cardSub}>
+              {topProduct ? `${topProduct.count} orders · ${formatMoney(topProduct.revenue)}` : 'ยังไม่มี order ที่จ่ายเงิน'}
+            </Text>
+          </AdminCard>
+          <AdminCard>
+            <Text style={styles.cardLabel}>โครงสร้าง tenant</Text>
+            <DefList>
+              <DefRow label="สาขา active" value={`${stats.activeBranches}/${branches.length}`} />
+              <DefRow label="สินค้า active" value={`${stats.activeProducts}/${stats.totalProducts}`} />
+              <DefRow label="สมาชิก ref" value={`${stats.referrersActive}/${referrers.length}`} />
+            </DefList>
+          </AdminCard>
+        </View>
+      </View>
+
+      <View style={[styles.grid, !isWide ? styles.gridStack : null]}>
+        <View style={styles.listCol}>
+          <SectionTitle meta={`${recentOrders.length} รายการ`} title="ออเดอร์ล่าสุด" />
+          {recentOrders.length === 0 ? (
+            <EmptyState
+              body="เมื่อมีคำสั่งซื้อจาก chat หรือ referral รายการจะเข้ามาที่นี่"
+              icon={{ android: 'receipt_long', ios: 'list.bullet.rectangle', web: 'receipt_long' }}
+              title="ยังไม่มีออเดอร์"
+            />
+          ) : (
+            <View style={styles.list}>
+              {recentOrders.map((order) => (
+                <OrderRowCard key={order.id} order={order} />
               ))}
             </View>
-          </View>
-
-          <View style={styles.sidePane}>
-            <View style={styles.summaryCard}>
-              <Text style={styles.panelTitle}>สินค้าขายดี</Text>
-              <Text style={styles.bigValue}>{topProduct?.name ?? '-'}</Text>
-              <Text style={styles.cardBody}>
-                {topProduct ? `${topProduct.count} orders · ${formatMoney(topProduct.revenue)}` : 'ยังไม่มี order ที่จ่ายเงินในช่วงข้อมูลล่าสุด'}
-              </Text>
-              <Link href={{ pathname: '/admin/catalog', params: { tour: 'admin' } }} asChild>
-                <Pressable style={styles.primaryButton}>
-                  <Text style={styles.primaryButtonText}>เปิด catalog</Text>
-                </Pressable>
-              </Link>
-            </View>
-            <View style={styles.summaryCard}>
-              <Text style={styles.panelTitle}>โครงสร้าง tenant</Text>
-              <View style={styles.stackStats}>
-                <MiniStat label="สาขา active" value={`${stats.activeBranches}/${branches.length}`} />
-                <MiniStat label="สินค้า active" value={`${stats.activeProducts}/${stats.totalProducts}`} />
-                <MiniStat label="สมาชิก ref" value={`${stats.referrersActive}/${referrers.length}`} />
-              </View>
-            </View>
-          </View>
+          )}
         </View>
 
-        <View style={[styles.grid, !isWide ? styles.gridStack : null]}>
-          <View style={styles.listPane}>
-            <View style={styles.panelHeader}>
-              <View>
-                <Text style={styles.panelTitle}>ออเดอร์ล่าสุด</Text>
-                <Text style={styles.panelMeta}>{recentOrders.length} รายการล่าสุด</Text>
-              </View>
-            </View>
-            {recentOrders.length === 0 ? (
-              <Empty title="ยังไม่มีออเดอร์" body="เมื่อมีคำสั่งซื้อจาก chat หรือ referral รายการจะเข้ามาที่ dashboard และคิว order" />
-            ) : (
-              recentOrders.map((order) => <OrderRowCard key={order.id} order={order} />)
-            )}
-          </View>
-
-          <View style={styles.listPane}>
-            <View style={styles.panelHeader}>
-              <View>
-                <Text style={styles.panelTitle}>งานหลังบ้าน</Text>
-                <Text style={styles.panelMeta}>เปิดไปจัดการหน้า live</Text>
-              </View>
-            </View>
+        <View style={styles.listCol}>
+          <SectionTitle title="งานหลังบ้าน" />
+          <View style={styles.list}>
             <QuickLink body="สร้าง/แก้สินค้า ผูกสาขา อัปโหลดรูป และ sync Stripe" href="/admin/catalog" title="จัดการสินค้า" />
             <QuickLink body="เพิ่มสาขา แก้ข้อมูลติดต่อ และเปิด/ปิดการใช้งาน" href="/admin/branches" title="จัดการสาขา" />
             <QuickLink body="สร้างสมาชิก Ref Program และอนุมัติ/จ่ายค่าคอมมิชชัน" href="/admin/referrers" title="Referral Program" />
           </View>
         </View>
-      </ScrollView>
-    </View>
-  );
-}
-
-function Metric({ detail, label, value }: { detail: string; label: string; value: string }) {
-  return (
-    <View style={styles.metricCard}>
-      <Text style={styles.metricLabel}>{label}</Text>
-      <Text numberOfLines={1} style={styles.metricValue}>{value}</Text>
-      <Text style={styles.metricDetail}>{detail}</Text>
-    </View>
-  );
-}
-
-function MiniStat({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.miniStat}>
-      <Text style={styles.metricLabel}>{label}</Text>
-      <Text style={styles.miniValue}>{value}</Text>
-    </View>
+      </View>
+    </AdminScreen>
   );
 }
 
@@ -519,14 +498,16 @@ function OrderRowCard({ order }: { order: DashboardOrder }) {
   return (
     <View style={styles.orderRow}>
       <View style={styles.orderCopy}>
-        <Text numberOfLines={1} style={styles.orderTitle}>{product?.name ?? order.product_id}</Text>
+        <Text numberOfLines={1} style={styles.orderTitle}>
+          {product?.name ?? order.product_id}
+        </Text>
         <Text numberOfLines={1} style={styles.orderMeta}>
           {[order.buyer_name ?? customer?.nickname ?? 'ไม่ระบุชื่อ', branch?.name, referrer ? `ref ${referrer.ref_code}` : null].filter(Boolean).join(' · ')}
         </Text>
       </View>
       <View style={styles.orderAside}>
         <Text style={styles.amountText}>{formatMoney(order.amount_baht)}</Text>
-        <Pill label={order.status.replaceAll('_', ' ')} tone={orderStatusTone(order.status)} />
+        <AdminBadge label={order.status.replaceAll('_', ' ')} tone={orderStatusTone(order.status)} />
       </View>
     </View>
   );
@@ -535,393 +516,213 @@ function OrderRowCard({ order }: { order: DashboardOrder }) {
 function QuickLink({ body, href, title }: { body: string; href: string; title: string }) {
   return (
     <Link href={{ pathname: href as never, params: { tour: 'admin' } }} asChild>
-      <Pressable style={styles.quickLink}>
-        <View style={styles.quickLinkTop}>
+      <Pressable accessibilityRole="link" style={styles.quickLink}>
+        <View style={styles.quickTop}>
           <Text style={styles.quickTitle}>{title}</Text>
-          <Text style={styles.textButtonLabel}>เปิด</Text>
+          <SymbolView name={{ android: 'chevron_right', ios: 'chevron.right', web: 'chevron_right' }} size={16} tintColor={MiraDesign.color.inkSoft} />
         </View>
-        <Text style={styles.cardBody}>{body}</Text>
+        <Text numberOfLines={2} style={styles.quickBody}>
+          {body}
+        </Text>
       </Pressable>
     </Link>
   );
 }
 
-function Empty({ body, title }: { body: string; title: string }) {
-  return (
-    <View style={styles.emptyState}>
-      <Text style={styles.emptyTitle}>{title}</Text>
-      <Text style={styles.cardBody}>{body}</Text>
-    </View>
-  );
-}
-
-function Banner({ text, tone }: { text: string; tone: 'error' | 'success' }) {
-  return (
-    <View style={[styles.banner, tone === 'error' ? styles.bannerError : styles.bannerSuccess]}>
-      <Text style={[styles.bannerText, tone === 'error' ? styles.bannerTextError : styles.bannerTextSuccess]}>{text}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  amountText: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 13,
-    fontWeight: '900',
-  },
-  banner: {
+  headerBtn: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
-    padding: 12,
-  },
-  bannerError: {
-    backgroundColor: '#FFE8E8',
-    borderColor: '#F7B9BA',
-  },
-  bannerSuccess: {
-    backgroundColor: '#E7F4ED',
-    borderColor: '#B9E2CF',
-  },
-  bannerText: {
-    fontSize: 13,
-    fontWeight: '900',
-  },
-  bannerTextError: {
-    color: '#A23538',
-  },
-  bannerTextSuccess: {
-    color: MiraDesign.color.showcaseBlueDeep,
-  },
-  barFill: {
-    backgroundColor: MiraDesign.color.showcaseBlue,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
-    minHeight: 12,
-    width: '100%',
-  },
-  barLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
-    fontSize: 11,
-    fontWeight: '900',
-  },
-  barSlot: {
-    alignItems: 'center',
-    flex: 1,
+    cursor: 'pointer',
+    flexDirection: 'row',
     gap: 6,
+    height: 38,
+    paddingHorizontal: 12,
   },
-  barTrack: {
-    backgroundColor: MiraDesign.color.showcaseBlueSoft,
-    borderRadius: 8,
-    height: 180,
-    justifyContent: 'flex-end',
-    overflow: 'hidden',
-    width: '100%',
-  },
-  barValue: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 12,
-    fontWeight: '900',
-  },
-  bigValue: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 21,
-    fontWeight: '900',
-    lineHeight: 27,
-  },
-  cardBody: {
-    color: MiraDesign.color.showcaseNavySoft,
+  headerBtnText: {
+    color: MiraDesign.color.primaryDeep,
     fontSize: 13,
     fontWeight: '800',
-    lineHeight: 19,
   },
-  chart: {
-    alignItems: 'flex-end',
-    flexDirection: 'row',
-    gap: 10,
-    minHeight: 230,
+  errorText: {
+    color: MiraDesign.color.danger,
+    fontSize: 13,
+    fontWeight: '800',
   },
-  chartPane: {
-    backgroundColor: MiraDesign.color.showcaseSurface,
-    borderColor: MiraDesign.color.showcaseLine,
+  successText: {
+    color: MiraDesign.color.primaryDeep,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  smallBtn: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.surfaceSoft,
     borderRadius: 8,
-    borderWidth: 1,
-    flex: 1.3,
-    gap: 14,
-    minWidth: 0,
-    padding: 14,
-    ...softShadow,
+    cursor: 'pointer',
+    justifyContent: 'center',
+    minHeight: 32,
+    paddingHorizontal: 12,
   },
-  container: {
-    gap: 14,
-    padding: 22,
-    paddingBottom: 48,
-  },
-  disabled: {
-    opacity: 0.45,
-  },
-  emptyState: {
-    backgroundColor: '#F7FBFA',
-    borderColor: MiraDesign.color.showcaseLineSoft,
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 5,
-    padding: 12,
-  },
-  emptyTitle: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 15,
-    fontWeight: '900',
-  },
-  eyebrow: {
-    color: MiraDesign.color.showcaseBlueDeep,
+  smallBtnText: {
+    color: MiraDesign.color.primaryDeep,
     fontSize: 12,
-    fontWeight: '900',
-    textTransform: 'uppercase',
+    fontWeight: '800',
   },
   grid: {
-    alignItems: 'stretch',
+    alignItems: 'flex-start',
     flexDirection: 'row',
     gap: 12,
   },
   gridStack: {
     flexDirection: 'column',
   },
-  listPane: {
-    backgroundColor: MiraDesign.color.showcaseSurface,
-    borderColor: MiraDesign.color.showcaseLine,
+  chartCard: {
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
+    flexGrow: 1.4,
+    flexShrink: 1,
+    flexBasis: 0,
+    gap: 10,
+    minWidth: 0,
+    padding: 12,
+  },
+  chart: {
+    alignItems: 'flex-end',
+    flexDirection: 'row',
+    gap: 8,
+    height: 160,
+    justifyContent: 'space-between',
+  },
+  barSlot: {
+    alignItems: 'center',
     flex: 1,
+    gap: 4,
+    justifyContent: 'flex-end',
+  },
+  barTrack: {
+    backgroundColor: MiraDesign.color.surfaceSoft,
+    borderRadius: 6,
+    flex: 1,
+    justifyContent: 'flex-end',
+    overflow: 'hidden',
+    width: '100%',
+  },
+  barFill: {
+    backgroundColor: MiraDesign.color.primary,
+    borderRadius: 6,
+    width: '100%',
+  },
+  barValue: {
+    color: MiraDesign.color.ink,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  barLabel: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  sideCol: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
     gap: 12,
     minWidth: 0,
-    padding: 14,
-    ...softShadow,
   },
-  metricCard: {
-    backgroundColor: MiraDesign.color.showcaseSurface,
-    borderColor: MiraDesign.color.showcaseLine,
-    borderRadius: 8,
-    borderWidth: 1,
-    flexGrow: 1,
-    gap: 4,
-    minWidth: 184,
-    padding: 12,
-    ...softShadow,
-  },
-  metricDetail: {
-    color: MiraDesign.color.showcaseNavySoft,
+  cardLabel: {
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
     fontWeight: '800',
-    lineHeight: 17,
-  },
-  metricLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
-    fontSize: 11,
-    fontWeight: '900',
     textTransform: 'uppercase',
   },
-  metricValue: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 21,
-    fontWeight: '900',
-    lineHeight: 26,
-  },
-  metrics: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  miniStat: {
-    backgroundColor: '#F7FBFA',
-    borderColor: MiraDesign.color.showcaseLineSoft,
-    borderRadius: 8,
-    borderWidth: 1,
-    flexGrow: 1,
-    minWidth: 120,
-    padding: 10,
-  },
-  miniValue: {
-    color: MiraDesign.color.showcaseNavy,
+  cardBig: {
+    color: MiraDesign.color.ink,
     fontSize: 18,
     fontWeight: '900',
-    marginTop: 4,
   },
-  notice: {
-    backgroundColor: '#FFF7DD',
-    borderColor: '#F3D17B',
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 6,
-    padding: 12,
+  cardSub: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 12,
+    fontWeight: '600',
   },
-  noticeBody: {
-    color: '#806729',
-    fontSize: 13,
-    fontWeight: '800',
-    lineHeight: 19,
-  },
-  noticeTitle: {
-    color: '#6F5100',
-    fontSize: 15,
-    fontWeight: '900',
-  },
-  orderAside: {
-    alignItems: 'flex-end',
-    gap: 6,
-  },
-  orderCopy: {
-    flex: 1,
-    gap: 4,
+  listCol: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
+    gap: 8,
     minWidth: 0,
   },
-  orderMeta: {
-    color: MiraDesign.color.showcaseNavySoft,
-    fontSize: 12,
-    fontWeight: '800',
+  list: {
+    gap: 8,
   },
   orderRow: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.showcaseLineSoft,
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
     justifyContent: 'space-between',
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  orderCopy: {
+    flex: 1,
+    gap: 2,
+    minWidth: 0,
   },
   orderTitle: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 15,
-    fontWeight: '900',
+    color: MiraDesign.color.ink,
+    fontSize: 14,
+    fontWeight: '800',
   },
-  panelHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 12,
-    justifyContent: 'space-between',
-  },
-  panelMeta: {
-    color: MiraDesign.color.showcaseBlue,
+  orderMeta: {
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
-    fontWeight: '900',
-    marginTop: 3,
+    fontWeight: '600',
   },
-  panelTitle: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 17,
-    fontWeight: '900',
+  orderAside: {
+    alignItems: 'flex-end',
+    gap: 4,
   },
-  primaryButton: {
-    alignItems: 'center',
-    backgroundColor: MiraDesign.color.showcaseBlue,
-    borderRadius: 8,
-    justifyContent: 'center',
-    minHeight: 38,
-    paddingHorizontal: 14,
-  },
-  primaryButtonText: {
-    color: '#FFFFFF',
+  amountText: {
+    color: MiraDesign.color.ink,
     fontSize: 13,
     fontWeight: '900',
   },
   quickLink: {
-    backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.showcaseLineSoft,
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
-    gap: 6,
-    padding: 12,
+    cursor: 'pointer',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
-  quickLinkTop: {
+  quickTop: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   quickTitle: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 15,
-    fontWeight: '900',
-  },
-  screen: {
-    backgroundColor: '#EEF7FF',
-    flex: 1,
-  },
-  secondaryButton: {
-    alignItems: 'center',
-    backgroundColor: MiraDesign.color.showcaseSurface,
-    borderColor: MiraDesign.color.showcaseLine,
-    borderRadius: 8,
-    borderWidth: 1,
-    justifyContent: 'center',
-    minHeight: 38,
-    paddingHorizontal: 14,
-  },
-  secondaryButtonText: {
-    color: MiraDesign.color.showcaseBlueDeep,
-    fontSize: 13,
-    fontWeight: '900',
-  },
-  sidePane: {
-    flex: 0.8,
-    gap: 12,
-    minWidth: 290,
-  },
-  stackStats: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  subtitle: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.ink,
     fontSize: 14,
     fontWeight: '800',
-    lineHeight: 21,
   },
-  summaryCard: {
-    backgroundColor: MiraDesign.color.showcaseSurface,
-    borderColor: MiraDesign.color.showcaseLine,
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 10,
-    padding: 14,
-    ...softShadow,
-  },
-  textButton: {
-    backgroundColor: MiraDesign.color.showcaseBlueSoft,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-  },
-  textButtonLabel: {
-    color: MiraDesign.color.showcaseBlueDeep,
+  quickBody: {
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '600',
+    lineHeight: 17,
   },
-  title: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 28,
-    fontWeight: '900',
-    lineHeight: 34,
-  },
-  titleGroup: {
-    flex: 1,
-    gap: 6,
-    minWidth: 0,
-  },
-  topActions: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  topBar: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: 16,
-    justifyContent: 'space-between',
-  },
-  topBarStack: {
-    flexDirection: 'column',
+  disabled: {
+    opacity: 0.45,
   },
 });

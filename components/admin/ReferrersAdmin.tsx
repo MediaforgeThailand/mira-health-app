@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
-import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { SymbolView } from 'expo-symbols';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
-import { Pill } from '@/components/MiraUI';
-import { MiraDesign, softShadow } from '@/constants/Design';
+import { AdminBadge, AdminHeader, EmptyState, SummaryChips } from '@/components/admin/adminUi';
+import { MiraDesign } from '@/constants/Design';
 import { useAuthSession } from '@/lib/auth/useAuthSession';
 import { defaultTenantSlug } from '@/lib/marketplace/hospitalProducts';
 import { showcaseDemoCommissions, showcaseDemoReferrers, showcaseDemoTenant } from '@/lib/showcase/demoFixtures';
@@ -430,60 +431,46 @@ export function ReferrersAdmin({ title = 'ผู้แนะนำและค�
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={[styles.container, isCompact ? styles.containerCompact : null]} keyboardShouldPersistTaps="handled">
-        <View style={[styles.hero, !isWide ? styles.heroStack : null]}>
-          <View style={styles.heroCopy}>
-            <View style={styles.brandRow}>
-              <Image source={brandLogo} resizeMode="contain" style={styles.brandLogo} />
-              <View style={styles.brandDivider} />
-              <Text style={styles.brandText}>Referral Ops</Text>
-            </View>
-            <Text style={styles.eyebrow}>Referral User Program</Text>
-            <Text style={styles.title}>จัดการสมาชิก Ref Program</Text>
-            <Text style={styles.subtitle}>
-              {tenant ? `${tenant.display_name} · ${tenant.role}` : isLoading ? 'กำลังโหลดสิทธิ์ tenant' : defaultTenantSlug}
-              {' · '}ค่าคอมมิชชันอิงจากสินค้าใน catalog
-            </Text>
-          </View>
-
-          <View style={[styles.heroPanel, !isWide ? styles.heroPanelStacked : null]}>
-            <View style={styles.heroPanelTop}>
-              <Text style={styles.panelMeta}>สถานะพื้นที่ทำงาน</Text>
-              <Pill label={isDemoMode ? 'โหมดตัวอย่าง' : canEdit ? 'แก้ไขได้' : 'อ่านอย่างเดียว'} tone={isDemoMode ? 'amber' : canEdit ? 'mint' : 'blue'} />
-            </View>
-            <Text style={styles.heroPanelTitle}>{activeReferrerCount} สมาชิกที่เปิดใช้งาน</Text>
-            <Text style={styles.heroPanelBody}>ยอด commission ทั้งหมด {formatMoney(totalCommission)} จาก {commissions.length} รายการล่าสุด · rate อยู่ที่สินค้า</Text>
-            <Pressable disabled={isLoading} onPress={() => void refreshReferrers()} style={[styles.secondaryButton, styles.refreshButton, isLoading ? styles.disabled : null]}>
-              <Text style={styles.secondaryButtonText}>{isLoading ? 'กำลังรีเฟรช' : 'รีเฟรช'}</Text>
+        <AdminHeader
+          actions={
+            <Pressable
+              accessibilityLabel="รีเฟรช"
+              accessibilityRole="button"
+              disabled={isLoading}
+              onPress={() => void refreshReferrers()}
+              style={[styles.headerBtn, isLoading ? styles.disabled : null]}
+            >
+              <SymbolView name={{ android: 'refresh', ios: 'arrow.clockwise', web: 'refresh' }} size={16} tintColor={MiraDesign.color.primaryDeep} />
+              <Text style={styles.headerBtnText}>{isLoading ? 'กำลังรีเฟรช' : 'รีเฟรช'}</Text>
             </Pressable>
-          </View>
-        </View>
+          }
+          eyebrow="หลังบ้าน / Referral"
+          metaText={tenant ? `${tenant.display_name} · ${tenant.role}` : defaultTenantSlug}
+          modeLabel={isDemoMode ? 'โหมดตัวอย่าง' : canEdit ? 'ใช้งานจริง' : 'อ่านอย่างเดียว'}
+          modeTone={isDemoMode ? 'amber' : canEdit ? 'primary' : 'blue'}
+          note={
+            isDemoMode
+              ? demoFallbackReason
+                ? `โหมดตัวอย่าง: ${demoFallbackReason}`
+                : 'โหมดตัวอย่าง: ปุ่มแก้ไขข้อมูลจริงจะถูกปิดไว้'
+              : !canEdit && tenant
+                ? 'สิทธิ์อ่านอย่างเดียว: เฉพาะ tenant admin แก้ไขได้'
+                : null
+          }
+          title="จัดการสมาชิก Ref Program"
+        />
 
-        {!isDemoMode && !canEdit && tenant ? (
-          <View style={styles.noticeInline}>
-            <Text style={styles.noticeTitle}>สิทธิ์อ่านอย่างเดียว</Text>
-            <Text style={styles.noticeBody}>เฉพาะ tenant admin เท่านั้นที่แก้ไขสมาชิก หรือสถานะค่าคอมมิชชันได้</Text>
-          </View>
-        ) : null}
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        {message ? <Text style={styles.successText}>{message}</Text> : null}
 
-        {error ? <Banner tone="error" text={error} /> : null}
-        {message ? <Banner tone="success" text={message} /> : null}
-        {isDemoMode ? (
-          <Banner
-            tone="success"
-            text={
-              demoFallbackReason
-                ? `โหมดตัวอย่าง: ${demoFallbackReason} ปุ่มแก้ไขข้อมูลจริงจะถูกปิดไว้`
-                : 'โหมดตัวอย่าง: เปิดดูสมาชิก ref program และ commission ได้โดยไม่ต้องล็อกอิน ปุ่มแก้ไขข้อมูลจริงจะถูกปิดไว้'
-            }
-          />
-        ) : null}
-
-        <View style={[styles.metrics, isCompact ? styles.metricsCompact : null]}>
-          <Metric compact={isCompact} detail="รอตรวจรายการก่อนจ่าย" label="รออนุมัติ" value={formatMoney(totals.pending)} />
-          <Metric compact={isCompact} detail="พร้อมส่งต่อฝ่ายการเงิน" label="อนุมัติแล้ว" value={formatMoney(totals.approved)} />
-          <Metric compact={isCompact} detail="ปิดรอบ payout แล้ว" label="จ่ายแล้ว" value={formatMoney(totals.paid)} />
-          <Metric compact={isCompact} detail={`${activeReferrerCount} เปิดใช้งาน`} label="สมาชิก" value={`${referrers.length} คน`} />
-        </View>
+        <SummaryChips
+          items={[
+            { key: 'pending', label: 'รออนุมัติ', value: formatMoney(totals.pending) },
+            { key: 'approved', label: 'อนุมัติแล้ว', value: formatMoney(totals.approved) },
+            { key: 'paid', label: 'จ่ายแล้ว', value: formatMoney(totals.paid) },
+            { key: 'members', label: 'สมาชิก', value: `${referrers.length} คน` },
+          ]}
+        />
 
         <View style={[styles.workspace, !isWide ? styles.workspaceStack : null]}>
           <View style={[styles.formPane, !isWide ? styles.fullWidthPane : null]}>
@@ -548,7 +535,11 @@ export function ReferrersAdmin({ title = 'ผู้แนะนำและค�
                 </View>
               </View>
               {referrers.length === 0 ? (
-                <Empty title="ยังไม่มีสมาชิก" body="เพิ่มสมาชิก ref program คนแรกเพื่อเปิด flow ช่วยปิดการขาย" />
+                <EmptyState
+                  body="เพิ่มสมาชิก ref program คนแรกเพื่อเปิด flow ช่วยปิดการขาย"
+                  icon={{ android: 'group', ios: 'person.2', web: 'group' }}
+                  title="ยังไม่มีสมาชิก"
+                />
               ) : (
                 referrers.map((referrer) => (
                   <View key={referrer.id} style={styles.referrerRow}>
@@ -560,7 +551,7 @@ export function ReferrersAdmin({ title = 'ผู้แนะนำและค�
                         <Text style={styles.rowTitle}>{referrer.name}</Text>
                         <Text style={styles.rowMeta}>{referrer.ref_code} · {referrerTypeLabels[referrer.type] ?? referrer.type}</Text>
                       </View>
-                      <Pill label={referrer.active ? 'เปิดใช้งาน' : 'ปิดใช้งาน'} tone={referrer.active ? 'mint' : 'amber'} />
+                      <AdminBadge label={referrer.active ? 'เปิดใช้งาน' : 'ปิดใช้งาน'} tone={referrer.active ? 'success' : 'muted'} />
                     </View>
                     <View style={styles.rowStats}>
                       <View style={styles.rowStat}>
@@ -611,7 +602,11 @@ export function ReferrersAdmin({ title = 'ผู้แนะนำและค�
                 </View>
               </View>
               {commissions.length === 0 ? (
-                <Empty title="ยังไม่มีค่าคอมมิชชัน" body="รายการจะถูกสร้างเมื่อ admin ยืนยันออเดอร์ที่มี attribution" />
+                <EmptyState
+                  body="รายการจะถูกสร้างเมื่อ admin ยืนยันออเดอร์ที่มี attribution"
+                  icon={{ android: 'payments', ios: 'creditcard', web: 'payments' }}
+                  title="ยังไม่มีค่าคอมมิชชัน"
+                />
               ) : (
                 commissions.map((entry) => (
                   <CommissionRow
@@ -633,24 +628,6 @@ export function ReferrersAdmin({ title = 'ผู้แนะนำและค�
   );
 }
 
-function Banner({ text, tone }: { text: string; tone: 'error' | 'success' }) {
-  return (
-    <View style={[styles.banner, tone === 'error' ? styles.errorBanner : styles.successBanner]}>
-      <Text style={[styles.bannerText, tone === 'error' ? styles.errorBannerText : styles.successBannerText]}>{text}</Text>
-    </View>
-  );
-}
-
-function Metric({ compact, detail, label, value }: { compact?: boolean; detail?: string; label: string; value: string }) {
-  return (
-    <View style={[styles.metric, compact ? styles.metricCompact : null]}>
-      <Text style={styles.metricLabel}>{label}</Text>
-      <Text style={styles.metricValue}>{value}</Text>
-      {detail ? <Text style={styles.metricDetail}>{detail}</Text> : null}
-    </View>
-  );
-}
-
 function Field({
   disabled,
   label,
@@ -668,19 +645,10 @@ function Field({
       <TextInput
         editable={!disabled}
         onChangeText={onChangeText}
-        placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+        placeholderTextColor={MiraDesign.color.inkSoft}
         style={[styles.input, disabled ? styles.inputDisabled : null]}
         value={value}
       />
-    </View>
-  );
-}
-
-function Empty({ body, title }: { body: string; title: string }) {
-  return (
-    <View style={styles.emptyState}>
-      <Text style={styles.emptyTitle}>{title}</Text>
-      <Text style={styles.emptyBody}>{body}</Text>
     </View>
   );
 }
@@ -719,7 +687,7 @@ function CommissionRow({
           <Text style={styles.rowTitle}>{product?.name ?? `ออเดอร์ ${entry.order_id.slice(0, 8)}`}</Text>
           <Text style={styles.rowMeta}>{formatShortDate(entry.created_at)} · {referrer ? `${referrer.name} · ${referrer.ref_code}` : entry.referrer_id}</Text>
         </View>
-        <Pill label={commissionStatusLabel(entry.status)} tone={entry.status === 'paid' ? 'mint' : entry.status === 'void' ? 'danger' : 'amber'} />
+        <AdminBadge label={commissionStatusLabel(entry.status)} tone={entry.status === 'paid' ? 'success' : entry.status === 'void' ? 'danger' : 'amber'} />
       </View>
       <View style={styles.ledgerAmount}>
         <View>
@@ -748,590 +716,72 @@ function CommissionRow({
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    backgroundColor: MiraDesign.color.showcaseCanvas,
-    flex: 1,
-  },
-  container: {
-    gap: 14,
-    padding: 22,
-    paddingBottom: 48,
-    width: '100%',
-  },
-  containerCompact: {
-    padding: 14,
-    paddingBottom: 44,
-  },
-  hero: {
-    alignItems: 'stretch',
-    backgroundColor: MiraDesign.color.showcaseSurface,
-    borderColor: MiraDesign.color.showcaseLine,
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 16,
-    justifyContent: 'space-between',
-    padding: 16,
-    ...softShadow,
-  },
-  heroStack: {
-    flexDirection: 'column',
-  },
-  heroCopy: {
-    flex: 1,
-    gap: 7,
-    minWidth: 0,
-  },
-  brandRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 4,
-  },
-  brandLogo: {
-    height: 30,
-    width: 118,
-  },
-  brandDivider: {
-    backgroundColor: MiraDesign.color.showcaseLine,
-    height: 24,
-    width: 1,
-  },
-  brandText: {
-    color: MiraDesign.color.showcaseBlueDeep,
-    fontSize: 13,
-    fontWeight: '900',
-  },
-  eyebrow: {
-    color: MiraDesign.color.showcaseBlueDeep,
-    fontSize: 12,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-  },
-  title: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 28,
-    fontWeight: '900',
-    lineHeight: 34,
-  },
-  subtitle: {
-    color: MiraDesign.color.showcaseNavySoft,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  heroPanel: {
-    backgroundColor: '#F6FBFF',
-    borderColor: MiraDesign.color.showcaseLine,
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 10,
-    justifyContent: 'space-between',
-    maxWidth: 330,
-    minWidth: 280,
-    padding: 14,
-    ...softShadow,
-  },
-  heroPanelStacked: {
-    maxWidth: '100%',
-    minWidth: '100%',
-  },
-  heroPanelTop: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
-    justifyContent: 'space-between',
-  },
-  heroPanelTitle: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 20,
-    fontWeight: '900',
-    lineHeight: 28,
-  },
-  heroPanelBody: {
-    color: MiraDesign.color.showcaseNavySoft,
-    fontSize: 13,
-    lineHeight: 19,
-  },
-  noticeInline: {
-    backgroundColor: '#FFF7DD',
-    borderColor: '#F3D17B',
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 8,
-    padding: 12,
-  },
-  noticeTitle: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 17,
-    fontWeight: '900',
-  },
-  noticeBody: {
-    color: MiraDesign.color.showcaseNavySoft,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  banner: {
-    borderRadius: 8,
-    borderWidth: 1,
-    padding: 12,
-  },
-  errorBanner: {
-    backgroundColor: '#FDECEC',
-    borderColor: '#F4BBBB',
-  },
-  successBanner: {
-    backgroundColor: '#E7F4ED',
-    borderColor: '#B8DCCB',
-  },
-  bannerText: {
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  errorBannerText: {
-    color: '#8F2424',
-  },
-  successBannerText: {
-    color: '#1E7C63',
-  },
-  metrics: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  metricsCompact: {
-    alignItems: 'stretch',
-    flexDirection: 'column',
-  },
-  metric: {
-    backgroundColor: MiraDesign.color.showcaseSurface,
-    borderColor: MiraDesign.color.showcaseLine,
-    borderRadius: 8,
-    borderWidth: 1,
-    flexGrow: 1,
-    gap: 4,
-    minWidth: 168,
-    padding: 12,
-  },
-  metricCompact: {
-    flexGrow: 0,
-    maxWidth: '100%',
-    minWidth: 0,
-    width: '100%',
-  },
-  metricLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
-    fontSize: 11,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-  },
-  metricValue: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 19,
-    fontWeight: '900',
-    marginTop: 5,
-  },
-  metricDetail: {
-    color: MiraDesign.color.showcaseNavySoft,
-    fontSize: 12,
-    fontWeight: '700',
-    lineHeight: 17,
-  },
-  workspace: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: 12,
-  },
-  workspaceStack: {
-    flexDirection: 'column',
-  },
-  fullWidthPane: {
-    maxWidth: '100%',
-    width: '100%',
-  },
-  formPane: {
-    backgroundColor: MiraDesign.color.showcaseSurface,
-    borderColor: MiraDesign.color.showcaseLine,
-    borderRadius: 8,
-    borderWidth: 1,
-    flex: 0.84,
-    gap: 11,
-    maxWidth: 400,
-    minWidth: 310,
-    padding: 14,
-    ...softShadow,
-  },
-  operationsPane: {
-    flex: 1.36,
-    gap: 12,
-    minWidth: 0,
-  },
-  listPane: {
-    gap: 12,
-    width: '100%',
-  },
-  commissionsPane: {
-    backgroundColor: MiraDesign.color.showcaseSurface,
-    borderColor: MiraDesign.color.showcaseLine,
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 12,
-    padding: 14,
-    ...softShadow,
-  },
-  bulkBar: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    justifyContent: 'space-between',
-  },
-  panelHeader: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: 10,
-    justifyContent: 'space-between',
-  },
-  panelHeaderCopy: {
-    flex: 1,
-    gap: 3,
-    minWidth: 0,
-  },
-  sectionHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  panelTitle: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 17,
-    fontWeight: '900',
-  },
-  panelMeta: {
-    color: MiraDesign.color.showcaseBlue,
-    fontSize: 12,
-    fontWeight: '900',
-    marginTop: 3,
-  },
-  textButton: {
-    backgroundColor: MiraDesign.color.showcaseBlueSoft,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-  },
-  textButtonLabel: {
-    color: MiraDesign.color.showcaseBlueDeep,
-    fontSize: 12,
-    fontWeight: '900',
-  },
-  field: {
-    flex: 1,
-    gap: 6,
-    minWidth: 0,
-  },
-  fieldLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
-    fontSize: 11,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-  },
-  input: {
-    backgroundColor: '#F7FBFF',
-    borderColor: MiraDesign.color.showcaseLine,
-    borderRadius: 8,
-    borderWidth: 1,
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 13,
-    minHeight: 40,
-    minWidth: 0,
-    paddingHorizontal: 12,
-  },
-  inputDisabled: {
-    backgroundColor: MiraDesign.color.showcaseBlueSoft,
-    color: MiraDesign.color.showcaseNavySoft,
-  },
-  twoColumn: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  twoColumnStack: {
-    flexDirection: 'column',
-  },
-  typeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  typeOption: {
-    alignItems: 'center',
-    backgroundColor: '#F7FBFF',
-    borderColor: MiraDesign.color.showcaseLine,
-    borderRadius: 8,
-    borderWidth: 1,
-    justifyContent: 'center',
-    minHeight: 32,
-    minWidth: 86,
-    paddingHorizontal: 10,
-  },
-  typeOptionActive: {
-    backgroundColor: MiraDesign.color.showcaseBlue,
-    borderColor: MiraDesign.color.showcaseBlue,
-  },
-  typeOptionText: {
-    color: MiraDesign.color.showcaseNavySoft,
-    fontSize: 12,
-    fontWeight: '900',
-    textAlign: 'center',
-  },
-  typeOptionTextActive: {
-    color: '#FFFFFF',
-  },
-  segmentRow: {
-    backgroundColor: MiraDesign.color.showcaseBlueSoft,
-    borderRadius: 8,
-    flexDirection: 'row',
-    gap: 4,
-    minWidth: 0,
-    padding: 4,
-  },
-  segment: {
-    alignItems: 'center',
-    borderRadius: 8,
-    flex: 1,
-    justifyContent: 'center',
-    minHeight: 34,
-  },
-  segmentActive: {
-    backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.showcaseLine,
-    borderWidth: 1,
-  },
-  segmentText: {
-    color: MiraDesign.color.showcaseNavySoft,
-    fontSize: 12,
-    fontWeight: '900',
-  },
-  segmentTextActive: {
-    color: MiraDesign.color.showcaseBlueDeep,
-  },
-  productRateNote: {
-    backgroundColor: MiraDesign.color.showcaseBlueSoft,
-    borderColor: MiraDesign.color.showcaseLine,
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 5,
-    padding: 10,
-  },
-  productRateTitle: {
-    color: MiraDesign.color.showcaseBlueDeep,
-    fontSize: 12,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-  },
-  productRateBody: {
-    color: MiraDesign.color.showcaseNavySoft,
-    fontSize: 12,
-    fontWeight: '800',
-    lineHeight: 18,
-  },
-  primaryButton: {
-    alignItems: 'center',
-    backgroundColor: MiraDesign.color.showcaseBlue,
-    borderRadius: 8,
-    justifyContent: 'center',
-    minHeight: 40,
-    paddingHorizontal: 14,
-    width: '100%',
-  },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '900',
-    textAlign: 'center',
-  },
-  secondaryButton: {
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.showcaseLine,
-    borderRadius: 8,
-    borderWidth: 1,
-    justifyContent: 'center',
-    minHeight: 36,
-    paddingHorizontal: 12,
-  },
-  secondaryButtonText: {
-    color: MiraDesign.color.showcaseBlueDeep,
-    fontSize: 12,
-    fontWeight: '900',
-    textAlign: 'center',
-  },
-  refreshButton: {
-    alignSelf: 'flex-start',
-    minWidth: 110,
-  },
-  referrerRow: {
-    backgroundColor: MiraDesign.color.showcaseSurface,
-    borderColor: MiraDesign.color.showcaseLine,
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 10,
-    padding: 12,
-    ...softShadow,
-  },
-  commissionRow: {
-    backgroundColor: '#F7FBFF',
-    borderColor: MiraDesign.color.showcaseLineSoft,
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 10,
-    padding: 12,
-  },
-  avatar: {
-    alignItems: 'center',
-    backgroundColor: MiraDesign.color.showcaseBlueSoft,
-    borderRadius: 8,
-    height: 34,
-    justifyContent: 'center',
-    width: 34,
-  },
-  avatarText: {
-    color: MiraDesign.color.showcaseBlueDeep,
-    fontSize: 16,
-    fontWeight: '900',
-  },
-  rowTop: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    justifyContent: 'space-between',
-  },
-  rowCopy: {
-    flex: 1,
-    gap: 3,
-    minWidth: 0,
-  },
-  rowTitle: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 15,
-    fontWeight: '900',
-    lineHeight: 20,
-  },
-  rowMeta: {
-    color: MiraDesign.color.showcaseNavySoft,
-    fontSize: 12,
-    fontWeight: '800',
-    lineHeight: 17,
-  },
-  rowStats: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  rowStat: {
-    backgroundColor: '#F6FBFF',
-    borderColor: MiraDesign.color.showcaseLineSoft,
-    borderRadius: 8,
-    borderWidth: 1,
-    flexGrow: 1,
-    minWidth: 112,
-    padding: 9,
-  },
-  rowStatLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
-    fontSize: 11,
-    fontWeight: '900',
-  },
-  rowStatValue: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 14,
-    fontWeight: '900',
-    marginTop: 3,
-  },
-  rowActionButton: {
-    alignSelf: 'flex-start',
-    minWidth: 120,
-  },
-  ledgerAmount: {
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.showcaseLineSoft,
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-    justifyContent: 'space-between',
-    padding: 9,
-  },
-  rowBody: {
-    color: MiraDesign.color.showcaseBlueDeep,
-    fontSize: 13,
-    fontWeight: '900',
-  },
-  actionRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  checkBox: {
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.showcaseLine,
-    borderRadius: 6,
-    borderWidth: 1,
-    height: 26,
-    justifyContent: 'center',
-    width: 26,
-  },
-  checkBoxSelected: {
-    backgroundColor: MiraDesign.color.showcaseBlue,
-    borderColor: MiraDesign.color.showcaseBlue,
-  },
-  checkBoxText: {
-    color: MiraDesign.color.showcaseNavySoft,
-    fontSize: 13,
-    fontWeight: '900',
-    lineHeight: 16,
-  },
-  checkBoxTextSelected: {
-    color: '#FFFFFF',
-  },
-  smallButton: {
-    alignItems: 'center',
-    backgroundColor: MiraDesign.color.showcaseBlue,
-    borderRadius: 8,
-    justifyContent: 'center',
-    minHeight: 32,
-    minWidth: 96,
-    paddingHorizontal: 10,
-  },
-  smallButtonText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '900',
-    textAlign: 'center',
-  },
-  emptyState: {
-    backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.showcaseLine,
-    borderRadius: 8,
-    borderStyle: 'dashed',
-    borderWidth: 1,
-    gap: 5,
-    padding: 16,
-  },
-  emptyTitle: {
-    color: MiraDesign.color.showcaseNavy,
-    fontSize: 15,
-    fontWeight: '900',
-  },
-  emptyBody: {
-    color: MiraDesign.color.showcaseNavySoft,
-    fontSize: 13,
-    lineHeight: 19,
-  },
-  disabled: {
-    opacity: 0.45,
-  },
+  screen: { backgroundColor: MiraDesign.color.canvas, flex: 1 },
+  container: { gap: 12, padding: 16, paddingBottom: 32 },
+  containerCompact: { padding: 12 },
+  headerBtn: { alignItems: 'center', backgroundColor: MiraDesign.color.surface, borderColor: MiraDesign.color.line, borderRadius: 8, borderWidth: 1, cursor: 'pointer', flexDirection: 'row', gap: 6, height: 38, paddingHorizontal: 12 },
+  headerBtnText: { color: MiraDesign.color.primaryDeep, fontSize: 13, fontWeight: '800' },
+  errorText: { color: MiraDesign.color.danger, fontSize: 13, fontWeight: '800' },
+  successText: { color: MiraDesign.color.primaryDeep, fontSize: 13, fontWeight: '800' },
+  workspace: { alignItems: 'flex-start', flexDirection: 'row', gap: 12 },
+  workspaceStack: { flexDirection: 'column' },
+  formPane: { backgroundColor: MiraDesign.color.surface, borderColor: MiraDesign.color.line, borderRadius: 8, borderWidth: 1, flexGrow: 1, flexShrink: 1, flexBasis: 0, gap: 10, minWidth: 0, padding: 12 },
+  fullWidthPane: { width: '100%' },
+  operationsPane: { flexGrow: 1.3, flexShrink: 1, flexBasis: 0, gap: 12, minWidth: 0 },
+  listPane: { backgroundColor: MiraDesign.color.surface, borderColor: MiraDesign.color.line, borderRadius: 8, borderWidth: 1, gap: 8, padding: 12 },
+  commissionsPane: { backgroundColor: MiraDesign.color.surface, borderColor: MiraDesign.color.line, borderRadius: 8, borderWidth: 1, gap: 8, padding: 12 },
+  panelHeader: { alignItems: 'center', flexDirection: 'row', gap: 10, justifyContent: 'space-between' },
+  panelHeaderCopy: { flex: 1, gap: 2, minWidth: 0 },
+  panelTitle: { color: MiraDesign.color.ink, fontSize: 15, fontWeight: '900' },
+  panelMeta: { color: MiraDesign.color.inkSoft, fontSize: 12, fontWeight: '700' },
+  sectionHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
+  bulkBar: { alignItems: 'flex-start', flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
+  actionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  textButton: { backgroundColor: MiraDesign.color.surfaceSoft, borderRadius: 8, cursor: 'pointer', paddingHorizontal: 12, paddingVertical: 8 },
+  textButtonLabel: { color: MiraDesign.color.primaryDeep, fontSize: 12, fontWeight: '800' },
+  field: { flex: 1, gap: 6 },
+  fieldLabel: { color: MiraDesign.color.inkSoft, fontSize: 12, fontWeight: '800', textTransform: 'uppercase' },
+  input: { backgroundColor: '#FBFDFE', borderColor: MiraDesign.color.line, borderRadius: 8, borderWidth: 1, color: MiraDesign.color.ink, fontSize: 14, minHeight: 42, paddingHorizontal: 12 },
+  inputDisabled: { backgroundColor: MiraDesign.color.surfaceSoft, color: MiraDesign.color.inkSoft },
+  twoColumn: { flexDirection: 'row', gap: 10 },
+  twoColumnStack: { flexDirection: 'column' },
+  typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  typeOption: { backgroundColor: MiraDesign.color.surfaceSoft, borderRadius: 999, cursor: 'pointer', paddingHorizontal: 12, paddingVertical: 7 },
+  typeOptionActive: { backgroundColor: MiraDesign.color.primarySoft, borderColor: MiraDesign.color.primary, borderWidth: 1 },
+  typeOptionText: { color: MiraDesign.color.inkSoft, fontSize: 12, fontWeight: '800' },
+  typeOptionTextActive: { color: MiraDesign.color.primaryDeep },
+  productRateNote: { backgroundColor: MiraDesign.color.surfaceSoft, borderRadius: 8, gap: 4, padding: 10 },
+  productRateTitle: { color: MiraDesign.color.ink, fontSize: 13, fontWeight: '800' },
+  productRateBody: { color: MiraDesign.color.inkSoft, fontSize: 12, lineHeight: 17 },
+  segmentRow: { backgroundColor: MiraDesign.color.surfaceSoft, borderRadius: 8, flexDirection: 'row', gap: 4, padding: 4 },
+  segment: { alignItems: 'center', borderRadius: 6, cursor: 'pointer', flex: 1, justifyContent: 'center', minHeight: 34, paddingHorizontal: 8 },
+  segmentActive: { backgroundColor: MiraDesign.color.surface, borderColor: MiraDesign.color.line, borderWidth: 1 },
+  segmentText: { color: MiraDesign.color.inkSoft, fontSize: 12, fontWeight: '800' },
+  segmentTextActive: { color: MiraDesign.color.primaryDeep },
+  primaryButton: { alignItems: 'center', backgroundColor: MiraDesign.color.primary, borderRadius: 8, cursor: 'pointer', justifyContent: 'center', minHeight: 44 },
+  primaryButtonText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
+  secondaryButton: { alignItems: 'center', backgroundColor: MiraDesign.color.surface, borderColor: MiraDesign.color.line, borderRadius: 8, borderWidth: 1, cursor: 'pointer', justifyContent: 'center', minHeight: 36, paddingHorizontal: 12 },
+  secondaryButtonText: { color: MiraDesign.color.primaryDeep, fontSize: 12, fontWeight: '800' },
+  smallButton: { alignItems: 'center', backgroundColor: MiraDesign.color.surfaceSoft, borderRadius: 8, cursor: 'pointer', justifyContent: 'center', minHeight: 34, paddingHorizontal: 12 },
+  smallButtonText: { color: MiraDesign.color.primaryDeep, fontSize: 12, fontWeight: '800' },
+  referrerRow: { borderColor: MiraDesign.color.line, borderRadius: 8, borderWidth: 1, gap: 8, padding: 12 },
+  rowTop: { alignItems: 'center', flexDirection: 'row', gap: 10 },
+  avatar: { alignItems: 'center', backgroundColor: MiraDesign.color.primarySoft, borderRadius: 999, height: 38, justifyContent: 'center', width: 38 },
+  avatarText: { color: MiraDesign.color.primaryDeep, fontSize: 15, fontWeight: '900' },
+  rowCopy: { flex: 1, gap: 2, minWidth: 0 },
+  rowTitle: { color: MiraDesign.color.ink, fontSize: 14, fontWeight: '800' },
+  rowMeta: { color: MiraDesign.color.inkSoft, fontSize: 12, fontWeight: '600' },
+  rowBody: { color: MiraDesign.color.ink, fontSize: 13, fontWeight: '700' },
+  rowStats: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  rowStat: { gap: 2 },
+  rowStatLabel: { color: MiraDesign.color.inkSoft, fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
+  rowStatValue: { color: MiraDesign.color.ink, fontSize: 13, fontWeight: '700' },
+  rowActionButton: { alignSelf: 'flex-start' },
+  commissionRow: { borderColor: MiraDesign.color.line, borderRadius: 8, borderWidth: 1, gap: 8, padding: 12 },
+  checkBox: { alignItems: 'center', backgroundColor: MiraDesign.color.surface, borderColor: MiraDesign.color.line, borderRadius: 6, borderWidth: 1, cursor: 'pointer', height: 24, justifyContent: 'center', width: 24 },
+  checkBoxSelected: { backgroundColor: MiraDesign.color.primary, borderColor: MiraDesign.color.primary },
+  checkBoxText: { color: 'transparent', fontSize: 14, fontWeight: '900' },
+  checkBoxTextSelected: { color: '#FFFFFF' },
+  ledgerAmount: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
+  disabled: { opacity: 0.45 },
 });

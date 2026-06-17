@@ -4,6 +4,7 @@ import type { ComponentProps, ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
+import { AdminHeader, SummaryChips } from '@/components/admin/adminUi';
 import { MiraDesign, softShadow } from '@/constants/Design';
 import { useAuthSession } from '@/lib/auth/useAuthSession';
 import {
@@ -636,128 +637,68 @@ export function CatalogCrud({ title }: { title?: string }) {
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <View style={[styles.headerCard, !isWide ? styles.headerCardStack : null]}>
-          <View style={styles.titleGroup}>
-            <Text style={styles.eyebrow}>{copy.eyebrow}</Text>
-            <Text style={styles.title}>{title || copy.title}</Text>
-            <Text style={styles.subtitle}>
-              {`จัดการ${vocab.productTerm}ที่ใช้ใน mobile catalog, chat checkout, RAG answers, Stripe/payment sync และ workflow ของ Referral`}
-            </Text>
-            <View style={styles.statusPillRow}>
-              <StatusBadge label={isDemoMode ? 'โหมดตัวอย่าง' : 'Live mode'} tone={isDemoMode ? 'warning' : 'success'} />
-              <StatusBadge
-                label={tenantContext ? tenantContext.display_name : isLoading ? 'กำลังตรวจ tenant' : 'ยังไม่เชื่อม tenant'}
-                tone={tenantContext ? 'info' : 'muted'}
-              />
-              {!canEditCatalog ? <StatusBadge label={isDemoMode ? 'read-only demo' : 'อ่านอย่างเดียว'} tone="muted" /> : null}
-              <StatusBadge label={lastRefreshedText} tone="muted" />
-            </View>
-          </View>
-          <View style={styles.topActions}>
-            <Pressable disabled={isLoading} onPress={refreshProducts} style={[styles.secondaryButton, isLoading ? styles.disabled : null]}>
-              <SymbolView name={{ android: 'refresh', ios: 'arrow.clockwise', web: 'refresh' }} size={18} tintColor={MiraDesign.color.showcaseBlue} />
-              <Text style={styles.secondaryButtonText}>{isLoading ? 'กำลังรีเฟรช' : 'รีเฟรช'}</Text>
-            </Pressable>
-            {canEditCatalog ? (
+        <AdminHeader
+          actions={
+            <>
               <Pressable
-                disabled={isBulkSyncing || busyProductId !== null || stripeSyncTargets.length === 0}
-                onPress={syncMissingStripeProducts}
-                style={[styles.secondaryButton, isBulkSyncing || busyProductId !== null || stripeSyncTargets.length === 0 ? styles.disabled : null]}
+                accessibilityLabel="รีเฟรช"
+                accessibilityRole="button"
+                disabled={isLoading}
+                onPress={refreshProducts}
+                style={[styles.headerBtn, isLoading ? styles.disabled : null]}
               >
-                <Text style={styles.secondaryButtonText}>
-                  {isBulkSyncing ? 'กำลังซิงก์ Stripe' : `ซิงก์ Stripe (${stripeSyncTargets.length})`}
-                </Text>
+                <SymbolView name={{ android: 'refresh', ios: 'arrow.clockwise', web: 'refresh' }} size={16} tintColor={MiraDesign.color.primaryDeep} />
+                <Text style={styles.headerBtnText}>{isLoading ? 'กำลังรีเฟรช' : 'รีเฟรช'}</Text>
               </Pressable>
-            ) : null}
-            <Link href={{ pathname: '/package-detail', params: { tour: 'admin' } }} asChild>
-              <Pressable style={styles.secondaryButton}>
-                <SymbolView name={{ android: 'phone_iphone', ios: 'iphone', web: 'phone_iphone' }} size={18} tintColor={MiraDesign.color.showcaseNavySoft} />
-                <Text style={styles.secondaryButtonText}>เปิด mobile catalog</Text>
+              {canEditCatalog ? (
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={isBulkSyncing || busyProductId !== null || stripeSyncTargets.length === 0}
+                  onPress={syncMissingStripeProducts}
+                  style={[styles.headerBtn, isBulkSyncing || busyProductId !== null || stripeSyncTargets.length === 0 ? styles.disabled : null]}
+                >
+                  <Text style={styles.headerBtnText}>{isBulkSyncing ? 'กำลังซิงก์ Stripe' : `ซิงก์ Stripe (${stripeSyncTargets.length})`}</Text>
+                </Pressable>
+              ) : null}
+              <Link href={{ pathname: '/package-detail', params: { tour: 'admin' } }} asChild>
+                <Pressable accessibilityRole="link" style={styles.headerBtn}>
+                  <SymbolView name={{ android: 'phone_iphone', ios: 'iphone', web: 'phone_iphone' }} size={16} tintColor={MiraDesign.color.primaryDeep} />
+                  <Text style={styles.headerBtnText}>mobile</Text>
+                </Pressable>
+              </Link>
+              <Pressable accessibilityRole="button" onPress={openNewProduct} style={styles.headerBtnPrimary}>
+                <SymbolView name={{ android: 'add', ios: 'plus', web: 'add' }} size={18} tintColor="#FFFFFF" />
+                <Text style={styles.headerBtnPrimaryText}>{copy.addProduct}</Text>
               </Pressable>
-            </Link>
-            <Pressable onPress={openNewProduct} style={styles.primaryButton}>
-              <SymbolView name={{ android: 'add', ios: 'plus', web: 'add' }} size={20} tintColor="#FFFFFF" />
-              <Text style={styles.primaryButtonText}>{copy.addProduct}</Text>
-            </Pressable>
-          </View>
-        </View>
+            </>
+          }
+          eyebrow={copy.eyebrow}
+          metaText={`${tenantContext ? tenantContext.display_name : isLoading ? 'กำลังตรวจ tenant' : 'ยังไม่เชื่อม tenant'} · ${lastRefreshedText}`}
+          modeLabel={isDemoMode ? 'โหมดตัวอย่าง' : 'ใช้งานจริง'}
+          modeTone={isDemoMode ? 'amber' : 'primary'}
+          note={
+            isDemoMode
+              ? 'โหมดตัวอย่าง: ปุ่มบันทึก อัปโหลด และ archive จะถูกปิดไว้'
+              : auth.session && !tenantContext && !isLoading
+                ? 'บัญชีที่อยู่ใน tenant_members เท่านั้นที่จะใช้หน้าแอดมินนี้ได้'
+                : tenantContext && !canEditCatalog
+                  ? 'เฉพาะ tenant_admin หรือ superadmin เท่านั้นที่สร้าง อัปโหลด archive หรือ restore สินค้าได้'
+                  : null
+          }
+          title={title || copy.title}
+        />
 
-        {isDemoMode ? (
-          <View style={styles.noticeCompact}>
-            <SymbolView name={{ android: 'info', ios: 'info.circle', web: 'info' }} size={18} tintColor="#7A5A05" />
-            <Text style={styles.noticeCompactText}>
-              {demoFallbackReason
-                ? `โหมดตัวอย่าง: กำลังแสดงข้อมูลตัวอย่าง เพราะ ${demoFallbackReason} ปุ่มบันทึก อัปโหลด และ archive จะถูกปิดไว้`
-                : 'โหมดตัวอย่าง: เปิดดู catalog ได้ทันทีโดยไม่ต้องล็อกอิน ปุ่มบันทึก อัปโหลด และ archive จะถูกปิดไว้'}
-            </Text>
-          </View>
-        ) : null}
-
-        {auth.session && !isDemoMode && !tenantContext && !isLoading ? (
-          <View style={styles.notice}>
-            <Text style={styles.noticeTitle}>ต้องมีสิทธิ์ใน tenant</Text>
-            <Text style={styles.noticeBody}>บัญชีที่อยู่ใน tenant_members เท่านั้นที่จะใช้หน้าแอดมินนี้ได้</Text>
-          </View>
-        ) : null}
-
-        {tenantContext && !isDemoMode && !canEditCatalog ? (
-          <View style={styles.notice}>
-            <Text style={styles.noticeTitle}>สิทธิ์อ่านอย่างเดียว</Text>
-            <Text style={styles.noticeBody}>เฉพาะ tenant_admin หรือ superadmin เท่านั้นที่สร้าง อัปโหลด archive หรือ restore สินค้าได้</Text>
-          </View>
-        ) : null}
-
-        <View style={styles.statsGrid}>
-          <StatCard
-            detail="ครอบคลุมทุกสถานะ"
-            icon={{ android: 'deployed_code', ios: 'cube', web: 'deployed_code' }}
-            label={copy.totalLabel}
-            tone="blue"
-            value={`${summary.total}`}
-          />
-          <StatCard
-            detail="พร้อมขายใน catalog"
-            icon={{ android: 'check_circle', ios: 'checkmark.circle', web: 'check_circle' }}
-            label="เปิดขาย"
-            tone="mint"
-            value={`${summary.active}`}
-          />
-          <StatCard
-            detail="รวม draft / รอตรวจ / ไม่ผ่าน"
-            icon={{ android: 'hourglass_empty', ios: 'hourglass', web: 'hourglass_empty' }}
-            label="รอตรวจข้อมูล"
-            tone="orange"
-            value={`${summary.draft}`}
-          />
-          <StatCard
-            detail="ซ่อนจาก catalog"
-            icon={{ android: 'inventory_2', ios: 'archivebox', web: 'inventory_2' }}
-            label="เก็บถาวร"
-            tone="violet"
-            value={`${summary.archived}`}
-          />
-          <StatCard
-            detail="published + embedded"
-            icon={{ android: 'sensors', ios: 'dot.radiowaves.left.and.right', web: 'sensors' }}
-            label="พร้อมใช้กับ RAG"
-            tone="mint"
-            value={`${summary.ragLive}`}
-          />
-          <StatCard
-            detail="ต้องซิงก์ก่อนใช้ Stripe"
-            icon={{ android: 'payments', ios: 'creditcard', web: 'payments' }}
-            label="รอซิงก์ Stripe"
-            tone="orange"
-            value={`${summary.stripeMissing}`}
-          />
-          <StatCard
-            detail="รอ publish หรือ embedding"
-            icon={{ android: 'cloud_sync', ios: 'icloud.and.arrow.up', web: 'cloud_sync' }}
-            label="รอ RAG/Embedding"
-            tone="blue"
-            value={`${summary.ragWaiting}`}
-          />
-        </View>
+        <SummaryChips
+          items={[
+            { key: 'total', label: copy.totalLabel, value: summary.total },
+            { key: 'active', label: 'เปิดขาย', value: summary.active },
+            { key: 'draft', label: 'รอตรวจ', value: summary.draft },
+            { key: 'archived', label: 'เก็บถาวร', value: summary.archived },
+            { key: 'rag', label: 'RAG พร้อม', value: summary.ragLive },
+            { key: 'stripe', label: 'รอซิงก์ Stripe', value: summary.stripeMissing },
+            { key: 'embed', label: 'รอ embedding', value: summary.ragWaiting },
+          ]}
+        />
 
         <View style={[styles.workspace, !isWide ? styles.workspaceStack : null]}>
           {isWide ? (
@@ -1954,13 +1895,45 @@ function Meta({ icon, label, value }: { icon: SymbolName; label: string; value: 
 
 const styles = StyleSheet.create({
   screen: {
-    backgroundColor: '#F3F7FB',
+    backgroundColor: MiraDesign.color.canvas,
     flex: 1,
   },
   container: {
     gap: 12,
-    padding: 18,
-    paddingBottom: 48,
+    padding: 16,
+    paddingBottom: 40,
+  },
+  headerBtn: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
+    borderRadius: 8,
+    borderWidth: 1,
+    cursor: 'pointer',
+    flexDirection: 'row',
+    gap: 6,
+    height: 38,
+    paddingHorizontal: 12,
+  },
+  headerBtnText: {
+    color: MiraDesign.color.primaryDeep,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  headerBtnPrimary: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.primary,
+    borderRadius: 8,
+    cursor: 'pointer',
+    flexDirection: 'row',
+    gap: 6,
+    height: 38,
+    paddingHorizontal: 14,
+  },
+  headerBtnPrimaryText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
   },
   headerCard: {
     alignItems: 'flex-start',

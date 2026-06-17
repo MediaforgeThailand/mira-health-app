@@ -52,6 +52,7 @@ type TranscriptRow = Pick<ChatMessageRow, 'content' | 'created_at' | 'id' | 'rol
 type OrderMutationAction = Extract<AdminOrderActionRequest, { action: 'book' | 'cancel' | 'confirm' | 'done' }>['action'];
 type QueueFilter = 'all' | 'attention' | 'booking' | 'done' | 'in_progress' | 'paid' | 'review';
 type SortKey = 'attention' | 'latest' | 'payment';
+type DetailTab = 'summary' | 'timeline' | 'conversation' | 'notes';
 type SymbolName = ComponentProps<typeof SymbolView>['name'];
 type BadgeTone = 'amber' | 'blue' | 'danger' | 'muted' | 'success';
 
@@ -383,22 +384,6 @@ function channelLabel(channel: OrderRow['channel']) {
   return 'App';
 }
 
-function channelIcon(channel: OrderRow['channel']): SymbolName {
-  if (channel === 'chat_line') {
-    return { android: 'chat', ios: 'message', web: 'chat' };
-  }
-
-  if (channel === 'referrer') {
-    return { android: 'person_add', ios: 'person.badge.plus', web: 'person_add' };
-  }
-
-  if (channel === 'chat_pwa') {
-    return { android: 'public', ios: 'globe', web: 'public' };
-  }
-
-  return { android: 'smartphone', ios: 'iphone', web: 'smartphone' };
-}
-
 function formatPayment(order: Pick<OrderQueueRow, 'paid_at' | 'payment_provider' | 'status' | 'stripe_payment_status'>) {
   if (order.status === 'cancelled') {
     return 'ยกเลิก';
@@ -654,32 +639,6 @@ function uniqueBranchNames(orders: OrderQueueRow[]) {
   );
 }
 
-function statusLineForMode({
-  authLoading,
-  demoFallbackReason,
-  isDemoMode,
-  tenant,
-}: {
-  authLoading: boolean;
-  demoFallbackReason: string | null;
-  isDemoMode: boolean;
-  tenant: TenantContext | null;
-}) {
-  if (authLoading) {
-    return 'กำลังตรวจสิทธิ์';
-  }
-
-  if (isDemoMode) {
-    return demoFallbackReason ? 'อ่านจากข้อมูลตัวอย่าง' : 'โหมดตัวอย่าง';
-  }
-
-  if (tenant) {
-    return `${tenant.display_name} · ${tenant.role}`;
-  }
-
-  return 'ยังไม่เชื่อม tenant';
-}
-
 export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' }: { title?: string }) {
   const auth = useAuthSession();
   const { tour } = useLocalSearchParams<{ tour?: string }>();
@@ -706,8 +665,9 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [detailTab, setDetailTab] = useState<DetailTab>('summary');
   const isDesktop = width >= 1024;
-  const isTablet = width >= 768;
   const isTourMode = tour === 'admin';
   const isBaseDemoMode = isTourMode || !auth.session || !supabaseConfigStatus.isConfigured;
   const isDemoMode = isBaseDemoMode || Boolean(demoFallbackReason);
@@ -772,6 +732,11 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
       total: orders.length,
     }),
     [orders],
+  );
+
+  const activeFilterCount = useMemo(
+    () => [channelFilter !== 'all', branchFilter !== 'all', !showActiveOnly].filter(Boolean).length,
+    [branchFilter, channelFilter, showActiveOnly],
   );
 
   const loadTenantContext = useCallback(async () => {
@@ -1021,6 +986,8 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
   }, [isDemoMode, selectedOrder?.session_id]);
 
   useEffect(() => {
+    setDetailTab('summary');
+
     if (!selectedOrder) {
       setBookingDate('');
       setBookingTime('');
@@ -1122,359 +1089,414 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
     }
   }
 
-  const content = (
-    <View style={[styles.container, isDesktop ? styles.containerDesktop : null]}>
+  const summaryItems: Array<{ key: QueueFilter; label: string; value: number }> = [
+    { key: 'all', label: 'ทั้งหมด', value: summary.total },
+    { key: 'attention', label: 'ต้องดูแล', value: summary.attention },
+    { key: 'review', label: 'รอตรวจ', value: summary.review },
+    { key: 'paid', label: 'ชำระแล้ว', value: summary.paid },
+    { key: 'booking', label: 'รอนัด', value: summary.booking },
+    { key: 'done', label: 'เสร็จสิ้น', value: summary.done },
+  ];
+  const hasActiveFilters =
+    statusFilter !== 'all' || channelFilter !== 'all' || branchFilter !== 'all' || query.trim().length > 0 || !showActiveOnly;
+
+  function clearAllFilters() {
+    setStatusFilter('all');
+    setChannelFilter('all');
+    setBranchFilter('all');
+    setQuery('');
+    setShowActiveOnly(() => true);
+  }
+
+  function renderDetail(onClose?: () => void) {
+    if (!selectedOrder) {
+      return <EmptyDetail />;
+    }
+
+    return (
+      <OrderDetailPanel
+        activeTab={detailTab}
+        bookingDate={bookingDate}
+        bookingTime={bookingTime}
+        busyAction={busyAction}
+        canErase={!isDemoMode && (tenant?.role === 'tenant_admin' || tenant?.role === 'superadmin')}
+        isDemoMode={isDemoMode}
+        isSavingNote={isSavingNote}
+        note={note}
+        onAction={(action) => void runAction(action)}
+        onBookingDateChange={setBookingDate}
+        onBookingTimeChange={setBookingTime}
+        onClose={onClose}
+        onNoteChange={setNote}
+        onSaveNote={(nextNote) => void saveNote(nextNote)}
+        onTabChange={setDetailTab}
+        order={selectedOrder}
+        signedSlipUrl={signedSlipUrls[selectedOrder.id]}
+        tenant={tenant}
+        transcript={transcript}
+      />
+    );
+  }
+
+  const inboxList = (
+    <OrdersInboxList
+      error={error}
+      hasActiveFilters={hasActiveFilters}
+      isLoading={isLoading}
+      onClearFilters={clearAllFilters}
+      onRetry={() => void handleRefreshOrders()}
+      onSelectOrder={(order) => setSelectedId(order.id)}
+      orders={filteredOrders}
+      selectedId={selectedId}
+      totalCount={orders.length}
+    />
+  );
+
+  const topBlock = (
+    <>
       <OrdersHeader
+        demoReason={demoFallbackReason}
         isDemoMode={isDemoMode}
         isLoading={isLoading || isRefreshing}
         lastRefreshedAt={lastRefreshedAt}
-        modeDetail={statusLineForMode({ authLoading: auth.isLoading, demoFallbackReason, isDemoMode, tenant })}
         onRefresh={() => void handleRefreshOrders()}
         title={title}
       />
-
       {error ? <Banner tone="error" text={error} /> : null}
       {message ? <Banner tone="success" text={message} /> : null}
-      {isDemoMode ? <DemoModeBanner reason={demoFallbackReason} /> : null}
-
-      <OrdersKpiStrip
-        activeFilter={statusFilter}
-        isCompact={!isTablet}
-        items={[
-          { detail: 'รายการทุกสถานะใน tenant นี้', filter: 'all', key: 'total', label: 'ทั้งหมด', tone: 'blue', value: summary.total },
-          { detail: 'รายการที่ staff ยังต้องแตะ', filter: 'attention', key: 'attention', label: 'ต้องดำเนินการ', tone: 'amber', value: summary.attention },
-          { detail: 'ยังอยู่ใน flow ก่อนปิดงาน', filter: 'in_progress', key: 'active', label: 'กำลังดำเนินการ', tone: 'blue', value: summary.active },
-          { detail: 'ส่งหลักฐานแล้ว รอตรวจ', filter: 'review', key: 'review', label: 'รอตรวจ', tone: 'amber', value: summary.review },
-          { detail: 'มีหลักฐานชำระหรือสถานะ paid', filter: 'paid', key: 'paid', label: 'ชำระเงินแล้ว', tone: 'success', value: summary.paid },
-          { detail: 'ยืนยันแล้วหรือมีเวลานัด', filter: 'booking', key: 'booking', label: 'รอนัดหมาย', tone: 'blue', value: summary.booking },
-          { detail: 'ปิดงานแล้ว', filter: 'done', key: 'done', label: 'เสร็จสิ้น', tone: 'success', value: summary.done },
-        ]}
-        onSelectFilter={setStatusFilter}
-      />
-
+      <OrdersStatusSummary activeFilter={statusFilter} items={summaryItems} onSelect={setStatusFilter} />
       <OrdersToolbar
-        branchFilter={branchFilter}
-        branchOptions={branchOptions}
-        channelFilter={channelFilter}
-        channels={channels}
+        activeFilterCount={activeFilterCount}
+        onOpenFilter={() => setFilterOpen(true)}
         query={query}
         resultCount={filteredOrders.length}
-        setBranchFilter={setBranchFilter}
-        setChannelFilter={setChannelFilter}
         setQuery={setQuery}
-        setShowActiveOnly={setShowActiveOnly}
         setSortKey={setSortKey}
-        setStatusFilter={setStatusFilter}
-        showActiveOnly={showActiveOnly}
         sortKey={sortKey}
-        statusFilter={statusFilter}
       />
-
-      <View style={[styles.workspace, !isDesktop ? styles.workspaceStack : null]}>
-        {isDesktop ? (
-          <ScrollView contentContainerStyle={styles.queueScrollContent} keyboardShouldPersistTaps="handled" style={styles.queuePane}>
-            <OrdersQueueContent
-              error={error}
-              isLoading={isLoading}
-              onRetry={() => void handleRefreshOrders()}
-              onSelectOrder={(order) => setSelectedId(order.id)}
-              orders={filteredOrders}
-              selectedId={selectedId}
-            />
-          </ScrollView>
-        ) : (
-          <View style={styles.queuePaneMobile}>
-            <OrdersQueueContent
-              error={error}
-              isLoading={isLoading}
-              onRetry={() => void handleRefreshOrders()}
-              onSelectOrder={(order) => setSelectedId(order.id)}
-              orders={filteredOrders}
-              selectedId={selectedId}
-            />
-          </View>
-        )}
-
-        <View style={styles.detailPane}>
-          {selectedOrder ? (
-            <OrderDetail
-              bookingDate={bookingDate}
-              bookingTime={bookingTime}
-              busyAction={busyAction}
-              canErase={!isDemoMode && (tenant?.role === 'tenant_admin' || tenant?.role === 'superadmin')}
-              isDemoMode={isDemoMode}
-              isSavingNote={isSavingNote}
-              note={note}
-              onAction={(action) => void runAction(action)}
-              onBookingDateChange={setBookingDate}
-              onBookingTimeChange={setBookingTime}
-              onNoteChange={setNote}
-              onSaveNote={(nextNote) => void saveNote(nextNote)}
-              order={selectedOrder}
-              signedSlipUrl={signedSlipUrls[selectedOrder.id]}
-              tenant={tenant}
-              transcript={transcript}
-              useInternalScroll={isDesktop}
-            />
-          ) : (
-            <NoSelectionState />
-          )}
-        </View>
-      </View>
-    </View>
+    </>
   );
 
   return (
     <View style={styles.screen}>
       {isDesktop ? (
-        content
+        <View style={[styles.container, styles.containerDesktop]}>
+          {topBlock}
+          <View style={styles.workbench}>
+            <View style={styles.listPane}>
+              <ScrollView contentContainerStyle={styles.listScrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                {inboxList}
+              </ScrollView>
+            </View>
+            <View style={styles.detailPane}>{renderDetail()}</View>
+          </View>
+        </View>
       ) : (
         <ScrollView contentContainerStyle={styles.mobileScrollContent} keyboardShouldPersistTaps="handled">
-          {content}
+          <View style={styles.container}>
+            {topBlock}
+            {inboxList}
+          </View>
         </ScrollView>
       )}
+
+      {!isDesktop && selectedOrder ? <View style={styles.mobileDetailOverlay}>{renderDetail(() => setSelectedId(null))}</View> : null}
+
+      {filterOpen ? (
+        <OrdersFilterPanel
+          activeCount={activeFilterCount}
+          branchFilter={branchFilter}
+          branchOptions={branchOptions}
+          channelFilter={channelFilter}
+          channels={channels}
+          isDesktop={isDesktop}
+          onClear={() => {
+            setChannelFilter('all');
+            setBranchFilter('all');
+            setShowActiveOnly(() => true);
+          }}
+          onClose={() => setFilterOpen(false)}
+          setBranchFilter={setBranchFilter}
+          setChannelFilter={setChannelFilter}
+          setShowActiveOnly={setShowActiveOnly}
+          showActiveOnly={showActiveOnly}
+        />
+      ) : null}
     </View>
   );
 }
 
 function OrdersHeader({
+  demoReason,
   isDemoMode,
   isLoading,
   lastRefreshedAt,
-  modeDetail,
   onRefresh,
   title,
 }: {
+  demoReason: string | null;
   isDemoMode: boolean;
   isLoading: boolean;
   lastRefreshedAt: Date | null;
-  modeDetail: string;
   onRefresh: () => void;
   title: string;
 }) {
   return (
-    <View style={styles.headerCard}>
-      <View style={styles.headerMain}>
-        <View style={styles.titleGroup}>
-          <Text style={styles.eyebrow}>หลังบ้าน · คำสั่งซื้อ</Text>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.subtitle}>
-            คำสั่งซื้อจาก chat checkout สำหรับตรวจการชำระเงิน ติดตามลูกค้า และบันทึกนัดหมายให้ทีมงานทำงานต่อได้เร็วขึ้น
-          </Text>
+    <View style={styles.header}>
+      <View style={styles.headerRow}>
+        <View style={styles.headerTitleGroup}>
+          <Text style={styles.eyebrow}>หลังบ้าน / คำสั่งซื้อ</Text>
+          <View style={styles.headerTitleRow}>
+            <Text style={styles.title}>{title}</Text>
+            <View style={[styles.modePill, isDemoMode ? styles.modePillDemo : styles.modePillLive]}>
+              <Text style={[styles.modePillText, isDemoMode ? styles.modePillTextDemo : styles.modePillTextLive]}>
+                {isDemoMode ? 'โหมดตัวอย่าง' : 'ใช้งานจริง'}
+              </Text>
+            </View>
+            {lastRefreshedAt ? <Text style={styles.headerMetaText}>อัปเดต {formatShortTime(lastRefreshedAt)}</Text> : null}
+          </View>
         </View>
         <View style={styles.headerActions}>
           <Pressable
-            accessibilityLabel="รีเฟรชคิวคำสั่งซื้อ"
+            accessibilityLabel="รีเฟรช"
             accessibilityRole="button"
             disabled={isLoading}
             onPress={onRefresh}
-            style={[styles.primaryButton, isLoading ? styles.disabled : null]}
+            style={[styles.iconButton, isLoading ? styles.disabled : null]}
           >
-            <SymbolView name={{ android: 'refresh', ios: 'arrow.clockwise', web: 'refresh' }} size={18} tintColor="#FFFFFF" />
-            <Text style={styles.primaryButtonText}>{isLoading ? 'กำลังรีเฟรช' : 'รีเฟรชคิว'}</Text>
+            <SymbolView name={{ android: 'refresh', ios: 'arrow.clockwise', web: 'refresh' }} size={17} tintColor={MiraDesign.color.primaryDeep} />
+            <Text style={styles.iconButtonText}>{isLoading ? 'กำลังรีเฟรช' : 'รีเฟรช'}</Text>
           </Pressable>
           <Link href="/admin/catalog" asChild>
-            <Pressable accessibilityLabel="เปิดแค็ตตาล็อก" accessibilityRole="link" style={styles.secondaryButton}>
-              <SymbolView name={{ android: 'inventory_2', ios: 'cube', web: 'inventory_2' }} size={18} tintColor={MiraDesign.color.primaryDeep} />
-              <Text style={styles.secondaryButtonText}>แค็ตตาล็อก</Text>
+            <Pressable accessibilityLabel="เปิดแค็ตตาล็อก" accessibilityRole="link" style={styles.iconButton}>
+              <SymbolView name={{ android: 'inventory_2', ios: 'cube', web: 'inventory_2' }} size={17} tintColor={MiraDesign.color.primaryDeep} />
+              <Text style={styles.iconButtonText}>แค็ตตาล็อก</Text>
             </Pressable>
           </Link>
         </View>
       </View>
-      <View style={styles.statusPillRow}>
-        <StatusBadge label={isDemoMode ? 'โหมดตัวอย่าง' : 'โหมดใช้งานจริง'} tone={isDemoMode ? 'amber' : 'success'} />
-        <StatusBadge label={modeDetail} tone={isDemoMode ? 'blue' : 'success'} />
-        <StatusBadge label={`รีเฟรชล่าสุด ${formatShortTime(lastRefreshedAt)}`} tone="muted" />
-      </View>
+      {isDemoMode ? (
+        <Text numberOfLines={1} style={styles.headerDemoNote}>
+          {demoReason ? `โหมดตัวอย่าง: ${demoReason} · ปุ่ม action จะไม่ส่งข้อมูลจริง` : 'โหมดตัวอย่าง: ปุ่ม action จะไม่ส่งข้อมูลจริง'}
+        </Text>
+      ) : null}
     </View>
   );
 }
 
-function OrdersKpiStrip({
+function OrdersStatusSummary({
   activeFilter,
-  isCompact,
   items,
-  onSelectFilter,
+  onSelect,
 }: {
   activeFilter: QueueFilter;
-  isCompact: boolean;
-  items: Array<{ detail: string; filter: QueueFilter; key: string; label: string; tone: BadgeTone; value: number }>;
-  onSelectFilter: (filter: QueueFilter) => void;
+  items: Array<{ key: QueueFilter; label: string; value: number }>;
+  onSelect: (filter: QueueFilter) => void;
 }) {
-  const tiles = items.map((item) => (
-    <Pressable
-      accessibilityLabel={`กรองคิวตาม ${item.label}`}
-      accessibilityRole="button"
-      accessibilityState={{ selected: activeFilter === item.filter }}
-      key={item.key}
-      onPress={() => onSelectFilter(item.filter)}
-      style={[styles.kpiCard, activeFilter === item.filter ? styles.kpiCardActive : null]}
-    >
-      <View style={[styles.kpiAccent, styles[`${item.tone}Accent`]]} />
-      <Text style={styles.kpiLabel}>{item.label}</Text>
-      <Text style={styles.kpiValue}>{item.value}</Text>
-      <Text numberOfLines={1} style={styles.kpiDetail}>
-        {item.detail}
-      </Text>
-    </Pressable>
-  ));
+  return (
+    <View style={styles.summaryRow}>
+      {items.map((item) => {
+        const active = activeFilter === item.key;
 
-  if (isCompact) {
-    return (
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.kpiScroll} contentContainerStyle={styles.kpiScrollContent}>
-        {tiles}
-      </ScrollView>
-    );
-  }
-
-  return <View style={styles.kpiGrid}>{tiles}</View>;
+        return (
+          <Pressable
+            accessibilityLabel={`กรองตาม ${item.label}`}
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
+            key={item.key}
+            onPress={() => onSelect(item.key)}
+            style={[styles.summaryChip, active ? styles.summaryChipActive : null]}
+          >
+            <Text style={[styles.summaryChipValue, active ? styles.summaryChipValueActive : null]}>{item.value.toLocaleString('th-TH')}</Text>
+            <Text style={[styles.summaryChipLabel, active ? styles.summaryChipLabelActive : null]}>{item.label}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
 }
 
 function OrdersToolbar({
+  activeFilterCount,
+  onOpenFilter,
+  query,
+  resultCount,
+  setQuery,
+  setSortKey,
+  sortKey,
+}: {
+  activeFilterCount: number;
+  onOpenFilter: () => void;
+  query: string;
+  resultCount: number;
+  setQuery: (value: string) => void;
+  setSortKey: (value: SortKey) => void;
+  sortKey: SortKey;
+}) {
+  const sortLabel = sortOptions.find((option) => option.key === sortKey)?.label ?? 'ล่าสุด';
+  const cycleSort = () => {
+    const index = sortOptions.findIndex((option) => option.key === sortKey);
+    const next = sortOptions[(index + 1) % sortOptions.length];
+
+    if (next) {
+      setSortKey(next.key);
+    }
+  };
+
+  return (
+    <View style={styles.toolbarRow}>
+      <View style={styles.searchBox}>
+        <SymbolView name={{ android: 'search', ios: 'magnifyingglass', web: 'search' }} size={17} tintColor={MiraDesign.color.inkSoft} />
+        <TextInput
+          accessibilityLabel="ค้นหาคิวคำสั่งซื้อ"
+          onChangeText={setQuery}
+          placeholder="ค้นหาเลขออเดอร์ ชื่อลูกค้า เบอร์โทร หรือแพ็กเกจ"
+          placeholderTextColor={MiraDesign.color.inkSoft}
+          style={styles.searchInput}
+          value={query}
+        />
+        {query ? (
+          <Pressable accessibilityLabel="ล้างการค้นหา" accessibilityRole="button" onPress={() => setQuery('')} style={styles.searchClear}>
+            <SymbolView name={{ android: 'close', ios: 'xmark', web: 'close' }} size={14} tintColor={MiraDesign.color.inkSoft} />
+          </Pressable>
+        ) : null}
+      </View>
+      <Pressable
+        accessibilityLabel="ตัวกรอง"
+        accessibilityRole="button"
+        onPress={onOpenFilter}
+        style={[styles.toolbarButton, activeFilterCount > 0 ? styles.toolbarButtonActive : null]}
+      >
+        <SymbolView
+          name={{ android: 'tune', ios: 'slider.horizontal.3', web: 'tune' }}
+          size={16}
+          tintColor={activeFilterCount > 0 ? MiraDesign.color.primaryDeep : MiraDesign.color.inkSoft}
+        />
+        <Text style={[styles.toolbarButtonText, activeFilterCount > 0 ? styles.toolbarButtonTextActive : null]}>
+          {activeFilterCount > 0 ? `ตัวกรอง · ${activeFilterCount}` : 'ตัวกรอง'}
+        </Text>
+      </Pressable>
+      <Pressable accessibilityLabel={`เรียงตาม ${sortLabel}`} accessibilityRole="button" onPress={cycleSort} style={styles.toolbarButton}>
+        <SymbolView name={{ android: 'swap_vert', ios: 'arrow.up.arrow.down', web: 'swap_vert' }} size={16} tintColor={MiraDesign.color.inkSoft} />
+        <Text style={styles.toolbarButtonText}>{sortLabel}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function OrdersFilterPanel({
+  activeCount,
   branchFilter,
   branchOptions,
   channelFilter,
   channels,
-  query,
-  resultCount,
+  isDesktop,
+  onClear,
+  onClose,
   setBranchFilter,
   setChannelFilter,
-  setQuery,
   setShowActiveOnly,
-  setSortKey,
-  setStatusFilter,
   showActiveOnly,
-  sortKey,
-  statusFilter,
 }: {
+  activeCount: number;
   branchFilter: string;
   branchOptions: string[];
   channelFilter: OrderRow['channel'] | 'all';
   channels: OrderRow['channel'][];
-  query: string;
-  resultCount: number;
+  isDesktop: boolean;
+  onClear: () => void;
+  onClose: () => void;
   setBranchFilter: (value: string) => void;
   setChannelFilter: (value: OrderRow['channel'] | 'all') => void;
-  setQuery: (value: string) => void;
   setShowActiveOnly: (updater: (current: boolean) => boolean) => void;
-  setSortKey: (value: SortKey) => void;
-  setStatusFilter: (value: QueueFilter) => void;
   showActiveOnly: boolean;
-  sortKey: SortKey;
-  statusFilter: QueueFilter;
 }) {
   return (
-    <View style={styles.toolbar}>
-      <View style={styles.toolbarTop}>
-        <View style={styles.searchBox}>
-          <SymbolView name={{ android: 'search', ios: 'magnifyingglass', web: 'search' }} size={18} tintColor={MiraDesign.color.inkSoft} />
-          <TextInput
-            accessibilityLabel="ค้นหาคิวคำสั่งซื้อ"
-            onChangeText={setQuery}
-            placeholder="ค้นหาเลขออเดอร์ ชื่อลูกค้า เบอร์โทร หรือแพ็กเกจ"
-            placeholderTextColor={MiraDesign.color.inkSoft}
-            style={styles.searchInput}
-            value={query}
-          />
+    <View style={styles.overlay}>
+      <Pressable accessibilityLabel="ปิดตัวกรอง" accessibilityRole="button" onPress={onClose} style={styles.overlayBackdrop} />
+      <View style={[styles.filterPanel, isDesktop ? styles.filterPanelDesktop : styles.filterPanelSheet]}>
+        <View style={styles.filterHeader}>
+          <Text style={styles.filterTitle}>{activeCount > 0 ? `ตัวกรอง · ${activeCount}` : 'ตัวกรอง'}</Text>
+          <Pressable accessibilityLabel="ปิด" accessibilityRole="button" onPress={onClose} style={styles.filterClose}>
+            <SymbolView name={{ android: 'close', ios: 'xmark', web: 'close' }} size={18} tintColor={MiraDesign.color.inkSoft} />
+          </Pressable>
         </View>
-        <Pressable
-          accessibilityLabel="สลับเฉพาะรายการ active"
-          accessibilityRole="switch"
-          accessibilityState={{ checked: showActiveOnly }}
-          onPress={() => setShowActiveOnly((current) => !current)}
-          style={[styles.toggleButton, showActiveOnly ? styles.toggleButtonActive : null]}
-        >
-          <View style={[styles.toggleDot, showActiveOnly ? styles.toggleDotActive : null]} />
-          <Text style={[styles.toggleText, showActiveOnly ? styles.toggleTextActive : null]}>เฉพาะรายการ active</Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.toolbarSection}>
-        <View style={styles.toolbarSectionHeader}>
-          <Text style={styles.toolbarLabel}>สถานะ</Text>
-          <Text style={styles.toolbarMeta}>{resultCount.toLocaleString('th-TH')} รายการ</Text>
-        </View>
-        <View style={styles.segmentRow}>
-          {queueFilterOptions.map((option) => (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ selected: statusFilter === option.key }}
-              key={option.key}
-              onPress={() => setStatusFilter(option.key)}
-              style={[styles.segment, statusFilter === option.key ? styles.segmentActive : null]}
-            >
-              <Text style={[styles.segmentText, statusFilter === option.key ? styles.segmentTextActive : null]}>{option.label}</Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
-
-      <View style={styles.toolbarGrid}>
-        <FilterGroup label="เรียงตาม">
-          {sortOptions.map((option) => (
-            <ChipButton active={sortKey === option.key} key={option.key} label={option.label} onPress={() => setSortKey(option.key)} />
-          ))}
-        </FilterGroup>
-
-        {channels.length > 1 ? (
+        <ScrollView contentContainerStyle={styles.filterBody} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <FilterGroup label="ช่องทาง">
             <ChipButton active={channelFilter === 'all'} label="ทั้งหมด" onPress={() => setChannelFilter('all')} />
             {channels.map((channel) => (
               <ChipButton active={channelFilter === channel} key={channel} label={channelLabel(channel)} onPress={() => setChannelFilter(channel)} />
             ))}
           </FilterGroup>
-        ) : null}
 
-        {branchOptions.length > 1 ? (
-          <FilterGroup label="สาขา">
-            <ChipButton active={branchFilter === 'all'} label="ทั้งหมด" onPress={() => setBranchFilter('all')} />
-            {branchOptions.map((branch) => (
-              <ChipButton active={branchFilter === branch} key={branch} label={branch} onPress={() => setBranchFilter(branch)} />
-            ))}
+          {branchOptions.length > 0 ? (
+            <FilterGroup label="สาขา">
+              <ChipButton active={branchFilter === 'all'} label="ทั้งหมด" onPress={() => setBranchFilter('all')} />
+              {branchOptions.map((branch) => (
+                <ChipButton active={branchFilter === branch} key={branch} label={branch} onPress={() => setBranchFilter(branch)} />
+              ))}
+            </FilterGroup>
+          ) : null}
+
+          <FilterGroup label="การแสดงผล">
+            <ChipButton active={showActiveOnly} label="เฉพาะที่กำลังดำเนินการ" onPress={() => setShowActiveOnly(() => true)} />
+            <ChipButton active={!showActiveOnly} label="ทุกสถานะ" onPress={() => setShowActiveOnly(() => false)} />
           </FilterGroup>
-        ) : null}
+        </ScrollView>
+        <View style={styles.filterFooter}>
+          <Pressable accessibilityRole="button" onPress={onClear} style={styles.filterClearButton}>
+            <Text style={styles.filterClearText}>ล้างค่า</Text>
+          </Pressable>
+          <Pressable accessibilityRole="button" onPress={onClose} style={styles.filterApplyButton}>
+            <Text style={styles.filterApplyText}>ใช้ตัวกรอง</Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
 }
 
-function OrdersQueueContent({
+function OrdersInboxList({
   error,
+  hasActiveFilters,
   isLoading,
+  onClearFilters,
   onRetry,
   onSelectOrder,
   orders,
   selectedId,
+  totalCount,
 }: {
   error: string | null;
+  hasActiveFilters: boolean;
   isLoading: boolean;
+  onClearFilters: () => void;
   onRetry: () => void;
   onSelectOrder: (order: OrderQueueRow) => void;
   orders: OrderQueueRow[];
   selectedId: string | null;
+  totalCount: number;
 }) {
   if (isLoading) {
     return <OrdersSkeleton />;
   }
 
-  if (error && orders.length === 0) {
+  if (error && totalCount === 0) {
     return <ErrorState onRetry={onRetry} text={error} />;
   }
 
-  if (orders.length === 0) {
+  if (totalCount === 0) {
     return <QueueEmptyState />;
   }
 
+  if (orders.length === 0) {
+    return <NoResultsState hasFilters={hasActiveFilters} onClear={onClearFilters} />;
+  }
+
   return (
-    <View style={styles.queueStack}>
-      <View style={styles.queueHeader}>
-        <View>
-          <Text style={styles.panelTitle}>คิวปฏิบัติการคำสั่งซื้อ</Text>
-          <Text style={styles.panelSubtitle}>สแกนรายการที่ต้องตามต่อก่อน แล้วเลือกเพื่อเปิดแผงรายละเอียด</Text>
-        </View>
-      </View>
+    <View style={styles.inboxStack}>
       {orders.map((order) => (
-        <OrderRowCard key={order.id} order={order} selected={selectedId === order.id} onSelect={() => onSelectOrder(order)} />
+        <OrderInboxCard key={order.id} order={order} selected={selectedId === order.id} onSelect={() => onSelectOrder(order)} />
       ))}
     </View>
   );
@@ -1488,28 +1510,12 @@ function Banner({ text, tone }: { text: string; tone: 'error' | 'success' }) {
   );
 }
 
-function DemoModeBanner({ reason }: { reason: string | null }) {
-  return (
-    <View style={styles.demoBanner}>
-      <SymbolView name={{ android: 'visibility', ios: 'eye', web: 'visibility' }} size={18} tintColor={MiraDesign.color.primaryDeep} />
-      <View style={styles.demoBannerCopy}>
-        <Text style={styles.demoBannerTitle}>โหมดตัวอย่าง</Text>
-        <Text style={styles.demoBannerText}>
-          {reason
-            ? `${reason} · ปุ่ม action จะไม่ส่งข้อมูลจริง`
-            : 'เปิดดูคิวออเดอร์ได้โดยไม่ต้องล็อกอิน · ปุ่ม action จะไม่ส่งข้อมูลจริง'}
-        </Text>
-      </View>
-    </View>
-  );
-}
-
-function OrderRowCard({ onSelect, order, selected }: { onSelect: () => void; order: OrderQueueRow; selected: boolean }) {
-  const product = fromJoin(order.products);
-  const referrer = fromJoin(order.referrers);
+function OrderInboxCard({ onSelect, order, selected }: { onSelect: () => void; order: OrderQueueRow; selected: boolean }) {
   const nextAction = nextActionForOrder(order);
-  const phone = maskPhone(orderBuyerPhone(order));
-  const productName = orderProductName(order);
+  const metaLine = [orderBuyerName(order), formatMoney(order.amount_baht), channelLabel(order.channel), formatDateTime(order.updated_at)]
+    .filter(Boolean)
+    .join(' · ');
+  const statusLine = `${formatPayment(order)} · ${bookingStatusLabel(order)}`;
 
   return (
     <Pressable
@@ -1517,63 +1523,259 @@ function OrderRowCard({ onSelect, order, selected }: { onSelect: () => void; ord
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onSelect}
-      style={[styles.orderRow, selected ? styles.orderRowSelected : null]}
+      style={[styles.inboxCard, selected ? styles.inboxCardSelected : null]}
     >
-      {selected ? <View style={styles.orderSelectedAccent} /> : null}
-      <View style={styles.orderRowTop}>
-        <View style={styles.productMedia}>
-          {product?.image_url ? (
-            <Image source={{ uri: product.image_url }} style={styles.productImage} />
-          ) : (
-            <SymbolView name={{ android: 'medical_services', ios: 'cross.case', web: 'medical_services' }} size={24} tintColor={MiraDesign.color.blue} />
-          )}
-        </View>
-        <View style={styles.orderMain}>
-          <View style={styles.orderTitleRow}>
-            <Text numberOfLines={1} style={styles.orderId}>
-              #{compactOrderId(order.id)}
-            </Text>
-            <StatusBadge label={statusLabel(order.status)} tone={statusTone(order.status)} />
-          </View>
-          <Text numberOfLines={2} style={styles.orderTitle}>
-            {productName}
+      {selected ? <View style={styles.inboxCardAccent} /> : null}
+      <View style={styles.inboxCardBody}>
+        <View style={styles.inboxCardTop}>
+          <Text numberOfLines={1} style={styles.inboxOrderId}>
+            #{compactOrderId(order.id)}
           </Text>
-          <View style={styles.orderPersonRow}>
-            <Text numberOfLines={1} style={styles.customerName}>
-              {orderBuyerName(order)}
-            </Text>
-            <Text style={styles.dotSeparator}>·</Text>
-            <Text numberOfLines={1} style={styles.customerMeta}>
-              {phone}
+          <StatusBadge label={statusLabel(order.status)} tone={statusTone(order.status)} />
+        </View>
+        <Text numberOfLines={1} style={styles.inboxProduct}>
+          {orderProductName(order)}
+        </Text>
+        <Text numberOfLines={1} style={styles.inboxMeta}>
+          {metaLine}
+        </Text>
+        <View style={styles.inboxBottom}>
+          <Text numberOfLines={1} style={styles.inboxStatusLine}>
+            {statusLine}
+          </Text>
+          <View style={styles.nextActionPill}>
+            <Text numberOfLines={1} style={styles.nextActionPillText}>
+              {nextAction.label}
             </Text>
           </View>
         </View>
-      </View>
-
-      <View style={styles.orderSignalRow}>
-        <InfoPill icon={channelIcon(order.channel)} label={channelLabel(order.channel)} />
-        <InfoPill label={formatMoney(order.amount_baht)} />
-        <InfoPill label={bookingStatusLabel(order)} tone={bookingTone(order)} />
-      </View>
-
-      <View style={styles.queueFactsLine}>
-        <Text numberOfLines={1} style={styles.queueFactText}>ชำระเงิน: {formatPayment(order)}</Text>
-        <Text numberOfLines={1} style={styles.queueFactText}>สาขา: {orderBranchName(order)}</Text>
-        <Text numberOfLines={1} style={styles.queueFactText}>อัปเดต: {formatDateTime(order.updated_at)}</Text>
-        {referrer ? <Text numberOfLines={1} style={styles.queueFactText}>ผู้แนะนำ: {referrer.name}</Text> : null}
-      </View>
-
-      <View style={styles.nextActionRow}>
-        <StatusBadge label={nextAction.label} tone={nextAction.tone} />
-        <Text numberOfLines={2} style={styles.nextActionText}>
-          {nextAction.detail}
-        </Text>
       </View>
     </Pressable>
   );
 }
 
-function OrderDetail({
+const detailTabs: Array<{ key: DetailTab; label: string }> = [
+  { key: 'summary', label: 'สรุป' },
+  { key: 'timeline', label: 'ไทม์ไลน์' },
+  { key: 'conversation', label: 'บทสนทนา' },
+  { key: 'notes', label: 'โน้ต' },
+];
+
+function OrderDetailPanel({
+  activeTab,
+  bookingDate,
+  bookingTime,
+  busyAction,
+  canErase,
+  isDemoMode,
+  isSavingNote,
+  note,
+  onAction,
+  onBookingDateChange,
+  onBookingTimeChange,
+  onClose,
+  onNoteChange,
+  onSaveNote,
+  onTabChange,
+  order,
+  signedSlipUrl,
+  tenant,
+  transcript,
+}: {
+  activeTab: DetailTab;
+  bookingDate: string;
+  bookingTime: string;
+  busyAction: OrderMutationAction | null;
+  canErase: boolean;
+  isDemoMode: boolean;
+  isSavingNote: boolean;
+  note: string;
+  onAction: (action: OrderMutationAction) => void;
+  onBookingDateChange: (value: string) => void;
+  onBookingTimeChange: (value: string) => void;
+  onClose?: () => void;
+  onNoteChange: (value: string) => void;
+  onSaveNote: (nextNote?: string) => void;
+  onTabChange: (tab: DetailTab) => void;
+  order: OrderQueueRow;
+  signedSlipUrl?: string;
+  tenant: TenantContext | null;
+  transcript: TranscriptRow[];
+}) {
+  const primaryAction = primaryActionForOrder(order);
+  const primaryDisabled =
+    isDemoMode || !primaryAction || !canAct(order, primaryAction) || (primaryAction === 'book' && (!bookingDate || !bookingTime));
+
+  return (
+    <View style={styles.detailPanel}>
+      <View style={styles.detailHeader}>
+        {onClose ? (
+          <Pressable accessibilityLabel="กลับไปรายการ" accessibilityRole="button" onPress={onClose} style={styles.detailBack}>
+            <SymbolView name={{ android: 'arrow_back', ios: 'chevron.left', web: 'arrow_back' }} size={18} tintColor={MiraDesign.color.ink} />
+            <Text style={styles.detailBackText}>กลับ</Text>
+          </Pressable>
+        ) : null}
+        <View style={styles.detailHeaderRow}>
+          <View style={styles.detailHeaderMain}>
+            <Text style={styles.detailEyebrow}>#{compactOrderId(order.id)}</Text>
+            <Text numberOfLines={1} style={styles.detailTitle}>
+              {orderProductName(order)}
+            </Text>
+            <Text numberOfLines={1} style={styles.detailSubtitle}>
+              {orderBuyerName(order)} · {formatMoney(order.amount_baht)}
+            </Text>
+          </View>
+          {primaryAction ? <ActionButton action={primaryAction} busyAction={busyAction} compact disabled={primaryDisabled} onAction={onAction} /> : null}
+        </View>
+        <View style={styles.detailBadgeRow}>
+          <StatusBadge label={statusLabel(order.status)} tone={statusTone(order.status)} />
+          <StatusBadge label={isPaidOrder(order) ? 'ชำระแล้ว' : 'ยังไม่ชำระ'} tone={isPaidOrder(order) ? 'success' : 'amber'} />
+          <StatusBadge label={bookingStatusLabel(order)} tone={bookingTone(order)} />
+        </View>
+        <View style={styles.detailTabs}>
+          {detailTabs.map((tab) => {
+            const active = activeTab === tab.key;
+
+            return (
+              <Pressable
+                accessibilityRole="tab"
+                accessibilityState={{ selected: active }}
+                key={tab.key}
+                onPress={() => onTabChange(tab.key)}
+                style={[styles.detailTab, active ? styles.detailTabActive : null]}
+              >
+                <Text style={[styles.detailTabText, active ? styles.detailTabTextActive : null]}>{tab.label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.detailBodyScrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        style={styles.detailBodyScroll}
+      >
+        {activeTab === 'summary' ? <OrderSummaryTab order={order} signedSlipUrl={signedSlipUrl} /> : null}
+        {activeTab === 'timeline' ? (
+          <View style={styles.tabBody}>
+            <OrderTimeline order={order} />
+          </View>
+        ) : null}
+        {activeTab === 'conversation' ? <OrderConversationTab transcript={transcript} /> : null}
+        {activeTab === 'notes' ? (
+          <OrderNotesTab
+            bookingDate={bookingDate}
+            bookingTime={bookingTime}
+            busyAction={busyAction}
+            canErase={canErase}
+            isDemoMode={isDemoMode}
+            isSavingNote={isSavingNote}
+            note={note}
+            onAction={onAction}
+            onBookingDateChange={onBookingDateChange}
+            onBookingTimeChange={onBookingTimeChange}
+            onNoteChange={onNoteChange}
+            onSaveNote={onSaveNote}
+            order={order}
+            tenant={tenant}
+          />
+        ) : null}
+      </ScrollView>
+    </View>
+  );
+}
+
+function DefRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.defRow}>
+      <Text style={styles.defLabel}>{label}</Text>
+      <Text numberOfLines={2} style={styles.defValue}>
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+function OrderSummaryTab({ order, signedSlipUrl }: { order: OrderQueueRow; signedSlipUrl?: string }) {
+  const product = fromJoin(order.products);
+  const referrer = fromJoin(order.referrers);
+  const slipImageUrl = order.slip_url?.startsWith('http') ? order.slip_url : signedSlipUrl ?? null;
+  const rows: Array<{ label: string; value: string }> = [
+    { label: 'ผู้ซื้อ', value: orderBuyerName(order) },
+    { label: 'เบอร์โทร', value: maskPhone(orderBuyerPhone(order)) },
+    { label: 'อายุ', value: order.buyer_age ? `${order.buyer_age}` : '-' },
+    { label: 'ช่องทาง', value: channelLabel(order.channel) },
+    { label: 'การชำระเงิน', value: formatPayment(order) },
+    { label: 'นัดหมาย', value: bookingStatusLabel(order) },
+    { label: 'สาขา', value: orderBranchName(order) },
+    { label: 'แพ็กเกจ', value: product?.name ?? 'ไม่พบสินค้า' },
+    { label: 'วันที่สะดวก', value: formatPreferredDateRange(order) },
+    { label: 'เวลาที่สะดวก', value: formatPreferredTimeWindow(order) },
+    { label: 'ผู้แนะนำ', value: referrer ? `${referrer.name} (${referrer.ref_code})` : '-' },
+    { label: 'อัปเดตล่าสุด', value: formatDateTime(order.updated_at) },
+  ];
+
+  return (
+    <View style={styles.tabBody}>
+      <View style={styles.defList}>
+        {rows.map((row) => (
+          <DefRow key={row.label} label={row.label} value={row.value} />
+        ))}
+      </View>
+      {order.slip_url ? (
+        <View style={styles.slipBlock}>
+          <Text style={styles.tabSectionTitle}>หลักฐานชำระเงิน</Text>
+          <View style={styles.slipRow}>
+            {slipImageUrl ? <Image source={{ uri: slipImageUrl }} style={styles.slipImage} /> : null}
+            <Text numberOfLines={3} style={styles.slipText}>
+              {slipImageUrl ? 'ลิงก์ดูสลิปใช้ได้ 60 นาที' : 'มี storage path สำหรับสลิป'}
+            </Text>
+          </View>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function OrderConversationTab({ transcript }: { transcript: TranscriptRow[] }) {
+  if (transcript.length === 0) {
+    return (
+      <View style={styles.tabBody}>
+        <View style={styles.tabEmpty}>
+          <Text style={styles.tabEmptyTitle}>ยังไม่มีบทสนทนา</Text>
+          <Text style={styles.tabEmptyText}>บทสนทนาที่ผูกกับออเดอร์นี้จะแสดงที่นี่</Text>
+          <Link href="/admin/conversations" asChild>
+            <Pressable accessibilityRole="link" style={styles.tabLinkButton}>
+              <Text style={styles.tabLinkText}>เปิดกล่องข้อความ</Text>
+            </Pressable>
+          </Link>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.tabBody}>
+      <View style={styles.transcript}>
+        {transcript.slice(-8).map((message) => (
+          <View key={message.id} style={styles.transcriptItem}>
+            <Text style={styles.transcriptRole}>{message.role === 'user' ? 'ลูกค้า' : message.role === 'assistant' ? 'ผู้ช่วย' : 'ระบบ'}</Text>
+            <Text style={styles.transcriptText}>{message.content}</Text>
+          </View>
+        ))}
+      </View>
+      <Link href="/admin/conversations" asChild>
+        <Pressable accessibilityRole="link" style={styles.tabLinkButton}>
+          <Text style={styles.tabLinkText}>เปิดกล่องข้อความ</Text>
+        </Pressable>
+      </Link>
+    </View>
+  );
+}
+
+function OrderNotesTab({
   bookingDate,
   bookingTime,
   busyAction,
@@ -1587,10 +1789,7 @@ function OrderDetail({
   onNoteChange,
   onSaveNote,
   order,
-  signedSlipUrl,
   tenant,
-  transcript,
-  useInternalScroll,
 }: {
   bookingDate: string;
   bookingTime: string;
@@ -1605,197 +1804,71 @@ function OrderDetail({
   onNoteChange: (value: string) => void;
   onSaveNote: (nextNote?: string) => void;
   order: OrderQueueRow;
-  signedSlipUrl?: string;
   tenant: TenantContext | null;
-  transcript: TranscriptRow[];
-  useInternalScroll: boolean;
 }) {
-  const branch = fromJoin(order.branches);
-  const product = fromJoin(order.products);
-  const referrer = fromJoin(order.referrers);
-  const slipImageUrl = order.slip_url?.startsWith('http') ? order.slip_url : signedSlipUrl ?? null;
-  const primaryAction = primaryActionForOrder(order);
-  const nextAction = nextActionForOrder(order);
-  const detailBody = (
-    <View style={styles.detailBody}>
-      <View style={styles.detailHead}>
-        <View style={styles.detailTitleBlock}>
-          <Text style={styles.detailEyebrow}>ออเดอร์ #{compactOrderId(order.id)}</Text>
-          <Text style={styles.detailTitle}>{orderProductName(order)}</Text>
-          <Text style={styles.detailSubtitle}>{nextAction.detail}</Text>
-          <View style={styles.detailBadgeRow}>
-            <InfoPill label={orderBuyerName(order)} />
-            <InfoPill label={formatMoney(order.amount_baht)} tone="success" />
-            <InfoPill label={formatPayment(order)} tone={isPaidOrder(order) ? 'success' : 'amber'} />
-          </View>
-        </View>
-        <StatusBadge label={statusLabel(order.status)} tone={statusTone(order.status)} />
-      </View>
-
-      <SectionCard title="สรุปคำสั่งซื้อ">
-        <View style={styles.detailGrid}>
-          <Meta label="ผู้ซื้อ" value={orderBuyerName(order)} />
-          <Meta label="ชำระเงิน" value={formatPayment(order)} />
-          <Meta label="นัดหมาย" value={bookingStatusLabel(order)} />
-          <Meta label="ยอดเงิน" value={formatMoney(order.amount_baht)} />
-          <Meta label="ช่องทาง" value={channelLabel(order.channel)} />
-          <Meta label="อัปเดต" value={formatDateTime(order.updated_at)} />
-        </View>
-      </SectionCard>
-
-      <SectionCard title="ไทม์ไลน์">
-        <OrderTimeline order={order} />
-      </SectionCard>
-
-      <SectionCard title="ผู้ซื้อและแพ็กเกจ">
-        <View style={styles.detailGrid}>
-          <Meta label="ชื่อ" value={orderBuyerName(order)} />
-          <Meta label="อายุ" value={order.buyer_age ? `${order.buyer_age}` : '-'} />
-          <Meta label="เบอร์โทร" value={maskPhone(orderBuyerPhone(order))} />
-          <Meta label="แพ็กเกจ" value={product?.name ?? 'ไม่พบสินค้า'} />
-          <Meta label="Catalog" value={product?.catalog_key ?? '-'} />
-          <Meta label="สาขา" value={orderBranchName(order)} />
-          <Meta label="ที่อยู่สาขา" value={[branch?.address, branch?.district].filter(Boolean).join(' · ') || '-'} />
-          <Meta label="วันที่สะดวก" value={formatPreferredDateRange(order)} />
-          <Meta label="เวลาที่สะดวก" value={formatPreferredTimeWindow(order)} />
-          <Meta label="ผู้แนะนำ" value={referrer ? `${referrer.name} (${referrer.ref_code})` : '-'} />
-        </View>
-      </SectionCard>
-
-      {order.slip_url ? (
-        <SectionCard title="หลักฐานชำระเงิน">
-          <View style={styles.slipRow}>
-            {slipImageUrl ? <Image source={{ uri: slipImageUrl }} style={styles.slipImage} /> : null}
-            <View style={styles.slipCopy}>
-              <Text style={styles.sectionBodyStrong}>{slipImageUrl ? 'ลิงก์ดูสลิปใช้ได้ 60 นาที' : 'มี storage path สำหรับสลิป'}</Text>
-              <Text numberOfLines={2} style={styles.helperText}>
-                {slipImageUrl ?? order.slip_url}
-              </Text>
-            </View>
-          </View>
-        </SectionCard>
-      ) : null}
-
-      <SectionCard
-        action={
-          <Link href="/admin/conversations" asChild>
-            <Pressable accessibilityRole="link" style={styles.inlineLinkButton}>
-              <Text style={styles.inlineLinkText}>เปิดกล่องข้อความ</Text>
-            </Pressable>
-          </Link>
-        }
-        title="บริบทบทสนทนา"
-      >
-        <View style={styles.transcript}>
-          {transcript.length === 0 ? (
-            <Text style={styles.helperText}>ยังไม่มีบทสนทนาที่ผูกกับออเดอร์นี้</Text>
-          ) : (
-            transcript.slice(-6).map((message) => (
-              <View key={message.id} style={styles.transcriptItem}>
-                <Text style={styles.transcriptRole}>{message.role}</Text>
-                <Text style={styles.transcriptText}>{message.content}</Text>
-              </View>
-            ))
-          )}
-        </View>
-      </SectionCard>
-
-      <SectionCard title="งานของทีม">
-        {isDemoMode ? <Text style={styles.demoActionNotice}>โหมดตัวอย่าง: ปุ่ม action จะไม่ส่งข้อมูลจริง</Text> : null}
-        <View style={styles.formBlock}>
-          <Text style={styles.formLabel}>นัดหมาย</Text>
-          <View style={styles.dateTimeRow}>
-            <BookingDatePicker disabled={isDemoMode} onChange={onBookingDateChange} value={bookingDate} />
-            <BookingTimePicker disabled={isDemoMode} onChange={onBookingTimeChange} value={bookingTime} />
-          </View>
-          <TextInput
-            accessibilityLabel="โน้ตภายใน"
-            editable={!isDemoMode}
-            multiline
-            onChangeText={onNoteChange}
-            placeholder="โน้ตภายใน"
-            placeholderTextColor={MiraDesign.color.inkSoft}
-            style={[styles.input, styles.noteInput, isDemoMode ? styles.disabledInput : null]}
-            value={note}
-          />
-          <View style={styles.notePresetRow}>
-            {notePresets.map((preset) => (
-              <Pressable
-                accessibilityRole="button"
-                key={preset}
-                disabled={isSavingNote || isDemoMode}
-                onPress={() => {
-                  onNoteChange(preset);
-                  onSaveNote(preset);
-                }}
-                style={[styles.notePresetButton, isSavingNote || isDemoMode ? styles.disabled : null]}
-              >
-                <Text style={styles.notePresetText}>{preset}</Text>
-              </Pressable>
-            ))}
-            <Pressable
-              accessibilityRole="button"
-              disabled={isSavingNote || isDemoMode}
-              onPress={() => onSaveNote()}
-              style={[styles.noteSaveButton, isSavingNote || isDemoMode ? styles.disabled : null]}
-            >
-              <Text style={styles.noteSaveText}>{isSavingNote ? 'กำลังบันทึก' : 'บันทึกโน้ต'}</Text>
-            </Pressable>
-          </View>
-        </View>
-        <View style={styles.actions}>
-          <ActionButton action="confirm" busyAction={busyAction} disabled={isDemoMode || !canAct(order, 'confirm')} onAction={onAction} />
-          <ActionButton action="book" busyAction={busyAction} disabled={isDemoMode || !canAct(order, 'book') || !bookingDate || !bookingTime} onAction={onAction} />
-          <ActionButton action="done" busyAction={busyAction} disabled={isDemoMode || !canAct(order, 'done')} onAction={onAction} />
-          <ActionButton action="cancel" busyAction={busyAction} disabled={isDemoMode || !canAct(order, 'cancel')} danger onAction={onAction} />
-        </View>
-      </SectionCard>
-
-      <SectionCard title="ข้อมูลระบบ">
-        <View style={styles.detailGrid}>
-          <Meta label="Tenant" value={tenant?.display_name ?? order.tenant_id} />
-          <Meta label="Tenant ID" value={order.tenant_id} />
-          <Meta label="Customer ID" value={order.customer_id ?? '-'} />
-          <Meta label="Session ID" value={order.session_id ?? '-'} />
-          <Meta label="Order ID" value={order.id} />
-          <Meta label="สร้างเมื่อ" value={formatDateTime(order.created_at)} />
-          <Meta label="ชำระเมื่อ" value={formatDateTime(order.paid_at)} />
-          <Meta label="นัดหมาย" value={formatDateTime(order.booking_at)} />
-          <Meta label="Stripe session" value={order.stripe_checkout_session_id ? order.stripe_checkout_session_id.slice(-12) : '-'} />
-        </View>
-        <PdpaActions canErase={canErase} customerId={order.customer_id ?? null} />
-      </SectionCard>
-    </View>
-  );
-
   return (
-    <View style={styles.detailShell}>
-      {useInternalScroll ? (
-        <ScrollView contentContainerStyle={styles.detailScrollContent} keyboardShouldPersistTaps="handled" style={styles.detailScroll}>
-          {detailBody}
-        </ScrollView>
-      ) : (
-        detailBody
-      )}
-      <View style={styles.detailStickyBar}>
-        <View style={styles.stickyCopy}>
-          <Text style={styles.stickyLabel}>ขั้นถัดไป</Text>
-          <Text numberOfLines={1} style={styles.stickyTitle}>
-            {nextAction.label}
-          </Text>
-        </View>
-        {primaryAction ? (
-          <ActionButton
-            action={primaryAction}
-            busyAction={busyAction}
-            compact
-            disabled={isDemoMode || !canAct(order, primaryAction) || (primaryAction === 'book' && (!bookingDate || !bookingTime))}
-            onAction={onAction}
-          />
-        ) : (
-          <StatusBadge label={statusLabel(order.status)} tone={statusTone(order.status)} />
-        )}
+    <View style={styles.tabBody}>
+      {isDemoMode ? <Text style={styles.demoActionNotice}>โหมดตัวอย่าง: ปุ่มนี้จะไม่ส่งข้อมูลจริง</Text> : null}
+
+      <Text style={styles.tabSectionTitle}>นัดหมาย</Text>
+      <View style={styles.dateTimeRow}>
+        <BookingDatePicker disabled={isDemoMode} onChange={onBookingDateChange} value={bookingDate} />
+        <BookingTimePicker disabled={isDemoMode} onChange={onBookingTimeChange} value={bookingTime} />
       </View>
+
+      <Text style={styles.tabSectionTitle}>โน้ตภายใน</Text>
+      <TextInput
+        accessibilityLabel="โน้ตภายใน"
+        editable={!isDemoMode}
+        multiline
+        onChangeText={onNoteChange}
+        placeholder="โน้ตภายใน"
+        placeholderTextColor={MiraDesign.color.inkSoft}
+        style={[styles.input, styles.noteInput, isDemoMode ? styles.disabledInput : null]}
+        value={note}
+      />
+      <View style={styles.notePresetRow}>
+        {notePresets.map((preset) => (
+          <Pressable
+            accessibilityRole="button"
+            disabled={isSavingNote || isDemoMode}
+            key={preset}
+            onPress={() => {
+              onNoteChange(preset);
+              onSaveNote(preset);
+            }}
+            style={[styles.notePresetButton, isSavingNote || isDemoMode ? styles.disabled : null]}
+          >
+            <Text style={styles.notePresetText}>{preset}</Text>
+          </Pressable>
+        ))}
+        <Pressable
+          accessibilityRole="button"
+          disabled={isSavingNote || isDemoMode}
+          onPress={() => onSaveNote()}
+          style={[styles.noteSaveButton, isSavingNote || isDemoMode ? styles.disabled : null]}
+        >
+          <Text style={styles.noteSaveText}>{isSavingNote ? 'กำลังบันทึก' : 'บันทึกโน้ต'}</Text>
+        </Pressable>
+      </View>
+
+      <Text style={styles.tabSectionTitle}>การดำเนินการ</Text>
+      <View style={styles.actions}>
+        <ActionButton action="confirm" busyAction={busyAction} disabled={isDemoMode || !canAct(order, 'confirm')} onAction={onAction} />
+        <ActionButton action="book" busyAction={busyAction} disabled={isDemoMode || !canAct(order, 'book') || !bookingDate || !bookingTime} onAction={onAction} />
+        <ActionButton action="done" busyAction={busyAction} disabled={isDemoMode || !canAct(order, 'done')} onAction={onAction} />
+        <ActionButton action="cancel" busyAction={busyAction} danger disabled={isDemoMode || !canAct(order, 'cancel')} onAction={onAction} />
+      </View>
+
+      <Text style={styles.tabSectionTitle}>ข้อมูลระบบ</Text>
+      <View style={styles.defList}>
+        <DefRow label="Tenant" value={tenant?.display_name ?? order.tenant_id} />
+        <DefRow label="Order ID" value={order.id} />
+        <DefRow label="สร้างเมื่อ" value={formatDateTime(order.created_at)} />
+        <DefRow label="ชำระเมื่อ" value={formatDateTime(order.paid_at)} />
+        <DefRow label="นัดหมาย" value={formatDateTime(order.booking_at)} />
+      </View>
+      <PdpaActions canErase={canErase} customerId={order.customer_id ?? null} />
     </View>
   );
 }
@@ -2064,30 +2137,8 @@ function actionSuccessMessage(action: OrderMutationAction, order: OrderRow) {
   return `อัปเดตออเดอร์เป็น ${statusLabel(order.status)} แล้ว`;
 }
 
-function Meta({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.metaCell}>
-      <Text style={styles.metaLabel}>{label}</Text>
-      <Text numberOfLines={2} style={styles.metaValue}>
-        {value}
-      </Text>
-    </View>
-  );
-}
-
 function StatusBadge({ label, tone = 'blue' }: { label: string; tone?: BadgeTone }) {
   return <Text style={[styles.statusBadge, styles[`${tone}Badge`]]}>{label}</Text>;
-}
-
-function InfoPill({ icon, label, tone = 'muted' }: { icon?: SymbolName; label: string; tone?: BadgeTone }) {
-  return (
-    <View style={[styles.infoPill, styles[`${tone}InfoPill`]]}>
-      {icon ? <SymbolView name={icon} size={14} tintColor={tone === 'muted' ? MiraDesign.color.inkSoft : MiraDesign.color.primaryDeep} /> : null}
-      <Text numberOfLines={1} style={styles.infoPillText}>
-        {label}
-      </Text>
-    </View>
-  );
 }
 
 function ChipButton({ active, label, onPress }: { active: boolean; label: string; onPress: () => void }) {
@@ -2107,31 +2158,31 @@ function FilterGroup({ children, label }: { children: ReactNode; label: string }
   );
 }
 
-function SectionCard({ action, children, title }: { action?: ReactNode; children: ReactNode; title: string }) {
+function EmptyDetail() {
   return (
-    <View style={styles.sectionCard}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>{title}</Text>
-        {action}
+    <View style={styles.emptyDetail}>
+      <View style={styles.emptyIcon}>
+        <SymbolView name={{ android: 'receipt_long', ios: 'list.bullet.rectangle', web: 'receipt_long' }} size={26} tintColor={MiraDesign.color.blue} />
       </View>
-      {children}
+      <Text style={styles.emptyDetailTitle}>เลือกคำสั่งซื้อ</Text>
+      <Text style={styles.emptyDetailText}>รายละเอียด การชำระเงิน ไทม์ไลน์ และโน้ตจะแสดงที่นี่</Text>
     </View>
   );
 }
 
-function NoSelectionState() {
+function NoResultsState({ hasFilters, onClear }: { hasFilters: boolean; onClear: () => void }) {
   return (
-    <View style={styles.noSelection}>
+    <View style={styles.emptyQueue}>
       <View style={styles.emptyIcon}>
-        <SymbolView name={{ android: 'receipt_long', ios: 'list.bullet.rectangle', web: 'receipt_long' }} size={30} tintColor={MiraDesign.color.blue} />
+        <SymbolView name={{ android: 'search_off', ios: 'magnifyingglass', web: 'search_off' }} size={26} tintColor={MiraDesign.color.blue} />
       </View>
-      <Text style={styles.emptyTitle}>เลือกคำสั่งซื้อ</Text>
-      <Text style={styles.emptyBody}>เปิดรายการเพื่อดูข้อมูลผู้ซื้อ สถานะชำระเงิน บทสนทนา และขั้นถัดไปของทีมงาน</Text>
-      <View style={styles.hintList}>
-        <Text style={styles.hintText}>ข้อมูลผู้ซื้อ</Text>
-        <Text style={styles.hintText}>สถานะชำระเงิน</Text>
-        <Text style={styles.hintText}>บทสนทนาและขั้นถัดไป</Text>
-      </View>
+      <Text style={styles.emptyTitle}>ไม่พบคำสั่งซื้อ</Text>
+      <Text style={styles.emptyBody}>ลองล้างตัวกรองหรือค้นหาด้วยชื่อ เบอร์โทร หรือแพ็กเกจอื่น</Text>
+      {hasFilters ? (
+        <Pressable accessibilityRole="button" onPress={onClear} style={styles.emptyAction}>
+          <Text style={styles.emptyActionText}>ล้างตัวกรอง</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -2142,7 +2193,7 @@ function QueueEmptyState() {
       <View style={styles.emptyIcon}>
         <SymbolView name={{ android: 'inbox', ios: 'tray', web: 'inbox' }} size={30} tintColor={MiraDesign.color.blue} />
       </View>
-      <Text style={styles.emptyTitle}>ยังไม่มีคำสั่งซื้อในคิว</Text>
+      <Text style={styles.emptyTitle}>ยังไม่มีคำสั่งซื้อ</Text>
       <Text style={styles.emptyBody}>คำสั่งซื้อจาก chat checkout จะแสดงที่นี่เมื่อมีข้อมูลเข้าระบบ</Text>
       <Link href="/admin/catalog" asChild>
         <Pressable accessibilityRole="link" style={styles.emptyAction}>
@@ -2207,6 +2258,517 @@ const styles = StyleSheet.create({
   containerDesktop: {
     flex: 1,
     padding: 16,
+  },
+  header: {
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    ...softShadow,
+  },
+  headerRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    justifyContent: 'space-between',
+  },
+  headerTitleGroup: {
+    flex: 1,
+    gap: 2,
+    minWidth: 200,
+  },
+  headerTitleRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  headerMetaText: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  modePill: {
+    alignSelf: 'flex-start',
+    borderRadius: MiraDesign.radius.pill,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+  },
+  modePillDemo: {
+    backgroundColor: '#FBEFD3',
+  },
+  modePillLive: {
+    backgroundColor: MiraDesign.color.primarySoft,
+  },
+  modePillText: {
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  modePillTextDemo: {
+    color: '#946200',
+  },
+  modePillTextLive: {
+    color: MiraDesign.color.primaryDeep,
+  },
+  iconButton: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
+    borderRadius: 8,
+    borderWidth: 1,
+    cursor: 'pointer',
+    flexDirection: 'row',
+    gap: 6,
+    height: 38,
+    paddingHorizontal: 12,
+  },
+  iconButtonText: {
+    color: MiraDesign.color.primaryDeep,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  headerDemoNote: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  summaryChip: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
+    borderRadius: MiraDesign.radius.pill,
+    borderWidth: 1,
+    cursor: 'pointer',
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  summaryChipActive: {
+    backgroundColor: MiraDesign.color.primarySoft,
+    borderColor: MiraDesign.color.primary,
+  },
+  summaryChipValue: {
+    color: MiraDesign.color.ink,
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  summaryChipValueActive: {
+    color: MiraDesign.color.primaryDeep,
+  },
+  summaryChipLabel: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  summaryChipLabelActive: {
+    color: MiraDesign.color.primaryDeep,
+  },
+  toolbarRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  searchClear: {
+    cursor: 'pointer',
+    padding: 2,
+  },
+  toolbarButton: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
+    borderRadius: 8,
+    borderWidth: 1,
+    cursor: 'pointer',
+    flexDirection: 'row',
+    gap: 6,
+    height: 38,
+    paddingHorizontal: 12,
+  },
+  toolbarButtonActive: {
+    backgroundColor: MiraDesign.color.primarySoft,
+    borderColor: MiraDesign.color.primary,
+  },
+  toolbarButtonText: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  toolbarButtonTextActive: {
+    color: MiraDesign.color.primaryDeep,
+  },
+  toolbarCount: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 12,
+    fontWeight: '800',
+    marginLeft: 'auto',
+  },
+  workbench: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: 10,
+    minHeight: 0,
+  },
+  listPane: {
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
+    borderRadius: 8,
+    borderWidth: 1,
+    flex: 1,
+    minWidth: 0,
+    overflow: 'hidden',
+  },
+  listScrollContent: {
+    gap: 8,
+    padding: 8,
+  },
+  mobileDetailOverlay: {
+    backgroundColor: MiraDesign.color.canvas,
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 40,
+  },
+  inboxStack: {
+    gap: 8,
+  },
+  inboxCard: {
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
+    borderRadius: 8,
+    borderWidth: 1,
+    cursor: 'pointer',
+    flexDirection: 'row',
+    overflow: 'hidden',
+  },
+  inboxCardSelected: {
+    backgroundColor: MiraDesign.color.surfaceSoft,
+  },
+  inboxCardAccent: {
+    alignSelf: 'stretch',
+    backgroundColor: MiraDesign.color.primary,
+    width: 3,
+  },
+  inboxCardBody: {
+    flex: 1,
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  inboxCardTop: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'space-between',
+  },
+  inboxOrderId: {
+    color: MiraDesign.color.inkSoft,
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  inboxProduct: {
+    color: MiraDesign.color.ink,
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  inboxMeta: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  inboxBottom: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'space-between',
+    marginTop: 2,
+  },
+  inboxStatusLine: {
+    color: MiraDesign.color.inkSoft,
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  nextActionPill: {
+    backgroundColor: MiraDesign.color.primarySoft,
+    borderRadius: MiraDesign.radius.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  nextActionPillText: {
+    color: MiraDesign.color.primaryDeep,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  detailPanel: {
+    flex: 1,
+    minHeight: 0,
+  },
+  detailHeader: {
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
+    borderBottomWidth: 1,
+    gap: 8,
+    padding: 12,
+  },
+  detailBack: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    cursor: 'pointer',
+    flexDirection: 'row',
+    gap: 4,
+  },
+  detailBackText: {
+    color: MiraDesign.color.ink,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  detailHeaderRow: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'space-between',
+  },
+  detailHeaderMain: {
+    flex: 1,
+    gap: 2,
+    minWidth: 0,
+  },
+  detailTabs: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 2,
+  },
+  detailTab: {
+    borderRadius: 8,
+    cursor: 'pointer',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  detailTabActive: {
+    backgroundColor: MiraDesign.color.primarySoft,
+  },
+  detailTabText: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  detailTabTextActive: {
+    color: MiraDesign.color.primaryDeep,
+  },
+  detailBodyScroll: {
+    flex: 1,
+    minHeight: 0,
+  },
+  detailBodyScrollContent: {
+    paddingBottom: 16,
+  },
+  tabBody: {
+    gap: 10,
+    padding: 12,
+  },
+  defList: {
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
+    borderRadius: 8,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  defRow: {
+    borderColor: MiraDesign.color.line,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  defLabel: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  defValue: {
+    color: MiraDesign.color.ink,
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '700',
+    marginLeft: 12,
+    textAlign: 'right',
+  },
+  tabSectionTitle: {
+    color: MiraDesign.color.ink,
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  slipBlock: {
+    gap: 8,
+  },
+  slipText: {
+    color: MiraDesign.color.inkSoft,
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  tabEmpty: {
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 28,
+  },
+  tabEmptyTitle: {
+    color: MiraDesign.color.ink,
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  tabEmptyText: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 13,
+    textAlign: 'center',
+  },
+  tabLinkButton: {
+    alignSelf: 'center',
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
+    borderRadius: 8,
+    borderWidth: 1,
+    cursor: 'pointer',
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+  },
+  tabLinkText: {
+    color: MiraDesign.color.primaryDeep,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  overlay: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 50,
+  },
+  overlayBackdrop: {
+    backgroundColor: 'rgba(10, 32, 40, 0.32)',
+    bottom: 0,
+    cursor: 'pointer',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  filterPanel: {
+    backgroundColor: MiraDesign.color.surface,
+    overflow: 'hidden',
+  },
+  filterPanelDesktop: {
+    borderColor: MiraDesign.color.line,
+    borderLeftWidth: 1,
+    bottom: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    width: 360,
+  },
+  filterPanelSheet: {
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    bottom: 0,
+    left: 0,
+    maxHeight: '82%',
+    position: 'absolute',
+    right: 0,
+  },
+  filterHeader: {
+    alignItems: 'center',
+    borderColor: MiraDesign.color.line,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  filterTitle: {
+    color: MiraDesign.color.ink,
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  filterClose: {
+    cursor: 'pointer',
+    padding: 4,
+  },
+  filterBody: {
+    gap: 16,
+    padding: 14,
+  },
+  filterFooter: {
+    borderColor: MiraDesign.color.line,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    gap: 8,
+    padding: 12,
+  },
+  filterClearButton: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
+    borderRadius: 8,
+    borderWidth: 1,
+    cursor: 'pointer',
+    flex: 1,
+    height: 42,
+    justifyContent: 'center',
+  },
+  filterClearText: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  filterApplyButton: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.primary,
+    borderRadius: 8,
+    cursor: 'pointer',
+    flex: 1,
+    height: 42,
+    justifyContent: 'center',
+  },
+  filterApplyText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  emptyDetail: {
+    alignItems: 'center',
+    flex: 1,
+    gap: 8,
+    justifyContent: 'center',
+    padding: 24,
+  },
+  emptyDetailTitle: {
+    color: MiraDesign.color.ink,
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  emptyDetailText: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 13,
+    maxWidth: 280,
+    textAlign: 'center',
   },
   headerCard: {
     backgroundColor: MiraDesign.color.surface,
@@ -2427,11 +2989,14 @@ const styles = StyleSheet.create({
     borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 240,
     flexDirection: 'row',
     gap: 8,
+    maxWidth: 560,
     minHeight: 38,
-    minWidth: 240,
+    minWidth: 160,
     paddingHorizontal: 10,
   },
   searchInput: {
