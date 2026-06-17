@@ -104,12 +104,13 @@ Deno.test('renderPersonalContextRows renders facts, candidate facts, order, then
   assert(lines[3] === missingConsentLine, 'expected missing consent line last');
 });
 
-Deno.test('formatCatalogEntries omits image url and clips long descriptions', () => {
+Deno.test('formatCatalogEntries omits image url but keeps full descriptions', () => {
+  const longDescription = 'x'.repeat(500);
   const [entry] = formatCatalogEntries([
-    { catalog_key: 'chk-basic', category: 'checkup', description: 'x'.repeat(500), name: 'Basic', price_baht: 1990 },
+    { catalog_key: 'chk-basic', category: 'checkup', description: longDescription, name: 'Basic', price_baht: 1990 },
   ]);
 
   assert(!Object.keys(entry).includes('image'), 'catalog entry must not include an image url');
-  assert(entry.description.length <= 201, 'long description should be clipped to the catalog budget');
+  assert(entry.description === longDescription, 'description must be kept in full (clipping it broke intake)');
   assert(entry.id === 'chk-basic', 'id should map from catalog_key');
 });
