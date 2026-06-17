@@ -270,6 +270,7 @@ export function CatalogCrud({ title }: { title?: string }) {
     categoryFilter !== 'all' ||
     ragFilter !== 'all' ||
     stripeFilter !== 'all';
+  const activeFilterCount = [statusFilter !== 'all', categoryFilter !== 'all', ragFilter !== 'all', stripeFilter !== 'all'].filter(Boolean).length;
   const disabledActionHint = !canEditCatalog
     ? isDemoMode
       ? 'โหมดตัวอย่าง: ปุ่มนี้จะไม่ส่งข้อมูลจริง'
@@ -727,7 +728,7 @@ export function CatalogCrud({ title }: { title?: string }) {
                   <TextInput
                     onChangeText={(value) => updateDraft('imageUrl', value)}
                     placeholder={`Public URL หรือรูป${vocab.productTerm}ที่อัปโหลดแล้ว`}
-                    placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+                    placeholderTextColor={MiraDesign.color.inkSoft}
                     style={[styles.input, styles.imageUrlInput]}
                     value={draft.imageUrl ?? ''}
                   />
@@ -782,21 +783,21 @@ export function CatalogCrud({ title }: { title?: string }) {
                   <TextInput
                     onChangeText={(value) => setCategoryDraft((current) => ({ ...current, key: value }))}
                     placeholder="key"
-                    placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+                    placeholderTextColor={MiraDesign.color.inkSoft}
                     style={[styles.input, styles.compactInput]}
                     value={categoryDraft.key}
                   />
                   <TextInput
                     onChangeText={(value) => setCategoryDraft((current) => ({ ...current, labelTh: value }))}
                     placeholder="label_th"
-                    placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+                    placeholderTextColor={MiraDesign.color.inkSoft}
                     style={[styles.input, styles.compactInput]}
                     value={categoryDraft.labelTh}
                   />
                   <TextInput
                     onChangeText={(value) => setCategoryDraft((current) => ({ ...current, icon: value }))}
                     placeholder="icon"
-                    placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+                    placeholderTextColor={MiraDesign.color.inkSoft}
                     style={[styles.input, styles.iconInput]}
                     value={categoryDraft.icon ?? ''}
                   />
@@ -890,12 +891,12 @@ export function CatalogCrud({ title }: { title?: string }) {
               <View style={styles.inventoryActions}>
                 <Link href="/admin/referrers" asChild>
                   <Pressable style={styles.secondaryButton}>
-                    <SymbolView name={{ android: 'person_add', ios: 'person.badge.plus', web: 'person_add' }} size={18} tintColor={MiraDesign.color.showcaseBlue} />
+                    <SymbolView name={{ android: 'person_add', ios: 'person.badge.plus', web: 'person_add' }} size={18} tintColor={MiraDesign.color.primary} />
                     <Text style={styles.secondaryButtonText}>พื้นที่ Referral</Text>
                   </Pressable>
                 </Link>
                 <Pressable onPress={refreshProducts} style={styles.secondaryButton}>
-                  <SymbolView name={{ android: 'database', ios: 'cylinder.split.1x2', web: 'database' }} size={18} tintColor={MiraDesign.color.showcaseNavySoft} />
+                  <SymbolView name={{ android: 'database', ios: 'cylinder.split.1x2', web: 'database' }} size={18} tintColor={MiraDesign.color.inkSoft} />
                   <Text style={styles.secondaryButtonText}>รีเฟรชข้อมูล</Text>
                 </Pressable>
               </View>
@@ -903,11 +904,12 @@ export function CatalogCrud({ title }: { title?: string }) {
 
             <ProductToolbar
               activeCategory={categoryFilter}
+              activeFilterCount={activeFilterCount}
               activeRag={ragFilter}
               activeStatus={statusFilter}
               activeStripe={stripeFilter}
               categories={visibleCategoryOptions}
-              filtersOpen={!isMobile || filtersOpen}
+              filtersOpen={filtersOpen}
               hasActiveFilters={hasActiveFilters}
               isMobile={isMobile}
               onCategoryChange={setCategoryFilter}
@@ -982,7 +984,7 @@ export function CatalogCrud({ title }: { title?: string }) {
                         <TextInput
                           onChangeText={(value) => updateDraft('imageUrl', value)}
                           placeholder={`Public URL หรือรูป${vocab.productTerm}ที่อัปโหลดแล้ว`}
-                          placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+                          placeholderTextColor={MiraDesign.color.inkSoft}
                           style={[styles.input, styles.imageUrlInput]}
                           value={draft.imageUrl ?? ''}
                         />
@@ -1037,21 +1039,21 @@ export function CatalogCrud({ title }: { title?: string }) {
                         <TextInput
                           onChangeText={(value) => setCategoryDraft((current) => ({ ...current, key: value }))}
                           placeholder="key"
-                          placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+                          placeholderTextColor={MiraDesign.color.inkSoft}
                           style={[styles.input, styles.compactInput]}
                           value={categoryDraft.key}
                         />
                         <TextInput
                           onChangeText={(value) => setCategoryDraft((current) => ({ ...current, labelTh: value }))}
                           placeholder="label_th"
-                          placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+                          placeholderTextColor={MiraDesign.color.inkSoft}
                           style={[styles.input, styles.compactInput]}
                           value={categoryDraft.labelTh}
                         />
                         <TextInput
                           onChangeText={(value) => setCategoryDraft((current) => ({ ...current, icon: value }))}
                           placeholder="icon"
-                          placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+                          placeholderTextColor={MiraDesign.color.inkSoft}
                           style={[styles.input, styles.iconInput]}
                           value={categoryDraft.icon ?? ''}
                         />
@@ -1161,7 +1163,7 @@ function StatCard({
     violet: styles.statIconViolet,
   }[tone];
   const iconColor = {
-    blue: MiraDesign.color.showcaseBlue,
+    blue: MiraDesign.color.primary,
     mint: '#0F9F72',
     orange: '#F97316',
     violet: '#6D28D9',
@@ -1193,7 +1195,7 @@ function ReferralWorkspaceCard({ productTerm, providerTerm, tenantName }: { prod
         <Text style={styles.waitingBadge}>{`พร้อมเลือก${productTerm}`}</Text>
       </View>
       <View style={styles.referralCallout}>
-        <SymbolView name={{ android: 'person_add', ios: 'person.badge.plus', web: 'person_add' }} size={26} tintColor={MiraDesign.color.showcaseBlue} />
+        <SymbolView name={{ android: 'person_add', ios: 'person.badge.plus', web: 'person_add' }} size={26} tintColor={MiraDesign.color.primary} />
         <View style={styles.referralCopy}>
           <Text style={styles.referralCalloutTitle}>{`เลือก${productTerm}จากรายการเพื่อสร้าง referral code`}</Text>
           <Text style={styles.referralBody}>{`ใช้กับพาร์ทเนอร์ของ${providerTerm}โดยไม่เปลี่ยนข้อมูล catalog หรือสถานะ${productTerm}`}</Text>
@@ -1221,6 +1223,7 @@ function draftFromProduct(product: HospitalProduct): HospitalProductDraft {
 
 function ProductToolbar({
   activeCategory,
+  activeFilterCount,
   activeRag,
   activeStatus,
   activeStripe,
@@ -1240,6 +1243,7 @@ function ProductToolbar({
   statusOptions,
 }: {
   activeCategory: ProductCategory | 'all';
+  activeFilterCount: number;
   activeRag: RagFilter;
   activeStatus: StatusFilter;
   activeStripe: StripeFilter;
@@ -1262,21 +1266,30 @@ function ProductToolbar({
     <View style={styles.toolbar}>
       <View style={styles.toolbarTopRow}>
         <View style={styles.searchBox}>
-          <SymbolView name={{ android: 'search', ios: 'magnifyingglass', web: 'search' }} size={18} tintColor={MiraDesign.color.showcaseNavySoft} />
+          <SymbolView name={{ android: 'search', ios: 'magnifyingglass', web: 'search' }} size={18} tintColor={MiraDesign.color.inkSoft} />
           <TextInput
             onChangeText={onQueryChange}
             placeholder={searchPlaceholder}
-            placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+            placeholderTextColor={MiraDesign.color.inkSoft}
             style={styles.searchInput}
             value={query}
           />
         </View>
-        {isMobile ? (
-          <Pressable onPress={onToggleFilters} style={styles.filterToggle}>
-            <SymbolView name={{ android: 'tune', ios: 'slider.horizontal.3', web: 'tune' }} size={17} tintColor={MiraDesign.color.showcaseBlueDeep} />
-            <Text style={styles.filterToggleText}>ตัวกรอง</Text>
-          </Pressable>
-        ) : null}
+        <Pressable
+          accessibilityLabel="ตัวกรอง"
+          accessibilityRole="button"
+          onPress={onToggleFilters}
+          style={[styles.filterToggle, filtersOpen || activeFilterCount > 0 ? styles.filterToggleActive : null]}
+        >
+          <SymbolView
+            name={{ android: 'tune', ios: 'slider.horizontal.3', web: 'tune' }}
+            size={17}
+            tintColor={filtersOpen || activeFilterCount > 0 ? MiraDesign.color.primaryDeep : MiraDesign.color.inkSoft}
+          />
+          <Text style={[styles.filterToggleText, filtersOpen || activeFilterCount > 0 ? styles.filterToggleTextActive : null]}>
+            {activeFilterCount > 0 ? `ตัวกรอง · ${activeFilterCount}` : 'ตัวกรอง'}
+          </Text>
+        </Pressable>
         {hasActiveFilters ? (
           <Pressable onPress={onClear} style={styles.clearButton}>
             <Text style={styles.clearButtonText}>ล้างตัวกรอง</Text>
@@ -1450,16 +1463,16 @@ function ProductRow({
         </View>
         <View style={styles.productFooter}>
           <Pressable onPress={onEdit} style={styles.editButton}>
-            <SymbolView name={{ android: 'edit', ios: 'pencil', web: 'edit' }} size={17} tintColor={MiraDesign.color.showcaseBlue} />
+            <SymbolView name={{ android: 'edit', ios: 'pencil', web: 'edit' }} size={17} tintColor={MiraDesign.color.primary} />
             <Text style={styles.editButtonText}>แก้ไข</Text>
           </Pressable>
           <Pressable disabled={disabled} onPress={onSyncStripe} style={[styles.stripeButton, disabled ? styles.disabled : null]}>
-            <SymbolView name={{ android: 'database', ios: 'cylinder.split.1x2', web: 'database' }} size={17} tintColor={MiraDesign.color.showcaseNavySoft} />
+            <SymbolView name={{ android: 'database', ios: 'cylinder.split.1x2', web: 'database' }} size={17} tintColor={MiraDesign.color.inkSoft} />
             <Text style={styles.stripeButtonText}>{stripeActionLabel}</Text>
           </Pressable>
           <Link href="/admin/referrers" asChild>
             <Pressable style={styles.referralButton}>
-              <SymbolView name={{ android: 'person_add', ios: 'person.badge.plus', web: 'person_add' }} size={17} tintColor={MiraDesign.color.showcaseBlueDeep} />
+              <SymbolView name={{ android: 'person_add', ios: 'person.badge.plus', web: 'person_add' }} size={17} tintColor={MiraDesign.color.primaryDeep} />
               <Text style={styles.referralButtonText}>สร้าง Referral</Text>
             </Pressable>
           </Link>
@@ -1487,7 +1500,7 @@ function ProductVisual({ product }: { product: HospitalProduct }) {
 
   return (
     <View style={styles.productIconBox}>
-      <SymbolView name={categoryIcon(product.category)} size={46} tintColor={MiraDesign.color.showcaseBlue} />
+      <SymbolView name={categoryIcon(product.category)} size={46} tintColor={MiraDesign.color.primary} />
     </View>
   );
 }
@@ -1861,7 +1874,7 @@ function Field({
       <TextInput
         multiline={multiline}
         onChangeText={onChangeText}
-        placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+        placeholderTextColor={MiraDesign.color.inkSoft}
         style={[styles.input, multiline ? styles.multilineInput : null]}
         textAlignVertical={multiline ? 'top' : 'center'}
         value={value}
@@ -1882,7 +1895,7 @@ function Metric({ label, value }: { label: string; value: string }) {
 function Meta({ icon, label, value }: { icon: SymbolName; label: string; value: string }) {
   return (
     <View style={styles.metaCell}>
-      <SymbolView name={icon} size={23} tintColor={MiraDesign.color.showcaseBlue} />
+      <SymbolView name={icon} size={23} tintColor={MiraDesign.color.primary} />
       <View style={styles.metaCopy}>
         <Text style={styles.metaLabel}>{label}</Text>
         <Text numberOfLines={1} style={styles.metaValue}>
@@ -1966,18 +1979,18 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   eyebrow: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
     fontSize: 12,
     fontWeight: '800',
   },
   title: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 24,
     fontWeight: '800',
     lineHeight: 30,
   },
   subtitle: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 14,
     lineHeight: 21,
     maxWidth: 760,
@@ -1993,7 +2006,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     alignItems: 'center',
-    backgroundColor: MiraDesign.color.showcaseBlue,
+    backgroundColor: MiraDesign.color.primary,
     borderRadius: 8,
     flexDirection: 'row',
     flexShrink: 1,
@@ -2021,7 +2034,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   secondaryButtonText: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
     fontSize: 13,
     fontWeight: '900',
   },
@@ -2117,18 +2130,18 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   statLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '800',
   },
   statValue: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 22,
     fontWeight: '800',
     lineHeight: 25,
   },
   statDetail: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '700',
   },
@@ -2138,7 +2151,7 @@ const styles = StyleSheet.create({
   statAction: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -2147,7 +2160,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   statActionText: {
-    color: MiraDesign.color.showcaseBlue,
+    color: MiraDesign.color.primary,
     fontSize: 12,
     fontWeight: '900',
   },
@@ -2166,7 +2179,7 @@ const styles = StyleSheet.create({
   },
   filterPanel: {
     backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     gap: 12,
@@ -2174,26 +2187,29 @@ const styles = StyleSheet.create({
     ...softShadow,
   },
   sideTitle: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 16,
     fontWeight: '900',
   },
   searchBox: {
     alignItems: 'center',
-    backgroundColor: '#F8FBFD',
-    borderColor: '#D8E4EE',
+    backgroundColor: '#FBFDFE',
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 240,
     flexDirection: 'row',
     gap: 10,
+    maxWidth: 440,
     minHeight: 40,
-    minWidth: 0,
+    minWidth: 160,
     paddingHorizontal: 12,
   },
   editorPanel: {
     backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     gap: 12,
@@ -2202,7 +2218,7 @@ const styles = StyleSheet.create({
   },
   referralPanel: {
     backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     gap: 12,
@@ -2216,12 +2232,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   referralTitle: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 13,
     fontWeight: '900',
   },
   referralLink: {
-    color: MiraDesign.color.showcaseBlue,
+    color: MiraDesign.color.primary,
     fontSize: 13,
     fontWeight: '900',
     marginTop: 8,
@@ -2238,7 +2254,7 @@ const styles = StyleSheet.create({
   },
   referralCallout: {
     alignItems: 'flex-start',
-    backgroundColor: MiraDesign.color.showcaseBlueSoft,
+    backgroundColor: MiraDesign.color.primarySoft,
     borderRadius: 8,
     flexDirection: 'row',
     gap: 12,
@@ -2249,18 +2265,18 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   referralCalloutTitle: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 15,
     fontWeight: '900',
   },
   referralBody: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 13,
     lineHeight: 20,
   },
   formPane: {
-    backgroundColor: MiraDesign.color.showcaseSurface,
-    borderColor: MiraDesign.color.showcaseLine,
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     flex: 0.8,
@@ -2288,12 +2304,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   panelTitle: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 18,
     fontWeight: '900',
   },
   panelMeta: {
-    color: MiraDesign.color.showcaseBlue,
+    color: MiraDesign.color.primary,
     fontSize: 12,
     fontWeight: '900',
     marginTop: 3,
@@ -2311,13 +2327,13 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   inventoryTitle: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 20,
     fontWeight: '900',
     lineHeight: 25,
   },
   inventoryMeta: {
-    color: MiraDesign.color.showcaseBlue,
+    color: MiraDesign.color.primary,
     fontSize: 13,
     fontWeight: '900',
     marginTop: 6,
@@ -2331,13 +2347,13 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
   },
   textButton: {
-    backgroundColor: MiraDesign.color.showcaseBlueSoft,
+    backgroundColor: MiraDesign.color.primarySoft,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 9,
   },
   textButtonLabel: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
     fontSize: 12,
     fontWeight: '900',
   },
@@ -2347,17 +2363,17 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   fieldLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
     fontWeight: '900',
     textTransform: 'uppercase',
   },
   input: {
     backgroundColor: '#F7FBFA',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 14,
     minHeight: 46,
     paddingHorizontal: 12,
@@ -2389,7 +2405,7 @@ const styles = StyleSheet.create({
   uploadButton: {
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: MiraDesign.color.showcaseBlueDeep,
+    backgroundColor: MiraDesign.color.primaryDeep,
     borderRadius: 8,
     justifyContent: 'center',
     minHeight: 46,
@@ -2404,7 +2420,7 @@ const styles = StyleSheet.create({
   imagePreviewRow: {
     alignItems: 'center',
     backgroundColor: '#F7FBFA',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -2418,7 +2434,7 @@ const styles = StyleSheet.create({
     width: 70,
   },
   imagePreviewText: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     flex: 1,
     fontSize: 11,
     lineHeight: 15,
@@ -2442,21 +2458,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   segmentActive: {
-    backgroundColor: MiraDesign.color.showcaseSurface,
-    borderColor: MiraDesign.color.showcaseLine,
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
     borderWidth: 1,
   },
   segmentText: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
     fontWeight: '900',
   },
   segmentTextActive: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
   },
   inlineAdminPanel: {
     backgroundColor: '#F7FBFA',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     gap: 8,
@@ -2477,7 +2493,7 @@ const styles = StyleSheet.create({
   },
   inlineButton: {
     alignItems: 'center',
-    backgroundColor: MiraDesign.color.showcaseBlueDeep,
+    backgroundColor: MiraDesign.color.primaryDeep,
     borderRadius: 8,
     justifyContent: 'center',
     minHeight: 46,
@@ -2494,7 +2510,7 @@ const styles = StyleSheet.create({
   branchOption: {
     alignItems: 'center',
     backgroundColor: '#F7FBFA',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -2504,33 +2520,33 @@ const styles = StyleSheet.create({
   },
   branchOptionActive: {
     backgroundColor: '#E7F4ED',
-    borderColor: MiraDesign.color.showcaseBlue,
+    borderColor: MiraDesign.color.primary,
   },
   branchOptionInactive: {
     opacity: 0.65,
   },
   radioDot: {
-    borderColor: MiraDesign.color.showcaseNavySoft,
+    borderColor: MiraDesign.color.inkSoft,
     borderRadius: 8,
     borderWidth: 2,
     height: 16,
     width: 16,
   },
   radioDotActive: {
-    backgroundColor: MiraDesign.color.showcaseBlue,
-    borderColor: MiraDesign.color.showcaseBlue,
+    backgroundColor: MiraDesign.color.primary,
+    borderColor: MiraDesign.color.primary,
   },
   branchOptionCopy: {
     flex: 1,
     gap: 3,
   },
   branchOptionTitle: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 13,
     fontWeight: '900',
   },
   branchOptionMeta: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
     lineHeight: 17,
   },
@@ -2549,19 +2565,19 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   legacyBody: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 13,
     fontWeight: '800',
     lineHeight: 18,
   },
   helperText: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
     lineHeight: 17,
   },
   saveButton: {
     alignItems: 'center',
-    backgroundColor: MiraDesign.color.showcaseBlue,
+    backgroundColor: MiraDesign.color.primary,
     borderRadius: 8,
     justifyContent: 'center',
     minHeight: 46,
@@ -2580,7 +2596,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   successText: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
     fontSize: 13,
     fontWeight: '800',
   },
@@ -2592,20 +2608,20 @@ const styles = StyleSheet.create({
   },
   metric: {
     backgroundColor: '#F7FBFA',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     minWidth: 82,
     padding: 10,
   },
   metricLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 10,
     fontWeight: '900',
     textTransform: 'uppercase',
   },
   metricValue: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 17,
     fontWeight: '900',
     marginTop: 4,
@@ -2614,7 +2630,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   searchInput: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     flex: 1,
     fontSize: 14,
     fontWeight: '700',
@@ -2651,11 +2667,11 @@ const styles = StyleSheet.create({
   },
   statusBadgeInfo: {
     backgroundColor: '#EAF2FF',
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
   },
   statusBadgeMuted: {
     backgroundColor: '#EEF4F8',
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
   },
   toolbar: {
     backgroundColor: '#F8FBFD',
@@ -2673,20 +2689,28 @@ const styles = StyleSheet.create({
   },
   filterToggle: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: '#D8E4EE',
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
+    cursor: 'pointer',
     flexDirection: 'row',
     gap: 6,
     justifyContent: 'center',
     minHeight: 40,
     paddingHorizontal: 12,
   },
+  filterToggleActive: {
+    backgroundColor: MiraDesign.color.primarySoft,
+    borderColor: MiraDesign.color.primary,
+  },
   filterToggleText: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
     fontWeight: '800',
+  },
+  filterToggleTextActive: {
+    color: MiraDesign.color.primaryDeep,
   },
   clearButton: {
     alignItems: 'center',
@@ -2696,7 +2720,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   clearButtonText: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
     fontSize: 12,
     fontWeight: '800',
   },
@@ -2711,7 +2735,7 @@ const styles = StyleSheet.create({
     minWidth: 164,
   },
   filterGroupLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '800',
   },
@@ -2732,11 +2756,11 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   filterChipActive: {
-    backgroundColor: MiraDesign.color.showcaseBlue,
-    borderColor: MiraDesign.color.showcaseBlue,
+    backgroundColor: MiraDesign.color.primary,
+    borderColor: MiraDesign.color.primary,
   },
   filterChipText: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
     fontWeight: '900',
   },
@@ -2752,19 +2776,19 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   emptyTitle: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 15,
     fontWeight: '900',
   },
   emptyBody: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 13,
     lineHeight: 19,
   },
   emptyAction: {
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: MiraDesign.color.showcaseBlue,
+    backgroundColor: MiraDesign.color.primary,
     borderRadius: 8,
     justifyContent: 'center',
     minHeight: 38,
@@ -2787,7 +2811,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   emptySecondaryActionText: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
     fontSize: 12,
     fontWeight: '800',
   },
@@ -2856,7 +2880,7 @@ const styles = StyleSheet.create({
     opacity: 0.78,
   },
   selectedRail: {
-    backgroundColor: MiraDesign.color.showcaseBlue,
+    backgroundColor: MiraDesign.color.primary,
     bottom: 0,
     left: 0,
     position: 'absolute',
@@ -2871,7 +2895,7 @@ const styles = StyleSheet.create({
   },
   productRow: {
     backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     gap: 12,
@@ -2879,7 +2903,7 @@ const styles = StyleSheet.create({
     ...softShadow,
   },
   productRowSelected: {
-    borderColor: MiraDesign.color.showcaseBlue,
+    borderColor: MiraDesign.color.primary,
   },
   productHead: {
     alignItems: 'flex-start',
@@ -2898,7 +2922,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   productImage: {
-    backgroundColor: MiraDesign.color.showcaseBlueSoft,
+    backgroundColor: MiraDesign.color.primarySoft,
     borderRadius: 8,
     height: 72,
     width: 72,
@@ -2917,13 +2941,13 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   productTitle: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 16,
     fontWeight: '800',
     lineHeight: 21,
   },
   productKey: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -2935,7 +2959,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   productDescription: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 13,
     lineHeight: 19,
   },
@@ -2947,7 +2971,7 @@ const styles = StyleSheet.create({
   tagPill: {
     backgroundColor: '#EEF4F8',
     borderRadius: 8,
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '700',
     maxWidth: 150,
@@ -2960,7 +2984,7 @@ const styles = StyleSheet.create({
     borderColor: '#D8E4EE',
     borderRadius: 8,
     borderWidth: 1,
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '700',
     overflow: 'hidden',
@@ -2982,12 +3006,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   productFactLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '700',
   },
   productFactValue: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 13,
     fontWeight: '800',
   },
@@ -3001,7 +3025,7 @@ const styles = StyleSheet.create({
     borderColor: '#D8E4EE',
     borderRadius: 999,
     borderWidth: 1,
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '700',
     maxWidth: 160,
@@ -3010,7 +3034,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   branchPlaceholder: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -3043,7 +3067,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#EEF4F8',
   },
   readinessLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 10,
     fontWeight: '800',
   },
@@ -3061,10 +3085,10 @@ const styles = StyleSheet.create({
     color: '#A23538',
   },
   readinessValueInfo: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
   },
   readinessValueMuted: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
   },
   productMetaGrid: {
     flexDirection: 'row',
@@ -3074,7 +3098,7 @@ const styles = StyleSheet.create({
   metaCell: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -3089,13 +3113,13 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   metaLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '900',
     textTransform: 'uppercase',
   },
   metaValue: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 13,
     fontWeight: '900',
     marginTop: 4,
@@ -3124,12 +3148,12 @@ const styles = StyleSheet.create({
     minWidth: 180,
   },
   nextActionLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '800',
   },
   nextActionText: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 13,
     fontWeight: '700',
     lineHeight: 18,
@@ -3142,7 +3166,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   productLocation: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     flex: 1,
     fontSize: 12,
     fontWeight: '800',
@@ -3150,14 +3174,14 @@ const styles = StyleSheet.create({
   },
   stripePanel: {
     backgroundColor: '#F7FBFA',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     gap: 6,
     padding: 10,
   },
   stripeId: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '800',
   },
@@ -3175,7 +3199,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   stripeButtonText: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
     fontSize: 12,
     fontWeight: '900',
   },
@@ -3193,7 +3217,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   editButtonText: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
     fontSize: 12,
     fontWeight: '800',
   },
@@ -3211,12 +3235,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   referralButtonText: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
     fontSize: 12,
     fontWeight: '800',
   },
   disabledHint: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 17,
@@ -3239,7 +3263,7 @@ const styles = StyleSheet.create({
   },
   restoreButton: {
     alignItems: 'center',
-    backgroundColor: MiraDesign.color.showcaseBlue,
+    backgroundColor: MiraDesign.color.primary,
     borderRadius: 8,
     justifyContent: 'center',
     minHeight: 38,
