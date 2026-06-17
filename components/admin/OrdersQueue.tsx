@@ -735,8 +735,8 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
   );
 
   const activeFilterCount = useMemo(
-    () => [channelFilter !== 'all', branchFilter !== 'all', !showActiveOnly].filter(Boolean).length,
-    [branchFilter, channelFilter, showActiveOnly],
+    () => [statusFilter !== 'all', channelFilter !== 'all', branchFilter !== 'all', !showActiveOnly].filter(Boolean).length,
+    [branchFilter, channelFilter, showActiveOnly, statusFilter],
   );
 
   const loadTenantContext = useCallback(async () => {
@@ -1164,7 +1164,7 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
       />
       {error ? <Banner tone="error" text={error} /> : null}
       {message ? <Banner tone="success" text={message} /> : null}
-      <OrdersStatusSummary activeFilter={statusFilter} items={summaryItems} onSelect={setStatusFilter} />
+      <OrdersStatusSummary items={summaryItems} />
       <OrdersToolbar
         activeFilterCount={activeFilterCount}
         onOpenFilter={() => setFilterOpen(true)}
@@ -1211,6 +1211,7 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
           channels={channels}
           isDesktop={isDesktop}
           onClear={() => {
+            setStatusFilter('all');
             setChannelFilter('all');
             setBranchFilter('all');
             setShowActiveOnly(() => true);
@@ -1219,7 +1220,9 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
           setBranchFilter={setBranchFilter}
           setChannelFilter={setChannelFilter}
           setShowActiveOnly={setShowActiveOnly}
+          setStatusFilter={setStatusFilter}
           showActiveOnly={showActiveOnly}
+          statusFilter={statusFilter}
         />
       ) : null}
     </View>
@@ -1284,34 +1287,15 @@ function OrdersHeader({
   );
 }
 
-function OrdersStatusSummary({
-  activeFilter,
-  items,
-  onSelect,
-}: {
-  activeFilter: QueueFilter;
-  items: Array<{ key: QueueFilter; label: string; value: number }>;
-  onSelect: (filter: QueueFilter) => void;
-}) {
+function OrdersStatusSummary({ items }: { items: Array<{ key: QueueFilter; label: string; value: number }> }) {
   return (
     <View style={styles.summaryRow}>
-      {items.map((item) => {
-        const active = activeFilter === item.key;
-
-        return (
-          <Pressable
-            accessibilityLabel={`กรองตาม ${item.label}`}
-            accessibilityRole="button"
-            accessibilityState={{ selected: active }}
-            key={item.key}
-            onPress={() => onSelect(item.key)}
-            style={[styles.summaryChip, active ? styles.summaryChipActive : null]}
-          >
-            <Text style={[styles.summaryChipValue, active ? styles.summaryChipValueActive : null]}>{item.value.toLocaleString('th-TH')}</Text>
-            <Text style={[styles.summaryChipLabel, active ? styles.summaryChipLabelActive : null]}>{item.label}</Text>
-          </Pressable>
-        );
-      })}
+      {items.map((item) => (
+        <View key={item.key} style={styles.summaryStat}>
+          <Text style={styles.summaryStatValue}>{item.value.toLocaleString('th-TH')}</Text>
+          <Text style={styles.summaryStatLabel}>{item.label}</Text>
+        </View>
+      ))}
     </View>
   );
 }
@@ -1396,7 +1380,9 @@ function OrdersFilterPanel({
   setBranchFilter,
   setChannelFilter,
   setShowActiveOnly,
+  setStatusFilter,
   showActiveOnly,
+  statusFilter,
 }: {
   activeCount: number;
   branchFilter: string;
@@ -1409,7 +1395,9 @@ function OrdersFilterPanel({
   setBranchFilter: (value: string) => void;
   setChannelFilter: (value: OrderRow['channel'] | 'all') => void;
   setShowActiveOnly: (updater: (current: boolean) => boolean) => void;
+  setStatusFilter: (value: QueueFilter) => void;
   showActiveOnly: boolean;
+  statusFilter: QueueFilter;
 }) {
   return (
     <View style={styles.overlay}>
@@ -1422,6 +1410,12 @@ function OrdersFilterPanel({
           </Pressable>
         </View>
         <ScrollView contentContainerStyle={styles.filterBody} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <FilterGroup label="สถานะ">
+            {queueFilterOptions.map((option) => (
+              <ChipButton active={statusFilter === option.key} key={option.key} label={option.label} onPress={() => setStatusFilter(option.key)} />
+            ))}
+          </FilterGroup>
+
           <FilterGroup label="ช่องทาง">
             <ChipButton active={channelFilter === 'all'} label="ทั้งหมด" onPress={() => setChannelFilter('all')} />
             {channels.map((channel) => (
@@ -2337,9 +2331,27 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   summaryRow: {
+    alignItems: 'center',
+    columnGap: 16,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    paddingHorizontal: 2,
+    rowGap: 6,
+  },
+  summaryStat: {
+    alignItems: 'baseline',
+    flexDirection: 'row',
+    gap: 5,
+  },
+  summaryStatValue: {
+    color: MiraDesign.color.ink,
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  summaryStatLabel: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 12,
+    fontWeight: '700',
   },
   summaryChip: {
     alignItems: 'center',
