@@ -123,24 +123,18 @@ export function inferIntentCategory(message: string): 'checkup' | 'vaccine' | nu
   return null;
 }
 
-const CATALOG_DESCRIPTION_MAX = 200;
-
-function clipCatalogDescription(description: string | null) {
-  const text = (description ?? '').trim();
-
-  return text.length > CATALOG_DESCRIPTION_MAX ? `${text.slice(0, CATALOG_DESCRIPTION_MAX).trimEnd()}…` : text;
-}
-
-// Only the fields the model needs to choose and talk about products. The app
-// renders product cards (image + full description) from the DB by id (see
-// orchestrate.ts), so image URLs and long marketing copy in the model context
-// are pure input-token waste sent on every turn.
+// Drop ONLY the image URL from the model context: the app renders product cards
+// (image) from the DB by id (see orchestrate.ts), so image URLs are pure
+// input-token waste the model never uses. Keep the FULL description — the model
+// relies on it to choose and talk about products; clipping it (the earlier #28
+// attempt) starved the model of product detail and made it over-ask during
+// intake (~44% asked >1 question), so descriptions are intentionally NOT clipped.
 export function formatCatalogEntries(
-  rows: Array<{ catalog_key: string; category: string; description: string | null; name: string; price_baht: number }>,
+  rows: Array<{ catalog_key: string; category: string; description: string; name: string; price_baht: number }>,
 ) {
   return rows.map((row) => ({
     category: row.category,
-    description: clipCatalogDescription(row.description),
+    description: row.description,
     id: row.catalog_key,
     name: row.name,
     price: row.price_baht,
