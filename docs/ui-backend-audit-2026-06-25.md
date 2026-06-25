@@ -1,5 +1,7 @@
 # Mira UI Backend Audit - 2026-06-25
 
+> Superseded correction: the implementation has been changed to load the supplied design code directly instead of recreating the UI shell. Use `docs/design-code-integration-2026-06-25.md` as the current source of truth for the design-code integration.
+
 ## Scope
 
 อ้างอิงไฟล์ `C:\Users\taksi\Downloads\Website redesign request (3).zip` และ `BUILD_PROMPT.md` ภายใน zip โดยนำ UI ใหม่มาเป็นฐานหลักของหน้ารวม `/showcase/` สำหรับ 3 ระบบหลัก:

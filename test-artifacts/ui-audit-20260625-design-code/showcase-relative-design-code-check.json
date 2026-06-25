@@ -1,0 +1,24 @@
+{
+  "generatedAt": "2026-06-25T14:28:06.804Z",
+  "screenshotPath": "C:\\Users\\taksi\\Documents\\Mira Application\\test-artifacts\\ui-audit-20260625-design-code\\06-showcase-relative-design-code-orders.png",
+  "eval": {
+    "adminView": "orders",
+    "backendStatus": {
+      "config": true,
+      "instance": false,
+      "lastSyncAt": null,
+      "mode": "design",
+      "missing": [],
+      "errors": [
+        {
+          "message": "Initial backend sync failed; keeping original design state.",
+          "detail": "Tenant not found: demo-hospital"
+        }
+      ]
+    },
+    "iframeSrc": "./mira-design/mira-core-system.dc.html",
+    "hasFrame": true,
+    "hasLogic": true,
+    "oldShellRemoved": true
+  }
+}
