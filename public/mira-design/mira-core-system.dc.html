@@ -776,7 +776,7 @@
         </div>
         <div style="position:sticky; bottom:0; display:flex; gap:10px; justify-content:flex-end; padding:14px 22px; background:#fff; border-top:1px solid #EDF1F7;">
           <button onClick="{{ closeForm }}" style="padding:10px 18px; border:1px solid #E4ECF8; background:#fff; color:#5A6B86; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer;">ยกเลิก</button>
-          <button onClick="{{ closeForm }}" style="padding:10px 24px; border:none; background:#2563EB; color:#fff; border-radius:9px; font-size:13.5px; font-weight:700; cursor:pointer;">บันทึก</button>
+          <button onClick="{{ saveProductForm }}" style="padding:10px 24px; border:none; background:#2563EB; color:#fff; border-radius:9px; font-size:13.5px; font-weight:700; cursor:pointer;">บันทึก</button>
         </div>
       </div>
     </sc-if>
@@ -803,66 +803,24 @@
           </div>
           <!-- messages -->
           <div class="noscroll" ref="{{ chatScrollRef }}" style="flex:1; overflow-y:auto; padding:16px 16px 12px; display:flex; flex-direction:column; gap:10px;">
-            <sc-if value="{{ csGreet }}" hint-placeholder-val="{{ true }}"><div style="align-self:flex-start; max-width:80%; padding:10px 13px; border-radius:4px 14px 14px 14px; background:#fff; border:1px solid #E8EFF8; color:#0E2143; font-size:13.5px; line-height:1.45;">สวัสดีค่ะ 👋 Mira ช่วยแนะนำแพ็กเกจตรวจสุขภาพได้เลยค่ะ สนใจตรวจด้านไหนดีคะ?</div></sc-if>
-            <sc-if value="{{ csUserQ }}" hint-placeholder-val="{{ false }}"><div style="align-self:flex-end; max-width:80%; padding:10px 13px; border-radius:14px 14px 4px 14px; background:#2563EB; color:#fff; font-size:13.5px; line-height:1.45;">อยากตรวจสุขภาพประจำปีครับ อายุ 36</div></sc-if>
-            <sc-if value="{{ csTyping }}" hint-placeholder-val="{{ false }}"><div style="align-self:flex-start; padding:12px 15px; border-radius:4px 14px 14px 14px; background:#fff; border:1px solid #E8EFF8; display:flex; gap:4px;"><span style="width:6px; height:6px; border-radius:50%; background:#9AA8C2; animation:mc_blink 1.2s infinite;"></span><span style="width:6px; height:6px; border-radius:50%; background:#9AA8C2; animation:mc_blink 1.2s .2s infinite;"></span><span style="width:6px; height:6px; border-radius:50%; background:#9AA8C2; animation:mc_blink 1.2s .4s infinite;"></span></div></sc-if>
-            <sc-if value="{{ csRecommend }}" hint-placeholder-val="{{ false }}"><div style="align-self:flex-start; max-width:80%; padding:10px 13px; border-radius:4px 14px 14px 14px; background:#fff; border:1px solid #E8EFF8; color:#0E2143; font-size:13.5px; line-height:1.45;">แนะนำ <b>Comprehensive Health 35+</b> ค่ะ ตรวจครบ 45 รายการ เหมาะกับวัย 35+ พอดีเลยค่ะ</div></sc-if>
-            <sc-if value="{{ csCards }}" hint-placeholder-val="{{ false }}">
-              <div style="align-self:stretch; display:flex; flex-direction:column; gap:9px;">
-                <div style="border-radius:14px; overflow:hidden; background:#fff; border:1px solid #E8EFF8; box-shadow:0 6px 18px rgba(31,84,170,.08);">
-                  <div style="height:84px; background:linear-gradient(135deg,#EAF1FE,#DCE9FD); display:flex; align-items:center; justify-content:center; font-size:30px; color:#2563EB;">＋</div>
-                  <div style="padding:12px 14px;">
-                    <div style="font-size:14px; font-weight:700; color:#0E2143;">Comprehensive Health 35+</div>
-                    <div style="font-size:11.5px; color:#8595B0; margin:3px 0 8px;">ตรวจครบ 45 รายการ · เจาะเลือด + อัลตราซาวด์</div>
-                    <div style="display:flex; align-items:center; justify-content:space-between;"><div><span style="font-family:'Sora',sans-serif; font-size:18px; font-weight:700; color:#2563EB;">฿3,900</span> <span style="font-size:11.5px; color:#A6B2C9; text-decoration:line-through;">฿4,900</span></div><span style="font-size:11px; font-weight:600; color:#0F9D70; background:rgba(16,185,129,.12); padding:3px 9px; border-radius:6px;">พร้อมขาย</span></div>
-                  </div>
-                </div>
-                <div style="border-radius:14px; overflow:hidden; background:#fff; border:1px solid #E8EFF8;">
-                  <div style="padding:12px 14px; display:flex; align-items:center; justify-content:space-between;"><div><div style="font-size:13.5px; font-weight:700; color:#0E2143;">Basic Wellness Check</div><div style="font-size:11px; color:#8595B0; margin-top:2px;">ตรวจพื้นฐาน 20 รายการ</div></div><span style="font-family:'Sora',sans-serif; font-size:16px; font-weight:700; color:#2563EB;">฿1,490</span></div>
+            <sc-for list="{{ chatLiveMessages }}" as="m" hint-placeholder-count="0">
+              <div style="{{ m.bubbleStyle }}">{{ m.text }}</div>
+            </sc-for>
+            <sc-for list="{{ chatLiveCards }}" as="card" hint-placeholder-count="0">
+              <div style="align-self:stretch; border-radius:14px; overflow:hidden; background:#fff; border:1px solid #E8EFF8; box-shadow:0 6px 18px rgba(31,84,170,.08);">
+                <div style="padding:12px 14px;">
+                  <div style="font-size:14px; font-weight:700; color:#0E2143;">{{ card.title }}</div>
+                  <div style="font-size:11.5px; color:#8595B0; margin:3px 0 8px;">{{ card.description }}</div>
+                  <div style="display:flex; align-items:center; justify-content:space-between;"><span style="font-family:'Sora',sans-serif; font-size:18px; font-weight:700; color:#2563EB;">{{ card.price }}</span><span style="font-size:11px; font-weight:600; color:#0F9D70; background:rgba(16,185,129,.12); padding:3px 9px; border-radius:6px;">backend catalog</span></div>
                 </div>
               </div>
-            </sc-if>
-            <sc-if value="{{ csUserPick }}" hint-placeholder-val="{{ false }}"><div style="align-self:flex-end; max-width:80%; padding:10px 13px; border-radius:14px 14px 4px 14px; background:#2563EB; color:#fff; font-size:13.5px; line-height:1.45;">เอา Comprehensive 35+ ครับ จองสุขุมวิท</div></sc-if>
-            <sc-if value="{{ csOrder }}" hint-placeholder-val="{{ false }}">
-              <div style="align-self:stretch; border-radius:14px; background:#fff; border:1px solid #E8EFF8; box-shadow:0 6px 18px rgba(31,84,170,.08); overflow:hidden;">
-                <div style="padding:12px 15px; background:#F7FAFE; border-bottom:1px solid #EAF1FB; font-size:12.5px; font-weight:700; color:#0E2143;">สรุปออเดอร์ · MA-1057</div>
-                <div style="padding:13px 15px; display:flex; flex-direction:column; gap:8px; font-size:12.5px;">
-                  <div style="display:flex; justify-content:space-between;"><span style="color:#8595B0;">แพ็กเกจ</span><span style="font-weight:600; color:#0E2143;">Comprehensive 35+</span></div>
-                  <div style="display:flex; justify-content:space-between;"><span style="color:#8595B0;">ชื่อ / เบอร์</span><span style="font-weight:600; color:#0E2143;">ธนกร · 081-xxx-4521</span></div>
-                  <div style="display:flex; justify-content:space-between;"><span style="color:#8595B0;">สาขา</span><span style="font-weight:600; color:#0E2143;">สุขุมวิท</span></div>
-                  <div style="display:flex; justify-content:space-between; padding-top:8px; border-top:1px solid #F2F5FA;"><span style="color:#8595B0;">ยอดชำระ</span><span style="font-family:'Sora',sans-serif; font-size:16px; font-weight:700; color:#2563EB;">฿3,900</span></div>
-                </div>
-              </div>
-            </sc-if>
-            <sc-if value="{{ csPay }}" hint-placeholder-val="{{ false }}">
-              <div style="align-self:stretch; border-radius:14px; background:#fff; border:1px solid #E8EFF8; padding:15px; text-align:center;">
-                <div style="font-size:12.5px; font-weight:700; color:#0E2143; margin-bottom:4px;">สแกนจ่ายผ่าน PromptPay</div>
-                <div style="font-size:11px; color:#8595B0; margin-bottom:12px;">หรือเลือกบัตรเครดิต / อัปโหลดสลิป</div>
-                <div style="display:inline-block; padding:12px; background:#fff; border:1px solid #EEF2F8; border-radius:12px; box-shadow:0 4px 14px rgba(14,33,67,.06);">
-                  <div style="display:grid; grid-template-columns:repeat(25,1fr); grid-template-rows:repeat(25,1fr); width:150px; height:150px;"><sc-for list="{{ chatQrCells }}" as="cell" hint-placeholder-count="40"><div style="{{ cell.cellStyle }}"></div></sc-for></div>
-                </div>
-                <div style="font-family:'Sora',sans-serif; font-size:18px; font-weight:700; color:#0E2143; margin:11px 0;">฿3,900</div>
-                <button onClick="{{ chatPay }}" style="width:100%; padding:12px; border:none; border-radius:11px; background:#2563EB; color:#fff; font-size:14px; font-weight:700; cursor:pointer;">ชำระเงินแล้ว · แนบสลิป</button>
-              </div>
-            </sc-if>
-            <sc-if value="{{ csPaid }}" hint-placeholder-val="{{ false }}">
-              <div style="align-self:flex-start; max-width:84%; padding:10px 13px; border-radius:4px 14px 14px 14px; background:rgba(16,185,129,.1); color:#0F9D70; font-size:12.5px; font-weight:600; line-height:1.45;">✓ รับชำระเรียบร้อย! ทีมงานยืนยันออเดอร์แล้วค่ะ</div>
-              <div style="align-self:stretch; border-radius:14px; background:#fff; border:1px solid #E8EFF8; padding:15px;">
-                <div style="font-size:12.5px; font-weight:700; color:#0E2143; margin-bottom:13px;">ติดตามสถานะออเดอร์</div>
-                <div style="display:flex; flex-direction:column; gap:0;">
-                  <div style="display:flex; gap:11px;"><div style="display:flex; flex-direction:column; align-items:center;"><div style="width:18px; height:18px; border-radius:50%; background:#10B981; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">✓</div><div style="width:2px; height:22px; background:#10B981;"></div></div><div style="font-size:12.5px; color:#42506b; padding-bottom:14px;">เก็บข้อมูลครบ</div></div>
-                  <div style="display:flex; gap:11px;"><div style="display:flex; flex-direction:column; align-items:center;"><div style="width:18px; height:18px; border-radius:50%; background:#10B981; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">✓</div><div style="width:2px; height:22px; background:#10B981;"></div></div><div style="font-size:12.5px; color:#42506b; padding-bottom:14px;">ชำระเงินสำเร็จ</div></div>
-                  <div style="display:flex; gap:11px;"><div style="display:flex; flex-direction:column; align-items:center;"><div style="width:18px; height:18px; border-radius:50%; background:#fff; border:2px solid #2563EB; box-shadow:0 0 0 4px rgba(37,99,235,.16);"></div><div style="width:2px; height:22px; background:#E4ECF8;"></div></div><div style="font-size:12.5px; color:#2563EB; font-weight:700; padding-bottom:14px;">ยืนยันแล้ว · รอจองคิว</div></div>
-                  <div style="display:flex; gap:11px;"><div style="display:flex; flex-direction:column; align-items:center;"><div style="width:18px; height:18px; border-radius:50%; background:#fff; border:2px solid #D7E0EE;"></div></div><div style="font-size:12.5px; color:#9DB1D6;">นัดหมาย / เข้ารับบริการ</div></div>
-                </div>
-                <button style="width:100%; margin-top:13px; padding:9px; border:1px solid #E4ECF8; background:#fff; color:#2563EB; border-radius:9px; font-size:12px; font-weight:600; cursor:pointer;">↻ รีเฟรชสถานะล่าสุด</button>
-              </div>
-            </sc-if>
+            </sc-for>
+            <sc-if value="{{ chatLiveLoading }}" hint-placeholder-val="{{ false }}"><div style="align-self:flex-start; padding:12px 15px; border-radius:4px 14px 14px 14px; background:#fff; border:1px solid #E8EFF8; display:flex; gap:4px;"><span style="width:6px; height:6px; border-radius:50%; background:#9AA8C2; animation:mc_blink 1.2s infinite;"></span><span style="width:6px; height:6px; border-radius:50%; background:#9AA8C2; animation:mc_blink 1.2s .2s infinite;"></span><span style="width:6px; height:6px; border-radius:50%; background:#9AA8C2; animation:mc_blink 1.2s .4s infinite;"></span></div></sc-if>
           </div>
           <!-- input -->
           <div style="flex:none; display:flex; gap:9px; padding:11px 14px 16px; border-top:1px solid #E8EFF8; background:#fff;">
-            <div style="flex:1; padding:10px 14px; background:#F2F6FC; border-radius:20px; font-size:13px; color:#A6B2C9;">พิมพ์ข้อความ…</div>
-            <div style="width:38px; height:38px; border-radius:50%; background:#2563EB; display:flex; align-items:center; justify-content:center; color:#fff;">➤</div>
+            <input value="{{ chatInputVal }}" onChange="{{ onChatInput }}" onKeyDown="{{ onChatKey }}" placeholder="พิมพ์ข้อความ…" style="flex:1; padding:10px 14px; background:#F2F6FC; border:none; outline:none; border-radius:20px; font-size:13px; color:#0E2143;">
+            <button onClick="{{ sendChat }}" style="width:38px; height:38px; border:none; cursor:pointer; border-radius:50%; background:#2563EB; display:flex; align-items:center; justify-content:center; color:#fff;">➤</button>
           </div>
         </div>
       </div>
@@ -884,8 +842,8 @@
             <sc-if value="{{ refHome }}" hint-placeholder-val="{{ true }}">
             <div>
               <div style="display:flex; align-items:center; justify-content:space-between; margin:6px 0 16px;">
-                <div><div style="font-size:12.5px; color:#7B89A4;">สวัสดีตอนเช้า 👋</div><div style="font-size:20px; font-weight:700; font-family:'Sora',sans-serif; color:#0E2143;">คุณ นภา</div></div>
-                <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#60A5FA,#2563EB); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:16px;">น</div>
+                <div><div style="font-size:12.5px; color:#7B89A4;">สวัสดีตอนเช้า 👋</div><div style="font-size:20px; font-weight:700; font-family:'Sora',sans-serif; color:#0E2143;">{{ refDisplayName }}</div></div>
+                <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#60A5FA,#2563EB); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:16px;">{{ refInitial }}</div>
               </div>
               <div style="position:relative; overflow:hidden; border-radius:20px; padding:20px; background:linear-gradient(140deg,#2563EB,#3B82F6 60%,#60A5FA); box-shadow:0 16px 36px rgba(37,99,235,.32); color:#fff; margin-bottom:16px;">
                 <div style="font-size:12.5px; opacity:.85;">คอมมิชชั่นเดือนนี้</div>
@@ -916,7 +874,7 @@
               <div style="font-size:12.5px; color:#8595B0; margin-bottom:18px;">ลูกค้าสแกนแล้วระบบผูก ref code ให้อัตโนมัติ</div>
               <div style="background:#fff; border:1px solid #E8EFF8; border-radius:18px; padding:22px; text-align:center; box-shadow:0 8px 24px rgba(31,84,170,.08);">
                 <div style="display:inline-block; padding:14px; background:#fff; border:1px solid #EEF2F8; border-radius:14px;">
-                  <div style="display:grid; grid-template-columns:repeat(25,1fr); grid-template-rows:repeat(25,1fr); width:188px; height:188px;"><sc-for list="{{ refQrCells }}" as="cell" hint-placeholder-count="40"><div style="{{ cell.cellStyle }}"></div></sc-for></div>
+                  <img src="{{ refQrImageUrl }}" alt="Referral QR" style="display:block; width:188px; height:188px;">
                 </div>
                 <div style="font-family:'Sora',sans-serif; font-size:19px; font-weight:700; color:#2563EB; letter-spacing:.4px; margin:16px 0 4px;">{{ refMyCode }}</div>
                 <div style="font-size:12.5px; color:#8595B0; margin-bottom:16px;">{{ refMyLink }}</div>
@@ -970,9 +928,7 @@
         </div>
         <div style="padding:22px; display:flex; flex-direction:column; align-items:center; gap:14px;">
           <div style="padding:16px; background:#fff; border:1px solid #EEF2F8; border-radius:13px; box-shadow:0 4px 16px rgba(14,33,67,.06);">
-            <div style="display:grid; grid-template-columns:repeat(25,1fr); grid-template-rows:repeat(25,1fr); width:222px; height:222px; gap:0;">
-              <sc-for list="{{ qrCells }}" as="cell" hint-placeholder-count="40"><div style="{{ cell.cellStyle }}"></div></sc-for>
-            </div>
+            <img src="{{ qrImageUrl }}" alt="Referral QR" style="display:block; width:222px; height:222px;">
           </div>
           <div style="font-family:'Sora',sans-serif; font-weight:700; font-size:16px; color:#2563EB; letter-spacing:.3px;">{{ qrCode }}</div>
           <div style="display:flex; align-items:center; gap:8px; width:100%;">
@@ -1018,8 +974,8 @@
           <button onClick="{{ submitLogin }}" style="width:100%; padding:12px; border:none; border-radius:10px; background:#2563EB; color:#fff; font-size:14.5px; font-weight:700; cursor:pointer; margin-bottom:10px;">เข้าสู่ระบบในฐานะ {{ loginRoleLabel }}</button>
 
           <div style="display:flex; align-items:center; justify-content:space-between;">
-            <sc-if value="{{ canRegister }}" hint-placeholder-val="{{ true }}"><button style="font-size:12.5px; font-weight:600; color:#2563EB; background:none; border:none; cursor:pointer;">สมัครเป็น{{ loginRoleLabel }}</button></sc-if>
-            <button onClick="{{ demoMismatch }}" style="font-size:11.5px; color:#A6B2C9; background:none; border:none; cursor:pointer; margin-left:auto;">ดูตัวอย่าง error บัญชีผิดบทบาท</button>
+            <sc-if value="{{ canRegister }}" hint-placeholder-val="{{ false }}"><button style="font-size:12.5px; font-weight:600; color:#2563EB; background:none; border:none; cursor:pointer;">สมัครเป็น{{ loginRoleLabel }}</button></sc-if>
+            <span style="font-size:11.5px; color:#A6B2C9; margin-left:auto; text-align:right;">{{ loginHelpText }}</span>
           </div>
         </div>
       </div>
@@ -1033,13 +989,13 @@ class Component extends DCLogic {
   _t0 = Date.now();
 
   state = {
-    module: 'admin', adminView: 'dashboard', dataState: 'normal',
-    loggedIn: true, role: 'admin', accountName: 'ทีมแอดมิน',
-    showLogin: false, loginRole: 'admin', loginEmail: '', loginPwd: '', loginError: '',
+    module: 'admin', adminView: 'dashboard', dataState: 'loading',
+    loggedIn: false, role: 'admin', accountName: 'ทีมแอดมิน',
+    showLogin: true, loginRole: 'admin', loginEmail: '', loginPwd: '', loginError: '',
     refTab: 'home', chatStage: 0, copied: false,
     selectedOrderId: null, selectedStep: null,
     showForm: false, formMode: 'new', formType: 'service', formData: null,
-    orders: this._seedOrders(), ordFilter: 'all', ordSearch: '', ordSort: 'newest', ordSel: {},
+    orders: [], ordFilter: 'all', ordSearch: '', ordSort: 'newest', ordSel: {},
     refSub: 'list', commFilter: 'pending', commSel: {},
     convId: null, convMode: {}, payId: null, payFilter: 'submitted',
     prodSearch: '', prodStatus: 'all', prodCat: 'all', showBranches: false,
@@ -1056,93 +1012,20 @@ class Component extends DCLogic {
     { key: 'booked', label: 'จองคิว/จัดส่ง' }, { key: 'done', label: 'เสร็จสิ้น' }, { key: 'cancelled', label: 'ยกเลิก' }, { key: 'archive', label: 'คลัง' },
   ];
 
-  _seedOrders() {
-    const h = (n) => this._t0 + n * 3600000;
-    return [
-      { id:'#MA-1052', kind:'service', customer:'อรวรรณ ดวงจันทร์', phone:'081-234-5678', channel:'AI Chat', pkg:'Comprehensive Health 35+', amount:'฿3,900', branch:'สุขุมวิท', date:'รอเลือกวัน', stage:2, cancelled:false, archived:false, deadlineAt:h(5.4), payMethod:'PromptPay', referrer:'คุณ นภา (MIRA-NAPA)', commission:'฿312',
-        transcript:[ {role:'user',text:'สนใจตรวจสุขภาพครับ อายุ 35'},{role:'ai',text:'แนะนำ Comprehensive 35+ ค่ะ ตรวจครบ 45 รายการ ราคา ฿3,900'},{role:'user',text:'จองคิวเลยครับ'},{role:'ai',text:'รับทราบค่ะ รบกวนโอนผ่าน PromptPay แล้วแนบสลิปได้เลยนะคะ'} ] },
-      { id:'#MA-1054', kind:'service', customer:'วีรภาพ ตันติกุล', phone:'083-555-7788', channel:'LINE OA', pkg:'Basic Wellness Check', amount:'฿1,490', branch:'ลาดพร้าว', date:'รอชำระ', stage:2, cancelled:false, archived:false, deadlineAt:h(0.4), payMethod:'PromptPay', referrer:'ทีมขาย กรุงเทพ (MIRA-BKK1)', commission:'฿90',
-        transcript:[ {role:'user',text:'ขอแพ็กเกจพื้นฐานครับ'},{role:'ai',text:'Basic Wellness Check ฿1,490 ค่ะ โอนแล้วแนบสลิปได้เลย'} ] },
-      { id:'#MA-1055', kind:'product', customer:'ชนิกานต์ พูลสุข', phone:'087-201-3344', channel:'AI Chat', pkg:'Home Test Kit ตรวจที่บ้าน', amount:'฿1,290', branch:'จัดส่งทั่วประเทศ', addr:'12 ถ.พหลโยธิน แขวงจตุจักร กทม. 10900', date:'เตรียมจัดส่ง', stage:3, cancelled:false, archived:false, deadlineAt:h(11), payMethod:'PromptPay', referrer:'คุณ นภา (MIRA-NAPA)', commission:'฿103',
-        transcript:[ {role:'user',text:'อยากได้ชุดตรวจที่บ้านค่ะ'},{role:'ai',text:'Home Test Kit ฿1,290 ส่งถึงบ้านเลยค่ะ'} ] },
-      { id:'#MA-1051', kind:'service', customer:'ปรียา กิตติชัย', phone:'089-876-5432', channel:'LINE OA', pkg:'Basic Wellness Check', amount:'฿1,490', branch:'พระราม 9', date:'รอนัดหมาย', stage:3, cancelled:false, archived:false, payMethod:'PromptPay', referrer:'คุณ นภา (MIRA-NAPA)', commission:'฿119',
-        transcript:[ {role:'user',text:'อยากตรวจสุขภาพพื้นฐานค่ะ'},{role:'ai',text:'แนะนำ Basic Wellness Check ฿1,490 ค่ะ'},{role:'ai',text:'ได้รับสลิปแล้วค่ะ ทีมงานยืนยันออเดอร์เรียบร้อย'} ] },
-      { id:'#MA-1056', kind:'service', customer:'ธีรเดช วงศ์ทอง', phone:'080-444-1212', channel:'AI Chat', pkg:'Comprehensive Health 35+', amount:'฿3,900', branch:'รังสิต', date:'รอนัดหมาย', stage:3, cancelled:false, archived:false, payMethod:'บัตรเครดิต', referrer:'ทีมขาย กรุงเทพ (MIRA-BKK1)', commission:'฿234',
-        transcript:[ {role:'user',text:'ตรวจสุขภาพประจำปีครับ'},{role:'ai',text:'Comprehensive 35+ ฿3,900 ค่ะ ชำระเรียบร้อย'} ] },
-      { id:'#MA-1050', kind:'service', customer:'ก้องภพ มหาชัย', phone:'062-555-1212', channel:'AI Chat', pkg:'Heart Screen Plus', amount:'฿5,200', branch:'สุขุมวิท', date:'เสาร์ 28 มิ.ย. 10:00', stage:4, cancelled:false, archived:false, payMethod:'บัตรเครดิต', referrer:'ทีมขาย กรุงเทพ (MIRA-BKK1)', commission:'฿416',
-        transcript:[ {role:'user',text:'กังวลเรื่องหัวใจครับ ตรวจอะไรดี'},{role:'ai',text:'แนะนำ Heart Screen Plus ฿5,200 มี EKG + Echo ค่ะ'},{role:'ai',text:'นัดหมายวันเสาร์ 28 มิ.ย. 10:00 สาขาสุขุมวิทเรียบร้อยค่ะ'} ] },
-      { id:'#MA-1053', kind:'product', customer:'พิมพ์ชนก ศรีสุข', phone:'086-777-8899', channel:'AI Chat', pkg:'Home Test Kit ตรวจที่บ้าน', amount:'฿1,290', branch:'จัดส่งทั่วประเทศ', addr:'88/12 ซ.ลาดพร้าว 15 แขวงจอมพล จตุจักร กทม. 10900', courier:'Kerry Express', tracking:'KEX9032118842', date:'ถึงภายใน 26 มิ.ย.', stage:4, cancelled:false, archived:false, payMethod:'PromptPay', referrer:'คุณ นภา (MIRA-NAPA)', commission:'฿103',
-        transcript:[ {role:'user',text:'อยากได้ชุดตรวจสุขภาพที่บ้านค่ะ'},{role:'ai',text:'แนะนำ Home Test Kit ฿1,290 ส่งถึงบ้านเลยค่ะ'},{role:'ai',text:'จัดส่งแล้วค่ะ เลขพัสดุ KEX9032118842 ติดตามสถานะได้เลย'} ] },
-      { id:'#MA-1048', kind:'service', customer:'ธนวัฒน์ สุขเกษม', phone:'084-111-2233', channel:'AI Chat', pkg:'Comprehensive Health 35+', amount:'฿3,900', branch:'พระราม 9', date:'พุธ 18 มิ.ย. 09:00', stage:5, cancelled:false, archived:false, payMethod:'PromptPay', referrer:'คุณ นภา (MIRA-NAPA)', commission:'฿312',
-        transcript:[ {role:'user',text:'ขอตรวจสุขภาพประจำปีครับ'},{role:'ai',text:'จัดให้ค่ะ Comprehensive 35+ ฿3,900'},{role:'ai',text:'เข้ารับบริการเรียบร้อย ขอบคุณที่ใช้บริการค่ะ 🙏'} ] },
-      { id:'#MA-1045', kind:'service', customer:'อาทิตยา รุ่งเรือง', phone:'091-888-4545', channel:'LINE OA', pkg:'Heart Screen Plus', amount:'฿5,200', branch:'ลาดพร้าว', date:'อังคาร 17 มิ.ย.', stage:5, cancelled:false, archived:false, payMethod:'PromptPay', referrer:'คุณ วิทยา ส. (MIRA-WIT)', commission:'฿416',
-        transcript:[ {role:'user',text:'ตรวจหัวใจค่ะ'},{role:'ai',text:'Heart Screen Plus ฿5,200 ค่ะ'} ] },
-      { id:'#MA-1047', kind:'service', customer:'สุดารัตน์ คงเดช', phone:'090-321-6547', channel:'LINE OA', pkg:'Diabetes Panel', amount:'฿2,100', branch:'—', date:'—', stage:1, cancelled:true, archived:false, payMethod:'—', referrer:'—', commission:'—',
-        transcript:[ {role:'user',text:'สนใจตรวจเบาหวานค่ะ'},{role:'ai',text:'แนะนำ Diabetes Panel ฿2,100 ค่ะ'},{role:'user',text:'ขอยกเลิกก่อนนะคะ ไว้ค่อยติดต่อใหม่'} ] },
-      { id:'#MA-1042', kind:'service', customer:'ณัฐพล อินทรีย์', phone:'085-909-1111', channel:'AI Chat', pkg:'Basic Wellness Check', amount:'฿1,490', branch:'—', date:'—', stage:2, cancelled:false, archived:true, expired:true, deadlineAt:h(-3), payMethod:'—', referrer:'ทีมขาย กรุงเทพ (MIRA-BKK1)', commission:'—',
-        transcript:[ {role:'user',text:'สนใจตรวจสุขภาพครับ'},{role:'ai',text:'Basic Wellness Check ฿1,490 ค่ะ รบกวนชำระภายใน 24 ชม.'} ] },
-    ];
-  }
+  _seedOrders() { return []; }
 
-  _products = [
-    { title:'Comprehensive Health 35+', type:'service', price:'3,900', oldPrice:'4,900', category:'checkup', status:'active', stock:42, reserved:6, branches:['สุขุมวิท','พระราม 9','ลาดพร้าว','รังสิต','ปิ่นเกล้า'], desc:'ตรวจสุขภาพครบ 45 รายการ เจาะเลือด + อัลตราซาวด์ พร้อมฟังผลกับแพทย์', includes:['เจาะเลือด 45 รายการ','อัลตราซาวด์ช่องท้อง','เอกซเรย์ปอด','ฟังผลกับแพทย์'], stripe:true, rag:true },
-    { title:'Basic Wellness Check', type:'service', price:'1,490', oldPrice:'', category:'checkup', status:'active', stock:120, reserved:8, branches:['สุขุมวิท','พระราม 9','ลาดพร้าว','รังสิต','ปิ่นเกล้า','บางนา','รัชดา','ดอนเมือง'], desc:'ตรวจสุขภาพพื้นฐานสำหรับคนวัยทำงาน', includes:['เจาะเลือด 20 รายการ','ตรวจความดัน','ดัชนีมวลกาย'], stripe:true, rag:true },
-    { title:'Heart Screen Plus', type:'service', price:'5,200', oldPrice:'', category:'heart', status:'active', stock:18, reserved:2, branches:['สุขุมวิท','พระราม 9','ลาดพร้าว'], desc:'ตรวจคัดกรองสุขภาพหัวใจเชิงลึก EKG + Echocardiogram', includes:['EKG','Echocardiogram','ตรวจไขมันในเลือด'], stripe:true, rag:false },
-    { title:'Diabetes Panel', type:'service', price:'2,100', oldPrice:'', category:'blood', status:'draft', stock:0, reserved:0, branches:['สุขุมวิท','พระราม 9','ลาดพร้าว','รังสิต','บางนา'], desc:'ตรวจคัดกรองและติดตามโรคเบาหวาน', includes:['น้ำตาลสะสม HbA1c','น้ำตาลในเลือด','ตรวจไต'], stripe:false, rag:false },
-    { title:'Home Test Kit ตรวจที่บ้าน', type:'product', price:'1,290', oldPrice:'', category:'blood', status:'active', stock:7, reserved:1, branches:['จัดส่งทั่วประเทศ'], desc:'ชุดตรวจสุขภาพเบื้องต้นที่บ้าน เก็บตัวอย่างเองแล้วส่งกลับแล็บ ผลในแอป', includes:['อุปกรณ์เก็บตัวอย่าง','กล่องส่งกลับ prepaid','ผลตรวจในแอป'], stripe:true, rag:true },
-  ];
-  _emptyProduct = { title:'', type:'service', price:'', oldPrice:'', category:'checkup', status:'active', stock:0, reserved:0, branches:['สุขุมวิท'], desc:'', includes:[], stripe:false, rag:false };
-
-  _referrers = [
-    { name:'คุณ นภา ศ.', code:'MIRA-NAPA', type:'บุคคล', phone:'081-234-5678', scheme:'8% ทุกหมวด', orders:14, commission:'฿4,820', status:'active', created:'12 ม.ค. 2025' },
-    { name:'ทีมขาย กรุงเทพ', code:'MIRA-BKK1', type:'ทีม', phone:'02-555-1200', scheme:'10% checkup · 6% อื่น ๆ', orders:31, commission:'฿11,240', status:'active', created:'03 ธ.ค. 2024' },
-    { name:'คุณ วิทยา ส.', code:'MIRA-WIT', type:'บุคคล', phone:'089-770-1188', scheme:'8% ทุกหมวด', orders:6, commission:'฿1,950', status:'active', created:'21 ก.พ. 2025' },
-    { name:'คลินิกพันธมิตร ลาดพร้าว', code:'MIRA-LP', type:'พาร์ทเนอร์', phone:'02-913-4567', scheme:'12% checkup', orders:0, commission:'฿0', status:'pending', created:'08 มิ.ย. 2025' },
-  ];
-
-  _commissions = [
-    { id:'CMM-2051', orderId:'#MA-1052', referrer:'คุณ นภา ศ.', code:'MIRA-NAPA', product:'Comprehensive Health 35+', amount:'฿312', status:'pending', date:'24 มิ.ย.' },
-    { id:'CMM-2050', orderId:'#MA-1055', referrer:'คุณ นภา ศ.', code:'MIRA-NAPA', product:'Home Test Kit', amount:'฿103', status:'pending', date:'24 มิ.ย.' },
-    { id:'CMM-2048', orderId:'#MA-1051', referrer:'คุณ นภา ศ.', code:'MIRA-NAPA', product:'Basic Wellness Check', amount:'฿119', status:'approved', date:'23 มิ.ย.' },
-    { id:'CMM-2046', orderId:'#MA-1056', referrer:'ทีมขาย กรุงเทพ', code:'MIRA-BKK1', product:'Comprehensive Health 35+', amount:'฿234', status:'approved', date:'22 มิ.ย.' },
-    { id:'CMM-2040', orderId:'#MA-1050', referrer:'ทีมขาย กรุงเทพ', code:'MIRA-BKK1', product:'Heart Screen Plus', amount:'฿416', status:'paid', date:'20 มิ.ย.' },
-    { id:'CMM-2035', orderId:'#MA-1048', referrer:'คุณ นภา ศ.', code:'MIRA-NAPA', product:'Comprehensive Health 35+', amount:'฿312', status:'paid', date:'18 มิ.ย.' },
-    { id:'CMM-2030', orderId:'#MA-1047', referrer:'—', code:'—', product:'Diabetes Panel', amount:'฿0', status:'void', date:'17 มิ.ย.' },
-  ];
-
-  _branches = [
-    { name:'สุขุมวิท', address:'120 ถ.สุขุมวิท คลองเตย', district:'กรุงเทพฯ', phone:'02-111-2233', active:true, products:5 },
-    { name:'พระราม 9', address:'9 ถ.พระราม 9 ห้วยขวาง', district:'กรุงเทพฯ', phone:'02-222-3344', active:true, products:4 },
-    { name:'ลาดพร้าว', address:'88 ถ.ลาดพร้าว จตุจักร', district:'กรุงเทพฯ', phone:'02-333-4455', active:true, products:4 },
-    { name:'รังสิต', address:'55 ถ.พหลโยธิน รังสิต', district:'ปทุมธานี', phone:'02-444-5566', active:true, products:2 },
-    { name:'ปิ่นเกล้า', address:'7 ถ.บรมราชชนนี บางพลัด', district:'กรุงเทพฯ', phone:'02-555-6677', active:false, products:1 },
-  ];
-
-  _conversations = [
-    { id:'CV-90', customer:'อรวรรณ ดวงจันทร์', channel:'AI Chat', orderId:'#MA-1052', mode:'ai', unread:2, time:'2 นาที', last:'จองคิวเลยครับ' },
-    { id:'CV-89', customer:'วีรภาพ ตันติกุล', channel:'LINE', orderId:'#MA-1054', mode:'ai', unread:0, time:'14 นาที', last:'ขอแพ็กเกจพื้นฐานครับ' },
-    { id:'CV-88', customer:'ชนิกานต์ พูลสุข', channel:'AI Chat', orderId:'#MA-1055', mode:'human', unread:0, time:'1 ชม.', last:'ขอบคุณค่ะ' },
-    { id:'CV-87', customer:'ก้องภพ มหาชัย', channel:'LINE', orderId:'#MA-1050', mode:'ai', unread:1, time:'3 ชม.', last:'นัดวันเสาร์ได้ไหมครับ' },
-    { id:'CV-86', customer:'ผู้ใช้ LINE ใหม่', channel:'LINE', orderId:null, mode:'ai', unread:3, time:'5 ชม.', last:'สอบถามแพ็กเกจหน่อยค่ะ' },
-  ];
-
-  _payments = [
-    { id:'PM-7781', orderId:'#MA-1052', customer:'อรวรรณ ดวงจันทร์', amount:'฿3,900', provider:'PromptPay', status:'submitted', slip:true, session:'—', date:'24 มิ.ย. 14:20' },
-    { id:'PM-7780', orderId:'#MA-1054', customer:'วีรภาพ ตันติกุล', amount:'฿1,490', provider:'PromptPay', status:'awaiting', slip:false, session:'—', date:'24 มิ.ย. 13:55' },
-    { id:'PM-7779', orderId:'#MA-1055', customer:'ชนิกานต์ พูลสุข', amount:'฿1,290', provider:'Stripe', status:'paid', slip:false, session:'pi_3Rj8…1bW', date:'24 มิ.ย. 09:10' },
-    { id:'PM-7777', orderId:'#MA-1049', customer:'มานพ ใจดี', amount:'฿2,100', provider:'Stripe', status:'failed', slip:false, session:'pi_3Rh2…0kP', date:'23 มิ.ย. 22:01' },
-    { id:'PM-7770', orderId:'#MA-1046', customer:'สุภาพร แก้วใส', amount:'฿5,200', provider:'PromptPay', status:'refund', slip:true, session:'—', date:'22 มิ.ย. 16:40' },
-  ];
-
+  // Production runtime data is supplied by mira-design-adapter.js from Supabase.
+  _products = [];
+  _emptyProduct = { title:'', type:'service', price:'', oldPrice:'', category:'checkup', status:'active', stock:0, reserved:0, branches:[], desc:'', includes:[], stripe:false, rag:false };
+  _referrers = [];
+  _commissions = [];
+  _branches = [];
+  _conversations = [];
+  _payments = [];
   _line = {
-    webhook:'https://api.mira.health/line/webhook', channelSecret:true, accessToken:true, verified:true,
-    lastEvent:{ type:'message', time:'2 นาทีที่แล้ว' }, lastReply:{ status:'success', time:'2 นาทีที่แล้ว' },
-    events:[
-      { type:'message.in', detail:'ข้อความจากลูกค้า · สอบถามแพ็กเกจ', time:'2 นาที' },
-      { type:'reply.out', detail:'ตอบกลับอัตโนมัติ (AI) สำเร็จ', time:'2 นาที' },
-      { type:'postback', detail:'เลือกแพ็กเกจ Basic Wellness', time:'18 นาที' },
-      { type:'follow', detail:'มีผู้ติดตามใหม่', time:'1 ชม.' },
-    ],
+    webhook: '', channelSecret: false, accessToken: false, verified: false,
+    lastEvent: { type: 'No live LINE event loaded', time: '-' }, lastReply: { status: '-', time: '-' },
+    events: [],
   };
 
   _timers = [];
@@ -1459,7 +1342,12 @@ class Component extends DCLogic {
   demoMismatch = () => this.setState({ loginError: 'บัญชีนี้ไม่มีสิทธิ์เข้าใช้งานในบทบาทที่เลือก — โปรดเลือกบทบาทให้ตรงกับบัญชีของคุณ' });
 
   setDataState = (v) => this.setState({ dataState: v });
-  copyLink = () => { this.setState({ copied: true }); this._timers.push(setTimeout(() => this.setState({ copied: false }), 1600)); };
+  copyLink = async () => {
+    const link = this.state.qrRef ? 'https://mira.health/r/'+this.state.qrRef : '';
+    if (link && navigator.clipboard) await navigator.clipboard.writeText(link);
+    this.setState({ copied: true });
+    this._timers.push(setTimeout(() => this.setState({ copied: false }), 1600));
+  };
 
   renderVals() {
     const s = this.state || {};
@@ -1583,6 +1471,7 @@ class Component extends DCLogic {
       commBulkApprove: ()=>this.commBulk('approved'), commBulkPay: ()=>this.commBulk('paid'), commClearSel: ()=>this.setState({commSel:{}}),
       // qr popover
       qrShow: !!s.qrRef, qrCode: s.qrRef||'', qrLink: 'mira.health/r/'+(s.qrRef||''),
+      qrImageUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=222x222&data='+encodeURIComponent('https://mira.health/r/'+(s.qrRef||'')),
       qrCells: this._qrCells('https://mira.health/r/'+(s.qrRef||'')), closeQr: ()=>this.setState({qrRef:null}),
       stopProp: (e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); },
       // conversations
@@ -1617,10 +1506,11 @@ class Component extends DCLogic {
       refHome: s.refTab==='home', refShare: s.refTab==='share', refEarn: s.refTab==='earnings',
       setRefHome: ()=>this.setState({refTab:'home'}), setRefShare: ()=>this.setState({refTab:'share'}), setRefEarn: ()=>this.setState({refTab:'earnings'}),
       navHome: this._nav(s.refTab==='home'), navShare: this._nav(s.refTab==='share'), navEarn: this._nav(s.refTab==='earnings'),
-      refQrCells: this._qrCells('https://mira.health/r/MIRA-NAPA'), refMyCode: 'MIRA-NAPA', refMyLink: 'mira.health/r/MIRA-NAPA',
-      refTotalComm: '฿4,820', refMonthComm: '฿534',
-      refOrders: om.all.filter((d)=>(d.referrer||'').indexOf('MIRA-NAPA')!==-1).map((d)=>({ id:d.id, pkg:d.pkg, amount:d.amount, commission:d.commission, custShort:d.custShort, statusLabel:d.statusLabel, statusBg:d.statusBg, statusFg:d.statusFg })),
-      refOrderCount: om.all.filter((d)=>(d.referrer||'').indexOf('MIRA-NAPA')!==-1).length,
+      refQrImageUrl: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22188%22 height=%22188%22 viewBox=%220 0 188 188%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23F5F8FC%22/%3E%3C/svg%3E',
+      refQrCells: [], refMyCode: '-', refMyLink: '-',
+      refTotalComm: '฿0', refMonthComm: '฿0',
+      refOrders: [],
+      refOrderCount: 0,
       copied: s.copied, notCopied: !s.copied, copyLink: this.copyLink,
 
       // login
@@ -1631,7 +1521,8 @@ class Component extends DCLogic {
       onLoginEmail: (e) => this.setState({ loginEmail: e.target.value }), onLoginPwd: (e) => this.setState({ loginPwd: e.target.value }),
       hasLoginError: !!s.loginError, loginError: s.loginError,
       loginRoleLabel: { admin:'ทีมงาน', referral:'ผู้แนะนำ', customer:'ลูกค้า' }[s.loginRole],
-      canRegister: s.loginRole !== 'admin',
+      canRegister: false,
+      loginHelpText: 'ใช้บัญชีจริงที่มีสิทธิ์ใน tenant เท่านั้น',
       submitLogin: this.submitLogin, demoMismatch: this.demoMismatch,
     };
   }
