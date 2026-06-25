@@ -1,0 +1,15 @@
+{
+  "generatedAt": "2026-06-25T11:46:21.711Z",
+  "checks": {
+    "createdProductPersisted": true,
+    "editedProductRendered": true,
+    "editedProductPersisted": true,
+    "noConsoleMessages": true,
+    "noPageErrors": true
+  },
+  "productIds": [
+    "05c63df6-eb07-44ca-992b-3cb12e45fc6a"
+  ],
+  "consoleMessages": [],
+  "pageErrors": []
+}

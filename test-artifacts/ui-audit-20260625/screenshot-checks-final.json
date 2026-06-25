@@ -1,0 +1,108 @@
+{
+  "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+  "url": "http://127.0.0.1:4321/showcase/",
+  "generatedAt": "2026-06-25T11:34:59.054Z",
+  "results": [
+    {
+      "name": "01-admin-dashboard-desktop",
+      "file": "C:\\Users\\taksi\\Documents\\Mira Application\\test-artifacts\\ui-audit-20260625\\01-admin-dashboard-desktop.png",
+      "checks": {
+        "adminTab": true,
+        "dashboardMenu": true,
+        "lineMenu": true,
+        "no_old_browser_frame_text": true
+      },
+      "textSample": "แพลตฟอร์มขายอัจฉริยะ Live system base Referral Admin Panel AI Chat Admin Panel · สำหรับทีมงาน · จัดการ Orders, Catalog, Referral และสถานะปฏิบัติการจาก backend จริง Desktop Mobile Backend + AI ready เมนู  ภาพรวม  ออเดอร์  สินค้าและบริการ  ผู้แนะนำ  บทสนทนา  การชำระเงิน  LINE Channel M Mira AI ยังไม่เข้า tenant ภาพรวม  ค้นหาออเดอร์ ลูกค้า...  ยอดขายรวม ฿0 0 ออเดอร์ชำระแล้ว รอดำเนินการ 0 รอชำระ/รอตรวจ ผู้แนะนำ Active 0 ฿0 สินค้า Active 0 0/0 เปิดขาย รายได้ 7 วันล่าสุด จาก backend ฿0 ศ ฿0 ส ฿0 อา ฿0 จ ฿0 อ ฿0 พ ฿0 พฤ สถานะออเดอร์ รอชำระ 0 รอตรวจ 0 ยืนยันแล้ว 0 จองคิว/จัดส่ง 0 เสร็จสิ้น 0 ยกเลิก 0 ออเดอร์ล่าสุด ดูทั้งหมด ยังไม่มีออเดอร์ เข้าสู่ระบบด้วยบัญชี Admin/Referral เพื่อดูข้อมูลจร"
+    },
+    {
+      "name": "02-admin-orders",
+      "file": "C:\\Users\\taksi\\Documents\\Mira Application\\test-artifacts\\ui-audit-20260625\\02-admin-orders.png",
+      "checks": {
+        "activeScreen": true,
+        "no_old_browser_frame_text": true
+      },
+      "textSample": "แพลตฟอร์มขายอัจฉริยะ Live system base Referral Admin Panel AI Chat Admin Panel · สำหรับทีมงาน · จัดการ Orders, Catalog, Referral และสถานะปฏิบัติการจาก backend จริง Desktop Mobile Backend + AI ready เมนู  ภาพรวม  ออเดอร์  สินค้าและบริการ  ผู้แนะนำ  บทสนทนา  การชำระเงิน  LINE Channel M Mira AI ยังไม่เข้า tenant ออเดอร์  ค้นหาออเดอร์ ลูกค้า...   ใหม่ล่าสุด ยอดสูง ยอดต่ำ ทั้งหมด 0 รอชำระ 0 รอตรวจ 0 ยืนยันแล้ว 0 จองคิว/จัดส่ง 0 เสร็จสิ้น 0 ยกเลิก 0 ออเดอร์ ลูกค้า แพ็กเกจ ยอด สถานะ การจัดการ ไม่พบออเดอร์ ลองเปลี่ยนคำค้นหรือ filter เลือกออเดอร์ กดปุ่มดำเนินการหรือแถวออเดอร์เพื่อเปิด sidebar รายละเอียด",
+      "clicked": true
+    },
+    {
+      "name": "03-admin-catalog",
+      "file": "C:\\Users\\taksi\\Documents\\Mira Application\\test-artifacts\\ui-audit-20260625\\03-admin-catalog.png",
+      "checks": {
+        "activeScreen": true,
+        "no_old_browser_frame_text": true
+      },
+      "textSample": "แพลตฟอร์มขายอัจฉริยะ Live system base Referral Admin Panel AI Chat Admin Panel · สำหรับทีมงาน · จัดการ Orders, Catalog, Referral และสถานะปฏิบัติการจาก backend จริง Desktop Mobile Backend + AI ready เมนู  ภาพรวม  ออเดอร์  สินค้าและบริการ  ผู้แนะนำ  บทสนทนา  การชำระเงิน  LINE Channel M Mira AI ยังไม่เข้า tenant สินค้าและบริการ  ค้นหาออเดอร์ ลูกค้า...  สินค้าและบริการ จัดการ catalog กลางที่ AI Chat, Referral และ Payment ใช้ร่วมกัน รีเฟรช + เพิ่มสินค้า สินค้าในระบบ 0 อ่านจาก backend เปิดขาย 0 AI/Referral มองเห็น Stripe ready 0/0 มี product/price mapping สาขา 0 ใช้กับ booking/branch selection  ทั้งหมด 0 เปิดขาย 0 ปิดขาย 0 Draft 0 รอตรวจ 0 ไม่ผ่าน 0 ยังไม่มีสินค้าในเงื่อนไขนี้ เข้าสู่ระบ",
+      "clicked": true
+    },
+    {
+      "name": "04-admin-referrers",
+      "file": "C:\\Users\\taksi\\Documents\\Mira Application\\test-artifacts\\ui-audit-20260625\\04-admin-referrers.png",
+      "checks": {
+        "activeScreen": true,
+        "no_old_browser_frame_text": true
+      },
+      "textSample": "แพลตฟอร์มขายอัจฉริยะ Live system base Referral Admin Panel AI Chat Admin Panel · สำหรับทีมงาน · จัดการ Orders, Catalog, Referral และสถานะปฏิบัติการจาก backend จริง Desktop Mobile Backend + AI ready เมนู  ภาพรวม  ออเดอร์  สินค้าและบริการ  ผู้แนะนำ  บทสนทนา  การชำระเงิน  LINE Channel M Mira AI ยังไม่เข้า tenant ผู้แนะนำ  ค้นหาออเดอร์ ลูกค้า...  สมาชิก REF 0 ทั้งหมดใน tenant Active 0 เปิดใช้งาน Commission ฿0 รวมทุกสถานะ Pending ฿0 รออนุมัติ ผู้แนะนำ ยังไม่มีผู้แนะนำ เข้าสู่ระบบด้วยบัญชี Admin/Referral เพื่อดูข้อมูลจริง รายการคอมมิชชั่น ยังไม่มีคอมมิชชั่น ยังไม่มี commission_entries จาก backend",
+      "clicked": true
+    },
+    {
+      "name": "05-admin-conversations",
+      "file": "C:\\Users\\taksi\\Documents\\Mira Application\\test-artifacts\\ui-audit-20260625\\05-admin-conversations.png",
+      "checks": {
+        "activeScreen": true,
+        "no_old_browser_frame_text": true
+      },
+      "textSample": "แพลตฟอร์มขายอัจฉริยะ Live system base Referral Admin Panel AI Chat Admin Panel · สำหรับทีมงาน · จัดการ Orders, Catalog, Referral และสถานะปฏิบัติการจาก backend จริง Desktop Mobile Backend + AI ready เมนู  ภาพรวม  ออเดอร์  สินค้าและบริการ  ผู้แนะนำ  บทสนทนา  การชำระเงิน  LINE Channel M Mira AI ยังไม่เข้า tenant บทสนทนา  ค้นหาออเดอร์ ลูกค้า...  กล่องข้อความ 0 ห้อง ทั้งหมด LINE เว็บ แอป ยังไม่มีบทสนทนา เข้าสู่ระบบด้วยบัญชี Admin/Referral เพื่อดูข้อมูลจริง เลือกบทสนทนา เลือกบทสนทนาจากกล่องข้อความเพื่อดู transcript และตอบกลับ ข้อมูลลูกค้า ยังไม่ได้เลือก context จะแสดงหลังเลือกบทสนทนา",
+      "clicked": true
+    },
+    {
+      "name": "06-admin-payments",
+      "file": "C:\\Users\\taksi\\Documents\\Mira Application\\test-artifacts\\ui-audit-20260625\\06-admin-payments.png",
+      "checks": {
+        "activeScreen": true,
+        "no_old_browser_frame_text": true
+      },
+      "textSample": "แพลตฟอร์มขายอัจฉริยะ Live system base Referral Admin Panel AI Chat Admin Panel · สำหรับทีมงาน · จัดการ Orders, Catalog, Referral และสถานะปฏิบัติการจาก backend จริง Desktop Mobile Backend + AI ready เมนู  ภาพรวม  ออเดอร์  สินค้าและบริการ  ผู้แนะนำ  บทสนทนา  การชำระเงิน  LINE Channel M Mira AI ยังไม่เข้า tenant การชำระเงิน  ค้นหาออเดอร์ ลูกค้า...  รอตรวจสลิป 0 รอชำระ 0 ชำระแล้ว 0 ล้มเหลว 0 ต้องคืนเงิน 0 รหัส ออเดอร์ ยอด ช่องทาง สถานะ ไม่มีรายการชำระเงินในสถานะนี้ เข้าสู่ระบบด้วยบัญชี Admin/Referral เพื่อดูข้อมูลจริง เลือกรายการชำระเงิน เลือก payment row เพื่อดู slip, provider, order และ action",
+      "clicked": true
+    },
+    {
+      "name": "07-admin-line-channel",
+      "file": "C:\\Users\\taksi\\Documents\\Mira Application\\test-artifacts\\ui-audit-20260625\\07-admin-line-channel.png",
+      "checks": {
+        "activeScreen": true,
+        "no_old_browser_frame_text": true
+      },
+      "textSample": "แพลตฟอร์มขายอัจฉริยะ Live system base Referral Admin Panel AI Chat Admin Panel · สำหรับทีมงาน · จัดการ Orders, Catalog, Referral และสถานะปฏิบัติการจาก backend จริง Desktop Mobile Backend + AI ready เมนู  ภาพรวม  ออเดอร์  สินค้าและบริการ  ผู้แนะนำ  บทสนทนา  การชำระเงิน  LINE Channel M Mira AI ยังไม่เข้า tenant LINE Channel  ค้นหาออเดอร์ ลูกค้า...  การเชื่อมต่อ LINE Official Account backend พร้อม Webhook URL สำหรับตั้งค่าใน LINE Developers Console https://xwixdxmemwcuoamcloty.supabase.co/functions/v1/line-webhook?tenant=demo-hospital คัดลอก Channel secret ✓ ตรวจจาก Supabase secrets Channel access token ✓ ตรวจจาก Supabase secrets Webhook verified ✓ line-webhook deploy gate ผ่าน audit เ",
+      "clicked": true
+    },
+    {
+      "name": "08-mobile-admin-dashboard",
+      "file": "C:\\Users\\taksi\\Documents\\Mira Application\\test-artifacts\\ui-audit-20260625\\08-mobile-admin-dashboard.png",
+      "checks": {
+        "adminTab": true,
+        "lineMenu": true,
+        "no_old_browser_frame_text": true
+      },
+      "textSample": "แพลตฟอร์มขายอัจฉริยะ Live system base Referral Admin Panel AI Chat Admin Panel · สำหรับทีมงาน · จัดการ Orders, Catalog, Referral และสถานะปฏิบัติการจาก backend จริง Desktop Mobile Backend + AI ready 9:41 Mira AI Back Office ภาพรวม M ฿0 ยอดขาย 0 รอดำเนินการ 0/0 สินค้า 0 REF  ภาพรวม  ออเดอร์  สินค้าและบริการ  ผู้แนะนำ  บทสนทนา  การชำระเงิน  LINE Channel"
+    },
+    {
+      "name": "09-mobile-referral",
+      "file": "C:\\Users\\taksi\\Documents\\Mira Application\\test-artifacts\\ui-audit-20260625\\09-mobile-referral.png",
+      "checks": {
+        "referralTab": true,
+        "no_old_browser_frame_text": true
+      },
+      "textSample": "แพลตฟอร์มขายอัจฉริยะ Live system base Referral Admin Panel AI Chat Referral Program · สำหรับผู้แนะนำ · ลิงก์แชร์ รายได้ และ direct purchase เชื่อม order backend เดิม Backend + AI ready 9:41 สวัสดีตอนเช้า Referral member ม คอมมิชชั่นเดือนนี้ ฿0 live จ่ายแล้วและอนุมัติแล้ว · ฿0  แชร์ลิงก์แนะนำของฉัน ฿0 รออนุมัติ ฿0 อนุมัติ ฿0 จ่ายแล้ว การแนะนำล่าสุด backend ยังไม่มีรายได้ เข้าสู่ระบบ Referral เพื่อดูข้อมูลจริง สร้างออเดอร์แทนลูกค้า referrer-order สร้าง QR / ออเดอร์  หน้าหลัก  แชร์  รายได้"
+    },
+    {
+      "name": "10-mobile-ai-chat",
+      "file": "C:\\Users\\taksi\\Documents\\Mira Application\\test-artifacts\\ui-audit-20260625\\10-mobile-ai-chat.png",
+      "checks": {
+        "chatTab": true,
+        "no_old_browser_frame_text": true
+      },
+      "textSample": "แพลตฟอร์มขายอัจฉริยะ Live system base Referral Admin Panel AI Chat AI Sales Chat · สำหรับลูกค้าบนมือถือ · ใช้ AI model และ catalog จริงผ่าน chat engine เดิม  เล่นใหม่ Backend + AI ready  Mira AI ผู้ช่วยขายอัจฉริยะ · ออนไลน์  วันนี้ 09:41 ยังโหลดประวัติแชตไม่ได้ แต่สามารถส่งข้อความใหม่ได้เมื่อ backend และ AI proxy พร้อม "
+    }
+  ],
+  "consoleMessages": [],
+  "pageErrors": []
+}
