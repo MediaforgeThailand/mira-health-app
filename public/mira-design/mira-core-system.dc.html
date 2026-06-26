@@ -1984,6 +1984,14 @@ class Component extends DCLogic {
   // ===== conversations =====
   _convMeta(ch) { return ch==='LINE' ? { bg:'rgba(6,199,85,.12)', fg:'#06A04A' } : { bg:'#EAF1FE', fg:'#2563EB' }; }
   _convModel(s) {
+    if (!this._conversations.length) {
+      return {
+        list: [],
+        order: null,
+        sel: { id:'', customer:'ไม่มีบทสนทนา', channel:'-', channelBg:'#F1F5F9', channelFg:'#64748B', avatar:'-', effMode:'ai', mode:'ai', unreadShow:false, unread:0, time:'-', last:'-' },
+        transcript: [],
+      };
+    }
     const selId=s.convId||this._conversations[0].id; const mode=s.convMode||{}; const msgs=s.convMsgs||{}; const now=s.now||Date.now();
     const list=this._conversations.map((c)=>{ const cm=this._convMeta(c.channel); const eff=mode[c.id]||c.mode; return Object.assign({},c,{
       effMode:eff, channelBg:cm.bg, channelFg:cm.fg, avatar:(c.customer||'?').trim().charAt(0), selected:c.id===selId, unreadShow:c.unread>0,
@@ -2006,7 +2014,7 @@ class Component extends DCLogic {
     if(order) order=Object.assign({},order,{ onOpen:()=>{ this.setState({adminView:'orders'}); this.openOrder(ordObj); } });
     return { list, sel:selOut, transcript, order };
   }
-  sendConv=()=>{ const t=(this.state.convInput||'').trim(); if(!t)return; this.setState((st)=>{ const id=st.convId||this._conversations[0].id; const msgs=Object.assign({},st.convMsgs); msgs[id]=(msgs[id]||[]).concat([t]); return { convMsgs:msgs, convInput:'' }; }); };
+  sendConv=()=>{ const t=(this.state.convInput||'').trim(); if(!t||!this._conversations.length)return; this.setState((st)=>{ const id=st.convId||this._conversations[0].id; const msgs=Object.assign({},st.convMsgs); msgs[id]=(msgs[id]||[]).concat([t]); return { convMsgs:msgs, convInput:'' }; }); };
   // ===== payments =====
   _payMeta(st) { const m={ awaiting:{l:'รอชำระ',fg:'#C9810A',bg:'#FDF1DE'}, submitted:{l:'รอตรวจสลิป',fg:'#2563EB',bg:'#EAF1FE'}, paid:{l:'ชำระแล้ว',fg:'#0F9D70',bg:'rgba(16,185,129,.12)'}, failed:{l:'ล้มเหลว',fg:'#DC2626',bg:'#FBE3E4'}, refund:{l:'ต้องคืนเงิน',fg:'#7C3AED',bg:'rgba(139,92,246,.12)'} }; return m[st]||m.awaiting; }
   _payModel(s) {
@@ -2030,7 +2038,7 @@ class Component extends DCLogic {
   copyWebhook=()=>{ this.setState({ lineCopied:true }); this._timers.push(setTimeout(()=>this.setState({lineCopied:false}),1600)); };
   sendLineTest=()=>this.setState({ lineTestText:'' });
   verifyLine = () => this.setState({ lineConn:'missing', lineVerifying:false });
-  goReplyConv = () => { const id=this.state.lineTestConv||this._conversations[0].id; this.setState({ adminView:'conv', convId:id }); };
+  goReplyConv = () => { const first=this._conversations[0]; if(!first)return; const id=this.state.lineTestConv||first.id; this.setState({ adminView:'conv', convId:id }); };
 
   // ===== chrome / nav helpers =====
   _tab(active) { return 'padding:7px 16px; border:none; cursor:pointer; border-radius:8px; font-size:13.5px; font-weight:600; ' + (active ? 'background:#2563EB; color:#fff; box-shadow:0 2px 6px rgba(37,99,235,.25);' : 'background:transparent; color:#5A6B86;'); }
@@ -2134,6 +2142,7 @@ class Component extends DCLogic {
     const _fk = s.fulfillKind||'service'; const _fd = s.fulfillData||{};
     const _rp = this._refProfile(s) || {}; const _rpf = s.refForm || {};
     const _sp = (this._products[s.stockSel||0] || this._products[0] || {}); const _book = s.stockBook || this._seedStock(); const _sb = _book[_sp.title] || { available:0, reserved:0, sold:0, damaged:0, tracking:false };
+    const _conv = this._convModel(s); const _firstConv = this._conversations[0] || { id:'' };
     const _lc = s.lineConn||'connected';
     const _credMeta = (st)=> st==='connected'?{l:'เชื่อมต่อแล้ว',fg:'#0F9D70',bg:'rgba(16,185,129,.12)',icon:'✓'} : st==='missing'?{l:'ยังไม่ตั้งค่า',fg:'#C9810A',bg:'#FDF1DE',icon:'!'} : {l:'ไม่ถูกต้อง',fg:'#DC2626',bg:'#FBE3E4',icon:'✕'};
     const _credSt = _lc==='connected'?['connected','connected','connected'] : _lc==='missing'?['connected','connected','missing'] : ['connected','invalid','connected'];
@@ -2266,11 +2275,11 @@ class Component extends DCLogic {
       qrCells: this._qrCells('https://mira.health/r/'+(s.qrRef||'')), closeQr: ()=>this.setState({qrRef:null}),
       stopProp: (e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); },
       // conversations
-      convList: this._convModel(s).list, convSel: this._convModel(s).sel, convTranscript: this._convModel(s).transcript,
-      convIsHuman: this._convModel(s).sel.effMode==='human', convIsAI: this._convModel(s).sel.effMode!=='human',
-      convOrder: this._convModel(s).order, convHasOrder: !!this._convModel(s).order, convNoOrder: !this._convModel(s).order,
-      takeOver: ()=>this.setState((st)=>({ convMode:Object.assign({},st.convMode,{[st.convId||this._conversations[0].id]:'human'}) })),
-      returnAI: ()=>this.setState((st)=>({ convMode:Object.assign({},st.convMode,{[st.convId||this._conversations[0].id]:'ai'}) })),
+      convList: _conv.list, convSel: _conv.sel, convTranscript: _conv.transcript,
+      convIsHuman: _conv.sel.effMode==='human', convIsAI: _conv.sel.effMode!=='human',
+      convOrder: _conv.order, convHasOrder: !!_conv.order, convNoOrder: !_conv.order,
+      takeOver: ()=>this.setState((st)=>({ convMode:Object.assign({},st.convMode,{[st.convId||_firstConv.id]:'human'}) })),
+      returnAI: ()=>this.setState((st)=>({ convMode:Object.assign({},st.convMode,{[st.convId||_firstConv.id]:'ai'}) })),
       convInputVal: s.convInput||'', onConvInput: (e)=>this.setState({convInput:e.target.value}), sendConv: this.sendConv,
       // payments
       payRows: this._payModel(s).rows, payHasRows: this._payModel(s).rows.length>0, payEmpty: this._payModel(s).rows.length===0,
@@ -2294,7 +2303,7 @@ class Component extends DCLogic {
       lineDemoConnected:this._dchip(_lc==='connected','blue'), lineDemoMissing:this._dchip(_lc==='missing','amber'), lineDemoInvalid:this._dchip(_lc==='invalid','error'),
       setLineConnected:()=>{}, setLineMissing:()=>{}, setLineInvalid:()=>{},
       lineTestConvOpts:this._conversations.map((c)=>({ id:c.id, label:c.customer+' · '+c.channel })),
-      lineTestConvVal:s.lineTestConv||this._conversations[0].id, onLineTestConv:(e)=>this.setState({lineTestConv:e.target.value}), goReplyConv:this.goReplyConv,
+      lineTestConvVal:s.lineTestConv||_firstConv.id, onLineTestConv:(e)=>this.setState({lineTestConv:e.target.value}), goReplyConv:this.goReplyConv,
       // AI chat
       csGreet: (s.chatStage||0)>=1, csUserQ: (s.chatStage||0)>=2, csTyping: (s.chatStage||0)===2,
       csRecommend: (s.chatStage||0)>=3, csCards: (s.chatStage||0)>=4, csUserPick: (s.chatStage||0)>=5,
