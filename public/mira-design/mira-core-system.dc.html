@@ -265,6 +265,7 @@
             <select value="{{ prodCatVal }}" onChange="{{ onProdCat }}" style="padding:10px 13px; border:1px solid #E4ECF8; border-radius:9px; font-size:13px; color:#42506b; background:#fff; cursor:pointer; outline:none;">
               <option value="all">ทุกหมวด</option><option value="checkup">ตรวจสุขภาพ</option><option value="blood">เลือด/แล็บ</option><option value="heart">หัวใจ</option>
             </select>
+            <button onClick="{{ goStock }}" style="padding:10px 15px; border:1px solid #E4ECF8; background:#fff; color:#42506b; border-radius:9px; font-size:13px; font-weight:600; cursor:pointer;">▥ Stock Movement</button>
             <button onClick="{{ toggleBranches }}" style="padding:10px 15px; border:1px solid #E4ECF8; background:#fff; color:#42506b; border-radius:9px; font-size:13px; font-weight:600; cursor:pointer;">⌂ จัดการสาขา</button>
             <button onClick="{{ openNewProduct }}" style="padding:10px 17px; border:none; background:#2563EB; color:#fff; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer;">+ เพิ่มสินค้า</button>
           </div>
@@ -323,6 +324,81 @@
           </div>
         </div>
         </sc-if>
+
+        <!-- STOCK MOVEMENT -->
+        <sc-if value="{{ inStock }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap;">
+            <button onClick="{{ backToProducts }}" style="display:inline-flex; align-items:center; gap:7px; padding:9px 14px; border:1px solid #E4ECF8; background:#fff; color:#42506b; border-radius:9px; font-size:13px; font-weight:600; cursor:pointer;">← กลับไปสินค้า</button>
+            <div style="font-size:12.5px; color:#8595B0;">Stock Movement · สต็อกจริงแยกตามสินค้า/สาขา</div>
+          </div>
+          <div class="noscroll" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:5px; margin-bottom:15px;">
+            <sc-for list="{{ stockProducts }}" as="p" hint-placeholder-count="4"><button onClick="{{ p.onPick }}" style="{{ p.chipStyle }}">{{ p.title }}</button></sc-for>
+          </div>
+
+          <sc-if value="{{ stockTrackingOn }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+              <span style="font-size:12.5px; color:#8595B0;">สาขา / คลัง:</span>
+              <select value="{{ stockBranchVal }}" onChange="{{ onStockBranch }}" style="padding:9px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:13px; color:#0E2143; background:#fff; cursor:pointer; outline:none;">
+                <sc-for list="{{ stockBranchOpts }}" as="b" hint-placeholder-count="3"><option value="{{ b }}">{{ b }}</option></sc-for>
+              </select>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px;">
+              <div style="background:#fff; border:1px solid #E9EEF6; border-radius:10px; padding:15px 16px;"><div style="font-size:12px; color:#8595B0;">พร้อมขาย · Available</div><div style="font-family:'Sora',sans-serif; font-size:27px; font-weight:700; color:#0F9D70;">{{ stAvailable }}</div></div>
+              <div style="background:#fff; border:1px solid #E9EEF6; border-radius:10px; padding:15px 16px;"><div style="font-size:12px; color:#8595B0;">จองไว้ · Reserved</div><div style="font-family:'Sora',sans-serif; font-size:27px; font-weight:700; color:#C9810A;">{{ stReserved }}</div></div>
+              <div style="background:#fff; border:1px solid #E9EEF6; border-radius:10px; padding:15px 16px;"><div style="font-size:12px; color:#8595B0;">ขายแล้ว · Sold</div><div style="font-family:'Sora',sans-serif; font-size:27px; font-weight:700; color:#2563EB;">{{ stSold }}</div></div>
+              <div style="background:#fff; border:1px solid #E9EEF6; border-radius:10px; padding:15px 16px;"><div style="font-size:12px; color:#8595B0;">เสียหาย · Damaged</div><div style="font-family:'Sora',sans-serif; font-size:27px; font-weight:700; color:#DC2626;">{{ stDamaged }}</div></div>
+            </div>
+
+            <div style="background:#fff; border:1px solid #E9EEF6; border-radius:10px; padding:18px; margin-bottom:16px;">
+              <div style="font-size:14px; font-weight:700; color:#0E2143; margin-bottom:13px;">บันทึกการเคลื่อนไหวสต็อก</div>
+              <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:7px; margin-bottom:13px;">
+                <sc-for list="{{ stockMoveReasons }}" as="r" hint-placeholder-count="5"><button onClick="{{ r.onClick }}" style="{{ r.segStyle }}">{{ r.label }}</button></sc-for>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-bottom:11px;">
+                <div><label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">จำนวน</label><input value="{{ stMoveQtyVal }}" onChange="{{ onStMoveQty }}" placeholder="0" style="width:100%; padding:10px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:14px; outline:none; font-family:'Sora',sans-serif;"></div>
+                <div><label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">ผู้ทำรายการ</label><input value="{{ stMoveOpVal }}" onChange="{{ onStMoveOp }}" style="width:100%; padding:10px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:13.5px; outline:none;"></div>
+              </div>
+              <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">เหตุผล / หมายเหตุ</label>
+              <div style="display:flex; gap:10px;">
+                <input value="{{ stMoveNoteVal }}" onChange="{{ onStMoveNote }}" placeholder="เช่น รับเข้าจากซัพพลายเออร์ / สินค้าชำรุดระหว่างขนส่ง" style="flex:1; padding:10px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:13.5px; outline:none;">
+                <button onClick="{{ applyStockMove }}" style="padding:10px 22px; border:none; border-radius:9px; background:#2563EB; color:#fff; font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap;">บันทึกรายการ</button>
+              </div>
+            </div>
+
+            <div style="background:#fff; border:1px solid #E9EEF6; border-radius:10px; overflow:hidden;">
+              <div style="padding:13px 16px; border-bottom:1px solid #EDF1F7; font-size:14px; font-weight:700; color:#0E2143;">ประวัติการเคลื่อนไหว · {{ stockSelTitle }}</div>
+              <sc-if value="{{ stockHasMoves }}" hint-placeholder-val="{{ false }}">
+                <div style="display:grid; grid-template-columns:1fr 1fr 0.7fr 1fr 1.6fr 1fr; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid #EDF1F7; font-size:11px; font-weight:700; letter-spacing:.3px; color:#A6B2C9; background:#FAFCFE;">
+                  <div>เวลา</div><div>ประเภท</div><div>จำนวน</div><div>สาขา</div><div>หมายเหตุ</div><div>ผู้ทำรายการ</div>
+                </div>
+                <sc-for list="{{ stockMoveRows }}" as="m" hint-placeholder-count="3">
+                  <div style="display:grid; grid-template-columns:1fr 1fr 0.7fr 1fr 1.6fr 1fr; align-items:center; gap:10px; padding:11px 16px; border-bottom:1px solid #F4F7FB; font-size:12.5px;">
+                    <div style="color:#9AA8C2;">{{ m.time }}</div>
+                    <div style="color:#0E2143; font-weight:600;">{{ m.reason }}</div>
+                    <div style="font-family:'Sora',sans-serif; font-weight:700; color:{{ m.qtyColor }};">{{ m.qty }}</div>
+                    <div style="color:#5A6B86;">{{ m.branch }}</div>
+                    <div style="color:#5A6B86; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ m.note }}</div>
+                    <div style="color:#42506b;">{{ m.op }}</div>
+                  </div>
+                </sc-for>
+              </sc-if>
+              <sc-if value="{{ stockHasMoves }}" hint-placeholder-val="{{ true }}">
+                <div style="padding:46px 20px; text-align:center; color:#A6B2C9; font-size:13px;">ยังไม่มีการเคลื่อนไหวสต็อกของสินค้านี้ — บันทึกรายการแรกด้านบน</div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ stockTrackingOff }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#fff; border:1px solid #E9EEF6; border-radius:10px; padding:64px 20px; display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center;">
+              <div style="width:54px; height:54px; border-radius:50%; background:#F0F4FA; display:flex; align-items:center; justify-content:center; font-size:24px; color:#A6B2C9;">▥</div>
+              <div style="font-size:15.5px; font-weight:700; color:#0E2143;">ยังไม่เปิด Stock Tracking</div>
+              <div style="font-size:13px; color:#8595B0; max-width:360px;">{{ stockSelTitle }} ยังไม่ได้เปิดการติดตามสต็อก เปิดเพื่อเริ่มบันทึก Available / Reserved / Sold / Damaged และประวัติการเคลื่อนไหว</div>
+              <button onClick="{{ enableStockTracking }}" style="margin-top:4px; padding:10px 20px; border:none; border-radius:9px; background:#2563EB; color:#fff; font-size:13.5px; font-weight:600; cursor:pointer;">เปิด Stock Tracking</button>
+            </div>
+          </sc-if>
+        </div>
+        </sc-if>
         </sc-if>
         <sc-if value="{{ showRef }}" hint-placeholder-val="{{ false }}">
         <div>
@@ -335,14 +411,14 @@
           <sc-if value="{{ refSubList }}" hint-placeholder-val="{{ true }}">
           <div>
             <div style="display:flex; justify-content:flex-end; margin-bottom:14px;">
-              <button style="padding:10px 17px; border:none; background:#2563EB; color:#fff; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer;">+ เพิ่มผู้แนะนำ</button>
+              <button onClick="{{ openRefCreate2 }}" style="padding:10px 17px; border:none; background:#2563EB; color:#fff; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer;">+ เพิ่มผู้แนะนำ</button>
             </div>
             <div style="background:#fff; border:1px solid #E9EEF6; border-radius:10px; overflow:hidden;">
               <div style="display:grid; grid-template-columns:1.5fr 1.4fr 1.3fr 0.6fr 0.9fr 0.8fr; align-items:center; gap:10px; padding:11px 16px; border-bottom:1px solid #EDF1F7; font-size:11.5px; font-weight:700; letter-spacing:.3px; color:#A6B2C9; background:#FAFCFE;">
                 <div>ผู้แนะนำ</div><div>โค้ด / ลิงก์</div><div>สูตรคอมมิชชั่น</div><div>ออเดอร์</div><div>คอมรวม</div><div>สถานะ</div>
               </div>
               <sc-for list="{{ refRows }}" as="r" hint-placeholder-count="4">
-                <div style="{{ r.rowStyle }}">
+                <div onClick="{{ r.onOpen }}" style="{{ r.rowStyle }}">
                   <div><div style="font-weight:600; color:#0E2143;">{{ r.name }}</div><div style="font-size:11px; color:#9AA8C2; margin-top:1px;">{{ r.type }} · {{ r.phone }}</div></div>
                   <div>
                     <div style="font-family:'Sora',sans-serif; font-weight:600; font-size:12.5px; color:#2563EB;">{{ r.code }}</div>
@@ -555,21 +631,41 @@
           <!-- left -->
           <div style="display:flex; flex-direction:column; gap:14px;">
             <div style="background:#fff; border:1px solid #E9EEF6; border-radius:10px; padding:18px;">
-              <div style="display:flex; align-items:center; gap:9px; margin-bottom:15px;">
-                <div style="width:30px; height:30px; border-radius:8px; background:rgba(6,199,85,.12); color:#06A04A; display:flex; align-items:center; justify-content:center; font-size:16px;">◉</div>
-                <div style="font-size:14.5px; font-weight:700; color:#0E2143;">การเชื่อมต่อ LINE Official Account</div>
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:15px;">
+                <div style="display:flex; align-items:center; gap:9px;">
+                  <div style="width:30px; height:30px; border-radius:8px; background:rgba(6,199,85,.12); color:#06A04A; display:flex; align-items:center; justify-content:center; font-size:16px;">◉</div>
+                  <div style="font-size:14.5px; font-weight:700; color:#0E2143;">การเชื่อมต่อ LINE Official Account</div>
+                </div>
+                <span style="font-size:12px; font-weight:700; padding:4px 11px; border-radius:7px; background:{{ lineConnBg }}; color:{{ lineConnFg }};">{{ lineConnLabel }}</span>
               </div>
               <div style="font-size:12px; color:#8595B0; margin-bottom:6px;">Webhook URL — ตั้งค่าใน LINE Developers Console</div>
-              <div style="display:flex; gap:9px; margin-bottom:16px;">
+              <div style="display:flex; gap:9px; margin-bottom:14px;">
                 <div style="flex:1; padding:10px 13px; background:#F5F8FC; border:1px solid #E9EEF6; border-radius:9px; font-size:12.5px; font-family:'Sora',sans-serif; color:#0E2143; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ lineWebhook }}</div>
                 <sc-if value="{{ lineNotCopied }}" hint-placeholder-val="{{ true }}"><button onClick="{{ copyWebhook }}" style="padding:10px 15px; border:none; border-radius:9px; background:#2563EB; color:#fff; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">คัดลอก</button></sc-if>
                 <sc-if value="{{ lineCopied }}" hint-placeholder-val="{{ false }}"><button style="padding:10px 15px; border:none; border-radius:9px; background:#0F9D70; color:#fff; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">คัดลอกแล้ว ✓</button></sc-if>
               </div>
-              <div style="display:flex; flex-direction:column; gap:1px;">
-                <div style="display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-top:1px solid #F4F7FB;"><span style="font-size:13px; color:#42506b;">Channel secret</span><span style="font-size:12px; font-weight:700; color:#0F9D70;">✓ ตั้งค่าแล้ว</span></div>
-                <div style="display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-top:1px solid #F4F7FB;"><span style="font-size:13px; color:#42506b;">Channel access token</span><span style="font-size:12px; font-weight:700; color:#0F9D70;">✓ ตั้งค่าแล้ว</span></div>
-                <div style="display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-top:1px solid #F4F7FB;"><span style="font-size:13px; color:#42506b;">Webhook verified</span><span style="font-size:12px; font-weight:700; color:#0F9D70;">✓ ผ่านการตรวจสอบ</span></div>
+              <button onClick="{{ verifyLine }}" style="width:100%; padding:11px; border:none; border-radius:9px; background:#2563EB; color:#fff; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <sc-if value="{{ lineVerifying }}" hint-placeholder-val="{{ false }}"><span style="display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.5); border-top-color:#fff; border-radius:50%; animation:mc_spin .7s linear infinite;"></span>กำลังตรวจสอบการเชื่อมต่อ…</sc-if>
+                <sc-if value="{{ lineNotVerifying }}" hint-placeholder-val="{{ true }}">ตรวจสอบการเชื่อมต่อ (Verify connection)</sc-if>
+              </button>
+              <div style="display:none; align-items:center; gap:7px; margin-top:13px;">
+                <span style="font-size:11px; color:#A6B2C9; margin-right:1px;">ดูสถานะตัวอย่าง:</span>
+                <button onClick="{{ setLineConnected }}" style="{{ lineDemoConnected }}">เชื่อมต่อแล้ว</button>
+                <button onClick="{{ setLineMissing }}" style="{{ lineDemoMissing }}">ยังไม่ตั้งค่า</button>
+                <button onClick="{{ setLineInvalid }}" style="{{ lineDemoInvalid }}">ไม่ถูกต้อง</button>
               </div>
+            </div>
+
+            <div style="background:#fff; border:1px solid #E9EEF6; border-radius:10px; padding:18px;">
+              <div style="font-size:14px; font-weight:700; color:#0E2143; margin-bottom:4px;">Setup checklist</div>
+              <div style="font-size:12px; color:#8595B0; margin-bottom:11px;">credential ที่ต้องตั้งค่าให้ครบก่อนใช้งานจริง</div>
+              <sc-for list="{{ lineCredRows }}" as="c" hint-placeholder-count="3">
+                <div style="display:flex; align-items:center; gap:12px; padding:11px 0; border-top:1px solid #F4F7FB;">
+                  <div style="width:24px; height:24px; flex:none; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; background:{{ c.stBg }}; color:{{ c.stFg }};">{{ c.stIcon }}</div>
+                  <div style="flex:1; min-width:0;"><div style="font-size:13px; font-weight:600; color:#0E2143;">{{ c.label }}</div><div style="font-size:11px; color:#9AA8C2; font-family:'Sora',sans-serif; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ c.sub }}</div></div>
+                  <span style="font-size:11px; font-weight:600; padding:3px 9px; border-radius:6px; background:{{ c.stBg }}; color:{{ c.stFg }};">{{ c.stLabel }}</span>
+                </div>
+              </sc-for>
             </div>
 
             <div style="background:#fff; border:1px solid #E9EEF6; border-radius:10px; padding:18px;">
@@ -598,12 +694,14 @@
             </div>
 
             <div style="background:#fff; border:1px solid #E9EEF6; border-radius:10px; padding:16px;">
-              <div style="font-size:14px; font-weight:700; color:#0E2143; margin-bottom:11px;">ทดสอบส่งข้อความ</div>
-              <div style="display:flex; gap:9px; margin-bottom:9px;">
-                <input value="{{ lineTestVal }}" onChange="{{ onLineTest }}" placeholder="พิมพ์ข้อความทดสอบ…" style="flex:1; padding:10px 13px; border:1px solid #E4ECF8; border-radius:9px; font-size:13px; outline:none;">
-                <button onClick="{{ sendLineTest }}" style="padding:10px 16px; border:none; border-radius:9px; background:#06A04A; color:#fff; font-size:12.5px; font-weight:600; cursor:pointer;">ส่ง test</button>
-              </div>
-              <div style="font-size:11.5px; color:#A6B2C9; line-height:1.4;">ใช้ตรวจ postback mapping และการตอบกลับของ webhook</div>
+              <div style="font-size:14px; font-weight:700; color:#0E2143; margin-bottom:5px;">ทดสอบการตอบกลับ (reply)</div>
+              <div style="font-size:11.5px; color:#8595B0; margin-bottom:12px; line-height:1.5;">การทดสอบที่ถูกต้องต้องเลือกบทสนทนาจริงก่อน แล้วตอบผ่าน admin-line-reply — ไม่ส่งข้อความลอย ๆ</div>
+              <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:6px;">เลือกบทสนทนา</label>
+              <select value="{{ lineTestConvVal }}" onChange="{{ onLineTestConv }}" style="width:100%; padding:10px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:13px; margin-bottom:11px; outline:none; background:#fff; color:#0E2143;">
+                <sc-for list="{{ lineTestConvOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.id }}">{{ o.label }}</option></sc-for>
+              </select>
+              <button onClick="{{ goReplyConv }}" style="width:100%; padding:11px; border:none; border-radius:9px; background:#06A04A; color:#fff; font-size:13px; font-weight:600; cursor:pointer;">ไปที่บทสนทนาเพื่อตอบกลับ →</button>
+              <div style="margin-top:11px; display:flex; gap:8px; padding:9px 11px; background:#FFF8EC; border:1px solid #F6E4C4; border-radius:8px;"><span style="color:#C9810A;">⚠</span><span style="font-size:11px; color:#94702A; line-height:1.45;">test-send ยังไม่มี backend contract production — ระบบจะไม่แสดงผลสำเร็จแบบหลอก</span></div>
             </div>
 
             <div style="background:#fff; border:1px solid #E9EEF6; border-radius:10px; padding:16px;">
@@ -683,6 +781,20 @@
             <div style="display:flex; flex-direction:column; gap:8px;">
               <sc-for list="{{ sel.transcript }}" as="m" hint-placeholder-count="3"><div style="{{ m.bubbleStyle }}">{{ m.text }}</div></sc-for>
             </div>
+          </div>
+
+          <!-- status change audit -->
+          <div style="background:#fff; border:1px solid #E9EEF6; border-radius:10px; padding:15px; margin-bottom:14px;">
+            <div style="font-size:11.5px; color:#A6B2C9; font-weight:700; margin-bottom:13px;">ประวัติการเปลี่ยนสถานะ</div>
+            <sc-for list="{{ sel.audit }}" as="a" hint-placeholder-count="3">
+              <div style="display:flex; gap:11px;">
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                  <div style="width:9px; height:9px; border-radius:50%; flex:none; margin-top:4px; {{ a.dotStyle }}"></div>
+                  <sc-if value="{{ a.notLast }}" hint-placeholder-val="{{ true }}"><div style="width:2px; flex:1; min-height:16px; background:#E4ECF8;"></div></sc-if>
+                </div>
+                <div style="flex:1; padding-bottom:13px;"><div style="font-size:12.5px; color:#0E2143; font-weight:600;">{{ a.action }}</div><div style="font-size:11px; color:#9AA8C2; margin-top:1px;">โดย {{ a.by }} · {{ a.time }}</div></div>
+              </div>
+            </sc-for>
           </div>
 
           <!-- actions -->
@@ -776,7 +888,179 @@
         </div>
         <div style="position:sticky; bottom:0; display:flex; gap:10px; justify-content:flex-end; padding:14px 22px; background:#fff; border-top:1px solid #EDF1F7;">
           <button onClick="{{ closeForm }}" style="padding:10px 18px; border:1px solid #E4ECF8; background:#fff; color:#5A6B86; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer;">ยกเลิก</button>
-          <button onClick="{{ saveProductForm }}" style="padding:10px 24px; border:none; background:#2563EB; color:#fff; border-radius:9px; font-size:13.5px; font-weight:700; cursor:pointer;">บันทึก</button>
+          <button onClick="{{ closeForm }}" style="padding:10px 24px; border:none; background:#2563EB; color:#fff; border-radius:9px; font-size:13.5px; font-weight:700; cursor:pointer;">บันทึก</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ===== FULFILLMENT / BOOKING MODAL ===== -->
+    <sc-if value="{{ fulfillOpen }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeFulfill }}" style="position:fixed; inset:0; top:56px; background:rgba(14,33,67,.42); z-index:62;"></div>
+      <div class="noscroll" style="position:fixed; left:50%; top:calc(50% + 28px); transform:translate(-50%,-50%); width:480px; max-width:94vw; max-height:84vh; overflow-y:auto; background:#fff; border-radius:14px; z-index:63; box-shadow:0 30px 70px rgba(14,33,67,.34); animation:mc_modal .24s ease;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:17px 22px; border-bottom:1px solid #EDF1F7;">
+          <div><div style="font-family:'Sora',sans-serif; font-size:16px; font-weight:700; color:#0E2143;">{{ fulfillTitle }}</div><div style="font-size:11.5px; color:#8595B0; margin-top:1px;">{{ fulfillSub }}</div></div>
+          <button onClick="{{ closeFulfill }}" style="width:32px; height:32px; flex:none; border:1px solid #E4ECF8; background:#fff; border-radius:8px; cursor:pointer; color:#5A6B86;">✕</button>
+        </div>
+        <div style="padding:20px 22px;">
+          <sc-if value="{{ fulfillIsService }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+              <div>
+                <label style="display:block; font-size:12.5px; font-weight:600; color:#5A6B86; margin-bottom:6px;">วันนัดหมาย</label>
+                <select value="{{ fulfillDate }}" onChange="{{ onFulfillDate }}" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:13.5px; outline:none; background:#fff; color:#0E2143;">
+                  <option value="">เลือกวัน</option><option value="เสาร์ 28 มิ.ย.">เสาร์ 28 มิ.ย.</option><option value="อาทิตย์ 29 มิ.ย.">อาทิตย์ 29 มิ.ย.</option><option value="จันทร์ 30 มิ.ย.">จันทร์ 30 มิ.ย.</option><option value="อังคาร 1 ก.ค.">อังคาร 1 ก.ค.</option>
+                </select>
+              </div>
+              <div>
+                <label style="display:block; font-size:12.5px; font-weight:600; color:#5A6B86; margin-bottom:6px;">ช่วงเวลา</label>
+                <select value="{{ fulfillTime }}" onChange="{{ onFulfillTime }}" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:13.5px; outline:none; background:#fff; color:#0E2143;">
+                  <option value="เช้า (09:00–12:00)">เช้า (09:00–12:00)</option><option value="บ่าย (13:00–16:00)">บ่าย (13:00–16:00)</option><option value="เย็น (17:00–19:00)">เย็น (17:00–19:00)</option>
+                </select>
+              </div>
+            </div>
+            <label style="display:block; font-size:12.5px; font-weight:600; color:#5A6B86; margin-bottom:6px;">สาขาที่นัดหมาย</label>
+            <select value="{{ fulfillBranch }}" onChange="{{ onFulfillBranch }}" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:13.5px; margin-bottom:14px; outline:none; background:#fff; color:#0E2143;">
+              <sc-for list="{{ fulfillBranchOpts }}" as="b" hint-placeholder-count="4"><option value="{{ b }}">{{ b }}</option></sc-for>
+            </select>
+            <label style="display:block; font-size:12.5px; font-weight:600; color:#5A6B86; margin-bottom:6px;">โน้ตถึงลูกค้า</label>
+            <textarea value="{{ fulfillNote }}" onChange="{{ onFulfillNote }}" rows="2" placeholder="เช่น งดน้ำงดอาหารก่อนตรวจ 8 ชม." style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:13px; outline:none; resize:vertical; font-family:inherit;"></textarea>
+          </sc-if>
+          <sc-if value="{{ fulfillIsProduct }}" hint-placeholder-val="{{ false }}">
+            <label style="display:block; font-size:12.5px; font-weight:600; color:#5A6B86; margin-bottom:6px;">ยืนยันที่อยู่จัดส่ง</label>
+            <textarea value="{{ fulfillAddr }}" onChange="{{ onFulfillAddr }}" rows="2" placeholder="ที่อยู่จัดส่ง" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:13px; margin-bottom:14px; outline:none; resize:vertical; font-family:inherit;"></textarea>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+              <div>
+                <label style="display:block; font-size:12.5px; font-weight:600; color:#5A6B86; margin-bottom:6px;">ขนส่ง</label>
+                <select value="{{ fulfillCourier }}" onChange="{{ onFulfillCourier }}" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:13.5px; outline:none; background:#fff; color:#0E2143;">
+                  <sc-for list="{{ fulfillCourierOpts }}" as="c" hint-placeholder-count="4"><option value="{{ c }}">{{ c }}</option></sc-for>
+                </select>
+              </div>
+              <div>
+                <label style="display:block; font-size:12.5px; font-weight:600; color:#5A6B86; margin-bottom:6px;">เลขพัสดุ</label>
+                <input value="{{ fulfillTracking }}" onChange="{{ onFulfillTracking }}" placeholder="เช่น KEX9032118842" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:13.5px; outline:none;">
+              </div>
+            </div>
+            <label style="display:block; font-size:12.5px; font-weight:600; color:#5A6B86; margin-bottom:6px;">โน้ตการจัดส่ง</label>
+            <textarea value="{{ fulfillNote }}" onChange="{{ onFulfillNote }}" rows="2" placeholder="เช่น โทรก่อนส่ง 30 นาที" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:13px; outline:none; resize:vertical; font-family:inherit;"></textarea>
+          </sc-if>
+          <sc-if value="{{ hasFulfillError }}" hint-placeholder-val="{{ false }}"><div style="display:flex; align-items:center; gap:9px; padding:10px 13px; border-radius:9px; background:#FBE3E4; margin-top:14px;"><span style="color:#DC2626;">⚠</span><span style="font-size:12.5px; color:#B91C1C;">{{ fulfillError }}</span></div></sc-if>
+        </div>
+        <div style="display:flex; gap:10px; justify-content:flex-end; padding:14px 22px; border-top:1px solid #EDF1F7;">
+          <button onClick="{{ closeFulfill }}" style="padding:11px 18px; border:1px solid #E4ECF8; background:#fff; color:#5A6B86; border-radius:10px; font-size:13.5px; font-weight:600; cursor:pointer;">ยกเลิก</button>
+          <button onClick="{{ confirmFulfill }}" style="{{ fulfillConfirmStyle }}"><sc-if value="{{ fulfillLoading }}" hint-placeholder-val="{{ false }}"><span style="display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.5); border-top-color:#fff; border-radius:50%; animation:mc_spin .7s linear infinite;"></span></sc-if>{{ fulfillConfirmLabel }}</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ===== REFERRER PROFILE / CREATE DRAWER ===== -->
+    <sc-if value="{{ refDrawerShow }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeRefDrawer }}" style="position:fixed; inset:0; top:56px; background:rgba(14,33,67,.34); z-index:52;"></div>
+      <div class="noscroll" style="position:fixed; top:56px; right:0; bottom:0; width:500px; max-width:94vw; background:#F7FAFE; z-index:53; overflow-y:auto; box-shadow:-20px 0 50px rgba(14,33,67,.22);">
+        <div style="position:sticky; top:0; z-index:5; display:flex; align-items:center; justify-content:space-between; padding:15px 20px; background:#fff; border-bottom:1px solid #EDF1F7;">
+          <div style="display:flex; align-items:center; gap:11px;">
+            <div style="width:40px; height:40px; border-radius:11px; background:linear-gradient(135deg,#60A5FA,#2563EB); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-family:'Sora',sans-serif; font-size:16px;">{{ refP.avatar }}</div>
+            <div><div style="font-family:'Sora',sans-serif; font-size:16px; font-weight:700; color:#0E2143;">{{ refPTitle }}</div><span style="display:inline-block; margin-top:2px; font-size:11px; font-weight:600; padding:2px 9px; border-radius:6px; background:{{ refP.statusBg }}; color:{{ refP.statusFg }};">{{ refP.statusLabel }}</span></div>
+          </div>
+          <button onClick="{{ closeRefDrawer }}" style="width:32px; height:32px; border:1px solid #E4ECF8; background:#fff; border-radius:8px; cursor:pointer; color:#5A6B86; font-size:16px;">✕</button>
+        </div>
+        <div style="padding:18px 20px;">
+          <sc-if value="{{ refHasActions }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; gap:9px; margin-bottom:15px;">
+              <sc-if value="{{ refP.canApprove }}" hint-placeholder-val="{{ false }}"><button onClick="{{ refApprove }}" style="flex:1; padding:11px; border:none; border-radius:10px; background:#0F9D70; color:#fff; font-size:13px; font-weight:700; cursor:pointer;">อนุมัติผู้แนะนำ</button></sc-if>
+              <sc-if value="{{ refP.canDeactivate }}" hint-placeholder-val="{{ true }}"><button onClick="{{ refDeactivate }}" style="flex:1; padding:11px; border:1px solid #F0D2D3; border-radius:10px; background:#fff; color:#DC2626; font-size:13px; font-weight:700; cursor:pointer;">ปิดใช้งาน</button></sc-if>
+              <sc-if value="{{ refP.canReactivate }}" hint-placeholder-val="{{ false }}"><button onClick="{{ refReactivate }}" style="flex:1; padding:11px; border:none; border-radius:10px; background:#2563EB; color:#fff; font-size:13px; font-weight:700; cursor:pointer;">เปิดใช้งานอีกครั้ง</button></sc-if>
+            </div>
+          </sc-if>
+
+          <div style="background:#fff; border:1px solid #E9EEF6; border-radius:11px; padding:16px; margin-bottom:13px;">
+            <div style="font-size:13px; font-weight:700; color:#0E2143; margin-bottom:13px;">ข้อมูลผู้แนะนำ</div>
+            <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">ชื่อ</label>
+            <input value="{{ rfName }}" onChange="{{ onRfName }}" placeholder="ชื่อผู้แนะนำ / ทีม" style="width:100%; padding:10px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:13.5px; margin-bottom:12px; outline:none;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-bottom:12px;">
+              <div><label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">เบอร์โทร</label><input value="{{ rfPhone }}" onChange="{{ onRfPhone }}" placeholder="08x-xxx-xxxx" style="width:100%; padding:10px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:13.5px; outline:none;"></div>
+              <div><label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">รหัสผู้แนะนำ</label><input value="{{ rfCode }}" onChange="{{ onRfCode }}" placeholder="MIRA-XXX" style="width:100%; padding:10px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:13.5px; outline:none; font-family:'Sora',sans-serif;"></div>
+            </div>
+            <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">อีเมล (auth user)</label>
+            <input value="{{ rfEmail }}" onChange="{{ onRfEmail }}" placeholder="user@mira.health" style="width:100%; padding:10px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:13.5px; margin-bottom:12px; outline:none;">
+            <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:6px;">ประเภท</label>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px;">
+              <button onClick="{{ setRfPerson }}" style="{{ rfTypePerson }}">บุคคล</button>
+              <button onClick="{{ setRfTeam }}" style="{{ rfTypeTeam }}">ทีม</button>
+              <button onClick="{{ setRfPartner }}" style="{{ rfTypePartner }}">พาร์ทเนอร์</button>
+            </div>
+            <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:6px;">สถานะ</label>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <button onClick="{{ setRfActive }}" style="{{ rfStatusActive }}">ใช้งาน</button>
+              <button onClick="{{ setRfPending }}" style="{{ rfStatusPending }}">รออนุมัติ</button>
+            </div>
+            <sc-if value="{{ hasRefError }}" hint-placeholder-val="{{ false }}"><div style="display:flex; align-items:center; gap:8px; padding:9px 12px; border-radius:9px; background:#FBE3E4; margin-top:13px;"><span style="color:#DC2626;">⚠</span><span style="font-size:12px; color:#B91C1C;">{{ refErrorText }}</span></div></sc-if>
+            <button onClick="{{ saveRefProfile }}" style="width:100%; margin-top:14px; padding:11px; border:none; border-radius:10px; background:#2563EB; color:#fff; font-size:13.5px; font-weight:700; cursor:pointer;">บันทึกข้อมูล</button>
+          </div>
+
+          <div style="background:#fff; border:1px solid #E9EEF6; border-radius:11px; padding:16px; margin-bottom:13px;">
+            <div style="font-size:13px; font-weight:700; color:#0E2143; margin-bottom:3px;">สูตรคอมมิชชั่น</div>
+            <div style="font-size:11.5px; color:#8595B0; margin-bottom:13px;">กำหนดเปอร์เซ็นต์คอมมิชชั่นตามหมวดสินค้า</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-bottom:13px;">
+              <div><label style="display:block; font-size:11.5px; font-weight:600; color:#5A6B86; margin-bottom:5px;">ตรวจสุขภาพ (%)</label><input value="{{ rfCheckup }}" onChange="{{ onRfCheckup }}" style="width:100%; padding:10px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:14px; outline:none; font-family:'Sora',sans-serif;"></div>
+              <div><label style="display:block; font-size:11.5px; font-weight:600; color:#5A6B86; margin-bottom:5px;">เลือด / แล็บ (%)</label><input value="{{ rfBlood }}" onChange="{{ onRfBlood }}" style="width:100%; padding:10px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:14px; outline:none; font-family:'Sora',sans-serif;"></div>
+              <div><label style="display:block; font-size:11.5px; font-weight:600; color:#5A6B86; margin-bottom:5px;">หัวใจ (%)</label><input value="{{ rfHeart }}" onChange="{{ onRfHeart }}" style="width:100%; padding:10px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:14px; outline:none; font-family:'Sora',sans-serif;"></div>
+              <div><label style="display:block; font-size:11.5px; font-weight:600; color:#5A6B86; margin-bottom:5px;">หมวดอื่น ๆ (%)</label><input value="{{ rfOther }}" onChange="{{ onRfOther }}" style="width:100%; padding:10px 12px; border:1px solid #E4ECF8; border-radius:9px; font-size:14px; outline:none; font-family:'Sora',sans-serif;"></div>
+            </div>
+            <sc-if value="{{ refP.hasSchemeAudit }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px; color:#8595B0; background:#F7FAFE; border:1px solid #EAF1FB; border-radius:8px; padding:8px 11px; margin-bottom:12px;">แก้ไขสูตรล่าสุดโดย <b style="color:#42506b;">{{ refP.schemeAudit.by }}</b> · {{ refP.schemeAudit.time }}</div></sc-if>
+            <button onClick="{{ saveRefScheme }}" style="width:100%; padding:11px; border:1px solid #2563EB; border-radius:10px; background:#fff; color:#2563EB; font-size:13.5px; font-weight:700; cursor:pointer;">บันทึกสูตรคอมมิชชั่น</button>
+          </div>
+
+          <div style="background:#fff; border:1px solid #E9EEF6; border-radius:11px; padding:16px; margin-bottom:13px;">
+            <div style="font-size:13px; font-weight:700; color:#0E2143; margin-bottom:13px;">ลิงก์ & QR ผู้แนะนำ</div>
+            <div style="display:flex; gap:15px; align-items:center;">
+              <div style="padding:9px; background:#fff; border:1px solid #EEF2F8; border-radius:11px; flex:none;">
+                <div style="display:grid; grid-template-columns:repeat(25,1fr); grid-template-rows:repeat(25,1fr); width:104px; height:104px;"><sc-for list="{{ refP.qrCells }}" as="cell" hint-placeholder-count="40"><div style="{{ cell.cellStyle }}"></div></sc-for></div>
+              </div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-family:'Sora',sans-serif; font-weight:700; font-size:14px; color:#2563EB;">{{ rfCode }}</div>
+                <div style="font-size:12px; color:#8595B0; margin:4px 0 11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ refP.link }}</div>
+                <button onClick="{{ copyLink }}" style="padding:8px 14px; border:1px solid #E4ECF8; background:#fff; color:#2563EB; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;">คัดลอกลิงก์</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:#fff; border:1px solid #E9EEF6; border-radius:11px; padding:16px; margin-bottom:13px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;"><div style="font-size:13px; font-weight:700; color:#0E2143;">ออเดอร์ของผู้แนะนำ</div><span style="font-size:11.5px; font-weight:700; color:#5A6B86; background:#F0F4FA; padding:2px 9px; border-radius:7px;">{{ refP.ordersCount }}</span></div>
+            <sc-if value="{{ refP.ordersCount }}" hint-placeholder-val="{{ true }}">
+              <sc-for list="{{ refP.orders }}" as="o" hint-placeholder-count="3">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 0; border-top:1px solid #F4F7FB;">
+                  <div style="min-width:0;"><div style="font-family:'Sora',sans-serif; font-size:12px; font-weight:600; color:#2563EB;">{{ o.id }}</div><div style="font-size:11.5px; color:#5A6B86; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ o.pkg }}</div></div>
+                  <div style="text-align:right; flex:none;"><div style="font-size:12.5px; font-weight:700; color:#0E2143;">{{ o.amount }}</div><span style="font-size:10px; font-weight:600; padding:1px 8px; border-radius:5px; background:{{ o.statusBg }}; color:{{ o.statusFg }};">{{ o.statusLabel }}</span></div>
+                </div>
+              </sc-for>
+            </sc-if>
+            <sc-if value="{{ refP.ordersCount }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px; color:#A6B2C9; text-align:center; padding:14px 0;">ยังไม่มีออเดอร์จากผู้แนะนำรายนี้</div></sc-if>
+          </div>
+
+          <div style="background:#fff; border:1px solid #E9EEF6; border-radius:11px; padding:16px; margin-bottom:13px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;"><div style="font-size:13px; font-weight:700; color:#0E2143;">คอมมิชชั่น (ledger)</div><span style="font-size:11.5px; font-weight:700; color:#5A6B86; background:#F0F4FA; padding:2px 9px; border-radius:7px;">{{ refP.ledgerCount }}</span></div>
+            <sc-if value="{{ refP.ledgerCount }}" hint-placeholder-val="{{ true }}">
+              <sc-for list="{{ refP.ledger }}" as="c" hint-placeholder-count="2">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 0; border-top:1px solid #F4F7FB;">
+                  <div style="min-width:0;"><div style="font-size:12.5px; color:#0E2143; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ c.product }}</div><div style="font-size:11px; color:#9AA8C2;">{{ c.id }} · {{ c.date }}</div></div>
+                  <div style="text-align:right; flex:none;"><div style="font-size:12.5px; font-weight:700; color:#0F9D70;">{{ c.amount }}</div><span style="font-size:10px; font-weight:600; padding:1px 8px; border-radius:5px; background:{{ c.statusBg }}; color:{{ c.statusFg }};">{{ c.statusLabel }}</span></div>
+                </div>
+              </sc-for>
+            </sc-if>
+            <sc-if value="{{ refP.ledgerCount }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px; color:#A6B2C9; text-align:center; padding:14px 0;">ยังไม่มีรายการคอมมิชชั่น</div></sc-if>
+          </div>
+
+          <div style="background:#fff; border:1px solid #E9EEF6; border-radius:11px; padding:16px;">
+            <div style="font-size:13px; font-weight:700; color:#0E2143; margin-bottom:12px;">บันทึกการแก้ไข (audit)</div>
+            <sc-if value="{{ refP.hasAudit }}" hint-placeholder-val="{{ false }}">
+              <sc-for list="{{ refP.audit }}" as="a" hint-placeholder-count="2">
+                <div style="display:flex; gap:10px; padding:7px 0; border-top:1px solid #F4F7FB;">
+                  <div style="width:7px; height:7px; border-radius:50%; flex:none; margin-top:5px; background:#2563EB;"></div>
+                  <div style="flex:1;"><div style="font-size:12px; color:#0E2143; font-weight:600;">{{ a.action }}</div><div style="font-size:11px; color:#9AA8C2;">โดย {{ a.by }} · {{ a.time }}</div></div>
+                </div>
+              </sc-for>
+            </sc-if>
+            <sc-if value="{{ refP.hasAudit }}" hint-placeholder-val="{{ true }}"><div style="font-size:12.5px; color:#A6B2C9; text-align:center; padding:10px 0;">ยังไม่มีการแก้ไขในเซสชันนี้</div></sc-if>
+          </div>
         </div>
       </div>
     </sc-if>
@@ -803,25 +1087,276 @@
           </div>
           <!-- messages -->
           <div class="noscroll" ref="{{ chatScrollRef }}" style="flex:1; overflow-y:auto; padding:16px 16px 12px; display:flex; flex-direction:column; gap:10px;">
-            <sc-for list="{{ chatLiveMessages }}" as="m" hint-placeholder-count="0">
-              <div style="{{ m.bubbleStyle }}">{{ m.text }}</div>
-            </sc-for>
-            <sc-for list="{{ chatLiveCards }}" as="card" hint-placeholder-count="0">
-              <div style="align-self:stretch; border-radius:14px; overflow:hidden; background:#fff; border:1px solid #E8EFF8; box-shadow:0 6px 18px rgba(31,84,170,.08);">
-                <div style="padding:12px 14px;">
-                  <div style="font-size:14px; font-weight:700; color:#0E2143;">{{ card.title }}</div>
-                  <div style="font-size:11.5px; color:#8595B0; margin:3px 0 8px;">{{ card.description }}</div>
-                  <div style="display:flex; align-items:center; justify-content:space-between;"><span style="font-family:'Sora',sans-serif; font-size:18px; font-weight:700; color:#2563EB;">{{ card.price }}</span><span style="font-size:11px; font-weight:600; color:#0F9D70; background:rgba(16,185,129,.12); padding:3px 9px; border-radius:6px;">backend catalog</span></div>
-                </div>
-              </div>
+            <sc-for list="{{ chatLiveMessages }}" as="msg" hint-placeholder-count="2">
+              <div style="{{ msg.bubbleStyle }}">{{ msg.text }}</div>
             </sc-for>
             <sc-if value="{{ chatLiveLoading }}" hint-placeholder-val="{{ false }}"><div style="align-self:flex-start; padding:12px 15px; border-radius:4px 14px 14px 14px; background:#fff; border:1px solid #E8EFF8; display:flex; gap:4px;"><span style="width:6px; height:6px; border-radius:50%; background:#9AA8C2; animation:mc_blink 1.2s infinite;"></span><span style="width:6px; height:6px; border-radius:50%; background:#9AA8C2; animation:mc_blink 1.2s .2s infinite;"></span><span style="width:6px; height:6px; border-radius:50%; background:#9AA8C2; animation:mc_blink 1.2s .4s infinite;"></span></div></sc-if>
+            <sc-if value="{{ chatHasLiveCards }}" hint-placeholder-val="{{ false }}">
+              <div style="align-self:stretch; display:flex; flex-direction:column; gap:9px;">
+                <sc-for list="{{ chatLiveCards }}" as="card" hint-placeholder-count="3">
+                  <div style="border-radius:14px; overflow:hidden; background:#fff; border:1px solid #E8EFF8; box-shadow:0 6px 18px rgba(31,84,170,.08);">
+                    <div style="padding:12px 14px;">
+                      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:7px;">
+                        <div style="min-width:0;"><div style="font-size:13.5px; font-weight:700; color:#0E2143;">{{ card.title }}</div><div style="font-size:11px; color:#8595B0; margin-top:2px; line-height:1.4;">{{ card.description }}</div></div>
+                        <span style="font-family:'Sora',sans-serif; font-size:16px; font-weight:700; color:#2563EB; white-space:nowrap;">{{ card.price }}</span>
+                      </div>
+                      <button onClick="{{ card.openCheckout }}" style="width:100%; margin-top:9px; padding:9px; border:1px solid #2563EB; border-radius:10px; background:#fff; color:#2563EB; font-size:12.5px; font-weight:700; cursor:pointer;">???????????????</button>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ csGreet }}" hint-placeholder-val="{{ true }}"><div style="align-self:flex-start; max-width:80%; padding:10px 13px; border-radius:4px 14px 14px 14px; background:#fff; border:1px solid #E8EFF8; color:#0E2143; font-size:13.5px; line-height:1.45;">สวัสดีค่ะ 👋 Mira ช่วยแนะนำแพ็กเกจตรวจสุขภาพได้เลยค่ะ สนใจตรวจด้านไหนดีคะ?</div></sc-if>
+            <sc-if value="{{ csUserQ }}" hint-placeholder-val="{{ false }}"><div style="align-self:flex-end; max-width:80%; padding:10px 13px; border-radius:14px 14px 4px 14px; background:#2563EB; color:#fff; font-size:13.5px; line-height:1.45;">อยากตรวจสุขภาพประจำปีครับ อายุ 36</div></sc-if>
+            <sc-if value="{{ csTyping }}" hint-placeholder-val="{{ false }}"><div style="align-self:flex-start; padding:12px 15px; border-radius:4px 14px 14px 14px; background:#fff; border:1px solid #E8EFF8; display:flex; gap:4px;"><span style="width:6px; height:6px; border-radius:50%; background:#9AA8C2; animation:mc_blink 1.2s infinite;"></span><span style="width:6px; height:6px; border-radius:50%; background:#9AA8C2; animation:mc_blink 1.2s .2s infinite;"></span><span style="width:6px; height:6px; border-radius:50%; background:#9AA8C2; animation:mc_blink 1.2s .4s infinite;"></span></div></sc-if>
+            <sc-if value="{{ csRecommend }}" hint-placeholder-val="{{ false }}"><div style="align-self:flex-start; max-width:80%; padding:10px 13px; border-radius:4px 14px 14px 14px; background:#fff; border:1px solid #E8EFF8; color:#0E2143; font-size:13.5px; line-height:1.45;">แนะนำ <b>Comprehensive Health 35+</b> ค่ะ ตรวจครบ 45 รายการ เหมาะกับวัย 35+ พอดีเลยค่ะ</div></sc-if>
+            <sc-if value="{{ csCards }}" hint-placeholder-val="{{ false }}">
+              <div style="align-self:stretch; display:flex; flex-direction:column; gap:9px;">
+                <div style="border-radius:14px; overflow:hidden; background:#fff; border:1px solid #E8EFF8; box-shadow:0 6px 18px rgba(31,84,170,.08);">
+                  <div style="height:84px; background:linear-gradient(135deg,#EAF1FE,#DCE9FD); display:flex; align-items:center; justify-content:center; font-size:30px; color:#2563EB;">＋</div>
+                  <div style="padding:12px 14px;">
+                    <div style="font-size:14px; font-weight:700; color:#0E2143;">Comprehensive Health 35+</div>
+                    <div style="font-size:11.5px; color:#8595B0; margin:3px 0 8px;">ตรวจครบ 45 รายการ · เจาะเลือด + อัลตราซาวด์</div>
+                    <div style="display:flex; align-items:center; justify-content:space-between;"><div><span style="font-family:'Sora',sans-serif; font-size:18px; font-weight:700; color:#2563EB;">฿3,900</span> <span style="font-size:11.5px; color:#A6B2C9; text-decoration:line-through;">฿4,900</span></div><span style="font-size:11px; font-weight:600; color:#0F9D70; background:rgba(16,185,129,.12); padding:3px 9px; border-radius:6px;">พร้อมขาย</span></div>
+                    <button onClick="{{ openCompCheckout }}" style="width:100%; margin-top:11px; padding:10px; border:none; border-radius:10px; background:#2563EB; color:#fff; font-size:13px; font-weight:700; cursor:pointer;">เลือกแพ็กเกจนี้ →</button>
+                  </div>
+                </div>
+                <div style="border-radius:14px; overflow:hidden; background:#fff; border:1px solid #E8EFF8;">
+                  <div style="padding:12px 14px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;"><div><div style="font-size:13.5px; font-weight:700; color:#0E2143;">Basic Wellness Check</div><div style="font-size:11px; color:#8595B0; margin-top:2px;">ตรวจพื้นฐาน 20 รายการ</div></div><span style="font-family:'Sora',sans-serif; font-size:16px; font-weight:700; color:#2563EB;">฿1,490</span></div>
+                    <button onClick="{{ openBasicCheckout }}" style="width:100%; padding:9px; border:1px solid #2563EB; border-radius:10px; background:#fff; color:#2563EB; font-size:12.5px; font-weight:700; cursor:pointer;">เลือกแพ็กเกจนี้</button>
+                  </div>
+                </div>
+                <div style="border-radius:14px; overflow:hidden; background:#fff; border:1px solid #E8EFF8;">
+                  <div style="padding:12px 14px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;"><div><div style="font-size:13.5px; font-weight:700; color:#0E2143;">Home Test Kit ตรวจที่บ้าน</div><div style="font-size:11px; color:#8595B0; margin-top:2px;">ส่งถึงบ้าน · ตรวจเองได้</div></div><span style="font-family:'Sora',sans-serif; font-size:16px; font-weight:700; color:#2563EB;">฿1,290</span></div>
+                    <button onClick="{{ openKitCheckout }}" style="width:100%; padding:9px; border:1px solid #2563EB; border-radius:10px; background:#fff; color:#2563EB; font-size:12.5px; font-weight:700; cursor:pointer;">สั่งซื้อ · จัดส่ง</button>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ csUserPick }}" hint-placeholder-val="{{ false }}"><div style="align-self:flex-end; max-width:80%; padding:10px 13px; border-radius:14px 14px 4px 14px; background:#2563EB; color:#fff; font-size:13.5px; line-height:1.45;">เอา Comprehensive 35+ ครับ จองสุขุมวิท</div></sc-if>
+            <sc-if value="{{ csOrder }}" hint-placeholder-val="{{ false }}">
+              <div style="align-self:stretch; border-radius:14px; background:#fff; border:1px solid #E8EFF8; box-shadow:0 6px 18px rgba(31,84,170,.08); overflow:hidden;">
+                <div style="padding:12px 15px; background:#F7FAFE; border-bottom:1px solid #EAF1FB; font-size:12.5px; font-weight:700; color:#0E2143;">สรุปออเดอร์ · MA-1057</div>
+                <div style="padding:13px 15px; display:flex; flex-direction:column; gap:8px; font-size:12.5px;">
+                  <div style="display:flex; justify-content:space-between;"><span style="color:#8595B0;">แพ็กเกจ</span><span style="font-weight:600; color:#0E2143;">Comprehensive 35+</span></div>
+                  <div style="display:flex; justify-content:space-between;"><span style="color:#8595B0;">ชื่อ / เบอร์</span><span style="font-weight:600; color:#0E2143;">ธนกร · 081-xxx-4521</span></div>
+                  <div style="display:flex; justify-content:space-between;"><span style="color:#8595B0;">สาขา</span><span style="font-weight:600; color:#0E2143;">สุขุมวิท</span></div>
+                  <div style="display:flex; justify-content:space-between; padding-top:8px; border-top:1px solid #F2F5FA;"><span style="color:#8595B0;">ยอดชำระ</span><span style="font-family:'Sora',sans-serif; font-size:16px; font-weight:700; color:#2563EB;">฿3,900</span></div>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ csPay }}" hint-placeholder-val="{{ false }}">
+              <div style="align-self:stretch; border-radius:14px; background:#fff; border:1px solid #E8EFF8; padding:15px; text-align:center;">
+                <div style="font-size:12.5px; font-weight:700; color:#0E2143; margin-bottom:4px;">สแกนจ่ายผ่าน PromptPay</div>
+                <div style="font-size:11px; color:#8595B0; margin-bottom:12px;">หรือเลือกบัตรเครดิต / อัปโหลดสลิป</div>
+                <div style="display:inline-block; padding:12px; background:#fff; border:1px solid #EEF2F8; border-radius:12px; box-shadow:0 4px 14px rgba(14,33,67,.06);">
+                  <div style="display:grid; grid-template-columns:repeat(25,1fr); grid-template-rows:repeat(25,1fr); width:150px; height:150px;"><sc-for list="{{ chatQrCells }}" as="cell" hint-placeholder-count="40"><div style="{{ cell.cellStyle }}"></div></sc-for></div>
+                </div>
+                <div style="font-family:'Sora',sans-serif; font-size:18px; font-weight:700; color:#0E2143; margin:11px 0;">฿3,900</div>
+                <button onClick="{{ chatPay }}" style="width:100%; padding:12px; border:none; border-radius:11px; background:#2563EB; color:#fff; font-size:14px; font-weight:700; cursor:pointer;">ชำระเงินแล้ว · แนบสลิป</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ csPaid }}" hint-placeholder-val="{{ false }}">
+              <div style="align-self:flex-start; max-width:84%; padding:10px 13px; border-radius:4px 14px 14px 14px; background:rgba(16,185,129,.1); color:#0F9D70; font-size:12.5px; font-weight:600; line-height:1.45;">✓ รับชำระเรียบร้อย! ทีมงานยืนยันออเดอร์แล้วค่ะ</div>
+              <div style="align-self:stretch; border-radius:14px; background:#fff; border:1px solid #E8EFF8; padding:15px;">
+                <div style="font-size:12.5px; font-weight:700; color:#0E2143; margin-bottom:13px;">ติดตามสถานะออเดอร์</div>
+                <div style="display:flex; flex-direction:column; gap:0;">
+                  <div style="display:flex; gap:11px;"><div style="display:flex; flex-direction:column; align-items:center;"><div style="width:18px; height:18px; border-radius:50%; background:#10B981; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">✓</div><div style="width:2px; height:22px; background:#10B981;"></div></div><div style="font-size:12.5px; color:#42506b; padding-bottom:14px;">เก็บข้อมูลครบ</div></div>
+                  <div style="display:flex; gap:11px;"><div style="display:flex; flex-direction:column; align-items:center;"><div style="width:18px; height:18px; border-radius:50%; background:#10B981; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">✓</div><div style="width:2px; height:22px; background:#10B981;"></div></div><div style="font-size:12.5px; color:#42506b; padding-bottom:14px;">ชำระเงินสำเร็จ</div></div>
+                  <div style="display:flex; gap:11px;"><div style="display:flex; flex-direction:column; align-items:center;"><div style="width:18px; height:18px; border-radius:50%; background:#fff; border:2px solid #2563EB; box-shadow:0 0 0 4px rgba(37,99,235,.16);"></div><div style="width:2px; height:22px; background:#E4ECF8;"></div></div><div style="font-size:12.5px; color:#2563EB; font-weight:700; padding-bottom:14px;">ยืนยันแล้ว · รอจองคิว</div></div>
+                  <div style="display:flex; gap:11px;"><div style="display:flex; flex-direction:column; align-items:center;"><div style="width:18px; height:18px; border-radius:50%; background:#fff; border:2px solid #D7E0EE;"></div></div><div style="font-size:12.5px; color:#9DB1D6;">นัดหมาย / เข้ารับบริการ</div></div>
+                </div>
+                <button style="width:100%; margin-top:13px; padding:9px; border:1px solid #E4ECF8; background:#fff; color:#2563EB; border-radius:9px; font-size:12px; font-weight:600; cursor:pointer;">↻ รีเฟรชสถานะล่าสุด</button>
+              </div>
+            </sc-if>
           </div>
           <!-- input -->
           <div style="flex:none; display:flex; gap:9px; padding:11px 14px 16px; border-top:1px solid #E8EFF8; background:#fff;">
-            <input value="{{ chatInputVal }}" onChange="{{ onChatInput }}" onKeyDown="{{ onChatKey }}" placeholder="พิมพ์ข้อความ…" style="flex:1; padding:10px 14px; background:#F2F6FC; border:none; outline:none; border-radius:20px; font-size:13px; color:#0E2143;">
-            <button onClick="{{ sendChat }}" style="width:38px; height:38px; border:none; cursor:pointer; border-radius:50%; background:#2563EB; display:flex; align-items:center; justify-content:center; color:#fff;">➤</button>
+            <input value="{{ chatInputVal }}" onInput="{{ onChatInput }}" onKeyDown="{{ onChatKey }}" placeholder="????????????..." style="flex:1; min-width:0; padding:10px 14px; background:#F2F6FC; border:none; outline:none; border-radius:20px; font-size:13px; color:#0E2143;" />
+            <button onClick="{{ sendChat }}" style="width:38px; height:38px; border:none; border-radius:50%; background:#2563EB; display:flex; align-items:center; justify-content:center; color:#fff; cursor:pointer;">?</button>
           </div>
+
+          <!-- ===== CHECKOUT / ORDER / PAYMENT SHEET ===== -->
+          <sc-if value="{{ coOpen }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ closeCheckout }}" style="position:absolute; inset:0; z-index:60; background:rgba(14,33,67,.42); animation:mc_fade .2s ease;"></div>
+            <div style="position:absolute; left:0; right:0; bottom:0; z-index:61; height:95%; background:#fff; border-radius:24px 24px 0 0; box-shadow:0 -16px 44px rgba(14,33,67,.26); display:flex; flex-direction:column; overflow:hidden; animation:mc_sheet .28s cubic-bezier(.22,1,.36,1);">
+              <div style="flex:none; padding:9px 0 1px;"><div style="width:38px; height:4px; border-radius:3px; background:#D7E0EE; margin:0 auto;"></div></div>
+              <div style="flex:none; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 16px 11px; border-bottom:1px solid #EEF2F8;">
+                <div style="display:flex; align-items:center; gap:9px; min-width:0;">
+                  <sc-if value="{{ coCanBack }}" hint-placeholder-val="{{ false }}"><button onClick="{{ coBack }}" style="width:30px; height:30px; flex:none; border:1px solid #E4ECF8; background:#fff; border-radius:8px; cursor:pointer; color:#5A6B86; font-size:16px;">‹</button></sc-if>
+                  <div style="min-width:0;"><div style="font-size:14.5px; font-weight:700; color:#0E2143; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ coHeaderTitle }}</div><div style="font-size:11px; color:#8595B0;">{{ coHeaderSub }}</div></div>
+                </div>
+                <button onClick="{{ closeCheckout }}" style="width:30px; height:30px; flex:none; border:1px solid #E4ECF8; background:#fff; border-radius:8px; cursor:pointer; color:#5A6B86; font-size:14px;">✕</button>
+              </div>
+              <div style="flex:none; display:flex; gap:5px; padding:11px 16px 3px;">
+                <sc-for list="{{ coSteps }}" as="st" hint-placeholder-count="4"><div style="{{ st.barStyle }}"></div></sc-for>
+              </div>
+
+              <div class="noscroll" style="flex:1; overflow-y:auto; padding:15px 16px 18px;">
+                <!-- DETAIL -->
+                <sc-if value="{{ coStepDetail }}" hint-placeholder-val="{{ true }}">
+                  <div style="height:108px; border-radius:15px; background:linear-gradient(135deg,#EAF1FE,#DCE9FD); display:flex; align-items:center; justify-content:center; font-size:42px; color:#2563EB; margin-bottom:14px;">{{ coProductIcon }}</div>
+                  <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:6px;">
+                    <div style="font-size:17px; font-weight:700; color:#0E2143; line-height:1.25;">{{ coTitle }}</div>
+                    <span style="flex:none; font-size:11px; font-weight:600; color:#2563EB; background:#EAF1FE; padding:3px 10px; border-radius:7px;">{{ coTypeLabel }}</span>
+                  </div>
+                  <div style="font-size:12.5px; color:#8595B0; margin-bottom:14px; line-height:1.5;">{{ coSub }}</div>
+                  <div style="display:flex; align-items:baseline; gap:9px; margin-bottom:17px;">
+                    <span style="font-family:'Sora',sans-serif; font-size:26px; font-weight:700; color:#2563EB;">{{ coPrice }}</span>
+                    <sc-if value="{{ coHasOld }}" hint-placeholder-val="{{ false }}"><span style="font-size:13.5px; color:#A6B2C9; text-decoration:line-through;">{{ coOldPrice }}</span></sc-if>
+                  </div>
+                  <div style="font-size:12px; font-weight:700; color:#0E2143; margin-bottom:10px;">รายการที่รวมในแพ็กเกจ</div>
+                  <div style="display:flex; flex-direction:column; gap:9px;">
+                    <sc-for list="{{ coIncludes }}" as="it" hint-placeholder-count="4"><div style="display:flex; gap:9px; align-items:flex-start;"><span style="flex:none; width:18px; height:18px; border-radius:50%; background:rgba(16,185,129,.12); color:#0F9D70; font-size:10px; display:flex; align-items:center; justify-content:center;">✓</span><span style="font-size:12.5px; color:#42506b; line-height:1.4;">{{ it }}</span></div></sc-for>
+                  </div>
+                </sc-if>
+
+                <!-- FORM -->
+                <sc-if value="{{ coStepForm }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:11.5px; font-weight:700; color:#A6B2C9; letter-spacing:.3px; margin-bottom:9px;">ข้อมูลผู้ติดต่อ</div>
+                  <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">ชื่อ–นามสกุล</label>
+                  <input value="{{ coName }}" onChange="{{ onCoName }}" placeholder="เช่น ธนกร ใจดี" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; margin-bottom:12px; outline:none;">
+                  <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:10px; margin-bottom:12px;">
+                    <div><label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">เบอร์โทร</label><input value="{{ coPhone }}" onChange="{{ onCoPhone }}" placeholder="08x-xxx-xxxx" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; outline:none;"></div>
+                    <div><label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">อายุ</label><input value="{{ coAge }}" onChange="{{ onCoAge }}" placeholder="36" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; outline:none;"></div>
+                  </div>
+
+                  <sc-if value="{{ coIsService }}" hint-placeholder-val="{{ true }}">
+                    <div style="font-size:11.5px; font-weight:700; color:#A6B2C9; letter-spacing:.3px; margin:6px 0 9px;">นัดหมายบริการ</div>
+                    <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">เลือกสาขา</label>
+                    <select value="{{ coBranch }}" onChange="{{ onCoBranch }}" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; margin-bottom:12px; outline:none; background:#fff; color:#0E2143;">
+                      <sc-for list="{{ coBranchOpts }}" as="b" hint-placeholder-count="3"><option value="{{ b }}">{{ b }}</option></sc-for>
+                    </select>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+                      <div><label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">วันที่สะดวก</label>
+                        <select value="{{ coDate }}" onChange="{{ onCoDate }}" style="width:100%; padding:11px 10px; border:1px solid #E4ECF8; border-radius:10px; font-size:12.5px; outline:none; background:#fff; color:#0E2143;">
+                          <option value="">เลือกวัน</option><option value="พรุ่งนี้ 27 มิ.ย.">พรุ่งนี้ 27 มิ.ย.</option><option value="เสาร์ 28 มิ.ย.">เสาร์ 28 มิ.ย.</option><option value="อาทิตย์ 29 มิ.ย.">อาทิตย์ 29 มิ.ย.</option><option value="จันทร์ 30 มิ.ย.">จันทร์ 30 มิ.ย.</option>
+                        </select>
+                      </div>
+                      <div><label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">ช่วงเวลา</label>
+                        <select value="{{ coTime }}" onChange="{{ onCoTime }}" style="width:100%; padding:11px 10px; border:1px solid #E4ECF8; border-radius:10px; font-size:12.5px; outline:none; background:#fff; color:#0E2143;">
+                          <option value="เช้า (09:00–12:00)">เช้า (09:00–12:00)</option><option value="บ่าย (13:00–16:00)">บ่าย (13:00–16:00)</option><option value="เย็น (17:00–19:00)">เย็น (17:00–19:00)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{ coIsProduct }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-size:11.5px; font-weight:700; color:#A6B2C9; letter-spacing:.3px; margin:6px 0 9px;">จัดส่งสินค้า</div>
+                    <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:6px;">จำนวน</label>
+                    <div style="display:flex; align-items:center; gap:14px; margin-bottom:12px;">
+                      <button onClick="{{ coDecQty }}" style="width:38px; height:38px; border:1px solid #E4ECF8; background:#fff; border-radius:10px; cursor:pointer; font-size:18px; color:#2563EB;">−</button>
+                      <span style="font-family:'Sora',sans-serif; font-size:19px; font-weight:700; color:#0E2143; min-width:24px; text-align:center;">{{ coQtyText }}</span>
+                      <button onClick="{{ coIncQty }}" style="width:38px; height:38px; border:1px solid #E4ECF8; background:#fff; border-radius:10px; cursor:pointer; font-size:18px; color:#2563EB;">+</button>
+                    </div>
+                    <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">ที่อยู่จัดส่ง</label>
+                    <textarea value="{{ coAddr }}" onChange="{{ onCoAddr }}" rows="2" placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด รหัสไปรษณีย์" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13px; margin-bottom:12px; outline:none; resize:vertical; font-family:inherit;"></textarea>
+                    <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">หมายเหตุการจัดส่ง</label>
+                    <input value="{{ coShipNote }}" onChange="{{ onCoShipNote }}" placeholder="เช่น ฝากไว้ที่นิติฯ" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; margin-bottom:4px; outline:none;">
+                  </sc-if>
+
+                  <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin:8px 0 5px;">หมายเหตุถึงทีมงาน (ถ้ามี)</label>
+                  <input value="{{ coNote }}" onChange="{{ onCoNote }}" placeholder="เช่น แพ้ยา / มีโรคประจำตัว" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; outline:none;">
+                </sc-if>
+
+                <!-- SUMMARY -->
+                <sc-if value="{{ coStepSummary }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#fff; border:1px solid #E8EFF8; border-radius:13px; padding:15px; margin-bottom:12px;">
+                    <div style="font-size:12px; font-weight:700; color:#0E2143; margin-bottom:11px;">รายการที่เลือก</div>
+                    <div style="display:flex; flex-direction:column; gap:9px; font-size:12.5px;">
+                      <div style="display:flex; justify-content:space-between; gap:12px;"><span style="color:#8595B0;">แพ็กเกจ</span><span style="font-weight:600; color:#0E2143; text-align:right;">{{ coTitle }}</span></div>
+                      <div style="display:flex; justify-content:space-between; gap:12px;"><span style="color:#8595B0;">ชื่อ / เบอร์</span><span style="font-weight:600; color:#0E2143; text-align:right;">{{ coSumName }} · {{ coSumPhone }}</span></div>
+                      <sc-if value="{{ coHasAge }}" hint-placeholder-val="{{ false }}"><div style="display:flex; justify-content:space-between; gap:12px;"><span style="color:#8595B0;">อายุ</span><span style="font-weight:600; color:#0E2143;">{{ coSumAge }}</span></div></sc-if>
+                      <sc-if value="{{ coIsService }}" hint-placeholder-val="{{ true }}">
+                        <div style="display:flex; justify-content:space-between; gap:12px;"><span style="color:#8595B0;">สาขา</span><span style="font-weight:600; color:#0E2143;">{{ coSumBranch }}</span></div>
+                        <div style="display:flex; justify-content:space-between; gap:12px;"><span style="color:#8595B0;">วัน–เวลา</span><span style="font-weight:600; color:#0E2143; text-align:right;">{{ coSumDate }}</span></div>
+                      </sc-if>
+                      <sc-if value="{{ coIsProduct }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex; justify-content:space-between; gap:12px;"><span style="color:#8595B0;">จำนวน</span><span style="font-weight:600; color:#0E2143;">{{ coSumQty }} ชุด</span></div>
+                        <div style="display:flex; justify-content:space-between; gap:12px;"><span style="color:#8595B0;">ที่อยู่จัดส่ง</span><span style="font-weight:600; color:#0E2143; text-align:right; max-width:60%;">{{ coSumAddr }}</span></div>
+                      </sc-if>
+                    </div>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:10px; padding:11px 13px; background:#F0FBF4; border:1px solid #CDEBD8; border-radius:11px; margin-bottom:12px;">
+                    <div style="width:30px; height:30px; flex:none; border-radius:8px; background:rgba(16,185,129,.14); color:#0F9D70; display:flex; align-items:center; justify-content:center; font-size:15px;">⇆</div>
+                    <div style="flex:1;"><div style="font-size:12px; font-weight:700; color:#0E2143;">ใช้โค้ดผู้แนะนำ {{ coRefCode }}</div><div style="font-size:11px; color:#5A6B86;">ผูกกับผู้แนะนำอัตโนมัติเมื่อชำระสำเร็จ</div></div>
+                  </div>
+                  <div style="background:#fff; border:1px solid #E8EFF8; border-radius:13px; padding:15px;">
+                    <sc-if value="{{ coQtyMulti }}" hint-placeholder-val="{{ false }}"><div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:8px;"><span style="color:#8595B0;">ราคา/หน่วย</span><span style="color:#42506b;">{{ coQtyMultiText }}</span></div></sc-if>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; padding-top:3px;"><span style="font-size:13px; font-weight:700; color:#0E2143;">ยอดที่ต้องชำระ</span><span style="font-family:'Sora',sans-serif; font-size:23px; font-weight:700; color:#2563EB;">{{ coTotalText }}</span></div>
+                  </div>
+                </sc-if>
+
+                <!-- PAY -->
+                <sc-if value="{{ coStepPay }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:#F7FAFE; border:1px solid #EAF1FB; border-radius:12px; margin-bottom:13px;">
+                    <div><div style="font-size:11px; color:#8595B0;">เลขออเดอร์</div><div style="font-family:'Sora',sans-serif; font-size:14px; font-weight:700; color:#0E2143;">{{ coOrderId }}</div></div>
+                    <div style="text-align:right;"><div style="font-size:11px; color:#8595B0;">ยอดชำระ</div><div style="font-family:'Sora',sans-serif; font-size:17px; font-weight:700; color:#2563EB;">{{ coTotalText }}</div></div>
+                  </div>
+                  <div style="display:flex; gap:7px; margin-bottom:14px;">
+                    <button onClick="{{ setCoPP }}" style="{{ coTabPP }}">PromptPay</button>
+                    <button onClick="{{ setCoCard }}" style="{{ coTabCard }}">บัตรเครดิต</button>
+                    <button onClick="{{ setCoSlip }}" style="{{ coTabSlip }}">อัปโหลดสลิป</button>
+                  </div>
+                  <sc-if value="{{ coPayPromptpay }}" hint-placeholder-val="{{ true }}">
+                    <div style="text-align:center;">
+                      <div style="display:inline-block; padding:13px; background:#fff; border:1px solid #EEF2F8; border-radius:13px; box-shadow:0 4px 16px rgba(14,33,67,.06);">
+                        <div style="display:grid; grid-template-columns:repeat(25,1fr); grid-template-rows:repeat(25,1fr); width:166px; height:166px;"><sc-for list="{{ coQrCells }}" as="cell" hint-placeholder-count="40"><div style="{{ cell.cellStyle }}"></div></sc-for></div>
+                      </div>
+                      <div style="font-size:12px; color:#8595B0; margin-top:12px;">สแกนด้วยแอปธนาคาร แล้วกดยืนยันการชำระ</div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ coPayCard }}" hint-placeholder-val="{{ false }}">
+                    <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">หมายเลขบัตร</label>
+                    <input placeholder="4242 4242 4242 4242" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; margin-bottom:11px; outline:none;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                      <div><label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">วันหมดอายุ</label><input placeholder="MM/YY" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; outline:none;"></div>
+                      <div><label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">CVC</label><input placeholder="123" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; outline:none;"></div>
+                    </div>
+                    <div style="font-size:11px; color:#A6B2C9; margin-top:11px; display:flex; align-items:center; gap:6px;">🔒 ชำระอย่างปลอดภัยผ่าน Stripe</div>
+                  </sc-if>
+                  <sc-if value="{{ coPaySlip }}" hint-placeholder-val="{{ false }}">
+                    <div style="border:1.5px dashed #C9D6EA; border-radius:13px; background:#F7FAFE; padding:26px 16px; text-align:center;">
+                      <div style="font-size:30px; margin-bottom:8px;">🧾</div>
+                      <div style="font-size:13px; font-weight:700; color:#0E2143;">แตะเพื่ออัปโหลดสลิปโอนเงิน</div>
+                      <div style="font-size:11.5px; color:#8595B0; margin-top:4px;">รองรับ JPG / PNG — ระบบจะตรวจสลิปอัตโนมัติ</div>
+                    </div>
+                  </sc-if>
+                </sc-if>
+
+                <!-- STATUS -->
+                <sc-if value="{{ coStepStatus }}" hint-placeholder-val="{{ false }}">
+                  <div style="text-align:center; padding:6px 0 16px;">
+                    <div style="width:60px; height:60px; border-radius:50%; background:rgba(16,185,129,.12); display:flex; align-items:center; justify-content:center; font-size:30px; color:#10B981; margin:0 auto 11px;">✓</div>
+                    <div style="font-size:16.5px; font-weight:700; color:#0E2143;">สร้างออเดอร์สำเร็จ</div>
+                    <div style="font-size:12.5px; color:#8595B0; margin-top:3px;">เลขออเดอร์ {{ coOrderId }} · ทีมงานยืนยันแล้ว</div>
+                  </div>
+                  <div style="background:#F7FAFE; border:1px solid #EAF1FB; border-radius:13px; padding:16px 16px 6px;">
+                    <div style="font-size:12px; font-weight:700; color:#0E2143; margin-bottom:14px;">ติดตามสถานะออเดอร์</div>
+                    <sc-for list="{{ coStatusSteps }}" as="ss" hint-placeholder-count="5">
+                      <div style="display:flex; gap:11px;">
+                        <div style="display:flex; flex-direction:column; align-items:center;">
+                          <div style="width:18px; height:18px; border-radius:50%; border:2px solid; flex:none; display:flex; align-items:center; justify-content:center; {{ ss.dotStyle }}"><sc-if value="{{ ss.showCheck }}" hint-placeholder-val="{{ false }}"><span style="color:#fff; font-size:9px;">✓</span></sc-if></div>
+                          <sc-if value="{{ ss.notLast }}" hint-placeholder-val="{{ true }}"><div style="width:2px; height:22px; {{ ss.lineStyle }}"></div></sc-if>
+                        </div>
+                        <div style="font-size:12.5px; padding-bottom:16px; {{ ss.labelStyle }}">{{ ss.label }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+
+              <sc-if value="{{ coHasFooter }}" hint-placeholder-val="{{ true }}">
+              <div style="flex:none; padding:11px 16px 17px; border-top:1px solid #EEF2F8; background:#fff;">
+                <sc-if value="{{ hasCoError }}" hint-placeholder-val="{{ false }}"><div style="display:flex; align-items:center; gap:8px; padding:9px 12px; border-radius:9px; background:#FBE3E4; margin-bottom:10px;"><span style="color:#DC2626;">⚠</span><span style="font-size:11.5px; color:#B91C1C; line-height:1.4;">{{ coError }}</span></div></sc-if>
+                <button onClick="{{ coFooterAction }}" style="{{ coFooterStyle }}"><sc-if value="{{ coLoading }}" hint-placeholder-val="{{ false }}"><span style="display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.5); border-top-color:#fff; border-radius:50%; animation:mc_spin .7s linear infinite; margin-right:8px;"></span></sc-if>{{ coFooterLabel }}</button>
+              </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
         </div>
       </div>
     </div>
@@ -842,14 +1377,19 @@
             <sc-if value="{{ refHome }}" hint-placeholder-val="{{ true }}">
             <div>
               <div style="display:flex; align-items:center; justify-content:space-between; margin:6px 0 16px;">
-                <div><div style="font-size:12.5px; color:#7B89A4;">สวัสดีตอนเช้า 👋</div><div style="font-size:20px; font-weight:700; font-family:'Sora',sans-serif; color:#0E2143;">{{ refDisplayName }}</div></div>
-                <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#60A5FA,#2563EB); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:16px;">{{ refInitial }}</div>
+                <div><div style="font-size:12.5px; color:#7B89A4;">สวัสดีตอนเช้า 👋</div><div style="font-size:20px; font-weight:700; font-family:'Sora',sans-serif; color:#0E2143;">คุณ นภา</div></div>
+                <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#60A5FA,#2563EB); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:16px;">น</div>
               </div>
               <div style="position:relative; overflow:hidden; border-radius:20px; padding:20px; background:linear-gradient(140deg,#2563EB,#3B82F6 60%,#60A5FA); box-shadow:0 16px 36px rgba(37,99,235,.32); color:#fff; margin-bottom:16px;">
                 <div style="font-size:12.5px; opacity:.85;">คอมมิชชั่นเดือนนี้</div>
                 <div style="font-family:'Sora',sans-serif; font-size:33px; font-weight:700; margin:3px 0 14px;">{{ refMonthComm }}</div>
                 <div style="display:flex; gap:18px;"><div><div style="font-size:11px; opacity:.8;">สะสมทั้งหมด</div><div style="font-family:'Sora',sans-serif; font-size:16px; font-weight:700;">{{ refTotalComm }}</div></div><div><div style="font-size:11px; opacity:.8;">ออเดอร์ที่แนะนำ</div><div style="font-family:'Sora',sans-serif; font-size:16px; font-weight:700;">{{ refOrderCount }}</div></div></div>
               </div>
+              <button onClick="{{ openRefCreate }}" style="width:100%; display:flex; align-items:center; gap:13px; padding:15px 17px; border:none; background:linear-gradient(135deg,#2563EB,#1D4ED8); border-radius:14px; cursor:pointer; margin-bottom:11px; box-shadow:0 10px 24px rgba(37,99,235,.28);">
+                <div style="width:40px; height:40px; flex:none; border-radius:11px; background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; color:#fff; font-size:21px;">＋</div>
+                <div style="flex:1; text-align:left;"><div style="font-size:14px; font-weight:700; color:#fff;">สร้างออเดอร์ให้ลูกค้า</div><div style="font-size:11.5px; color:rgba(255,255,255,.82); margin-top:1px;">สั่งซื้อแทนลูกค้า · รับคอมมิชชั่น</div></div>
+                <span style="color:#fff; font-size:18px;">→</span>
+              </button>
               <button onClick="{{ setRefShare }}" style="width:100%; display:flex; align-items:center; justify-content:space-between; padding:15px 17px; border:1px solid #E8EFF8; background:#fff; border-radius:14px; cursor:pointer; margin-bottom:16px;">
                 <div style="text-align:left;"><div style="font-size:13.5px; font-weight:700; color:#0E2143;">แชร์ลิงก์แนะนำ</div><div style="font-size:11.5px; color:#8595B0; margin-top:1px;">{{ refMyCode }}</div></div>
                 <div style="width:38px; height:38px; border-radius:10px; background:#EAF1FE; display:flex; align-items:center; justify-content:center; color:#2563EB; font-size:18px;">⇪</div>
@@ -874,7 +1414,7 @@
               <div style="font-size:12.5px; color:#8595B0; margin-bottom:18px;">ลูกค้าสแกนแล้วระบบผูก ref code ให้อัตโนมัติ</div>
               <div style="background:#fff; border:1px solid #E8EFF8; border-radius:18px; padding:22px; text-align:center; box-shadow:0 8px 24px rgba(31,84,170,.08);">
                 <div style="display:inline-block; padding:14px; background:#fff; border:1px solid #EEF2F8; border-radius:14px;">
-                  <img src="{{ refQrImageUrl }}" alt="Referral QR" style="display:block; width:188px; height:188px;">
+                  <div style="display:grid; grid-template-columns:repeat(25,1fr); grid-template-rows:repeat(25,1fr); width:188px; height:188px;"><sc-for list="{{ refQrCells }}" as="cell" hint-placeholder-count="40"><div style="{{ cell.cellStyle }}"></div></sc-for></div>
                 </div>
                 <div style="font-family:'Sora',sans-serif; font-size:19px; font-weight:700; color:#2563EB; letter-spacing:.4px; margin:16px 0 4px;">{{ refMyCode }}</div>
                 <div style="font-size:12.5px; color:#8595B0; margin-bottom:16px;">{{ refMyLink }}</div>
@@ -906,12 +1446,138 @@
               </div>
             </div>
             </sc-if>
+
+            <!-- ===== CREATE ORDER FOR CUSTOMER ===== -->
+            <sc-if value="{{ refCreate }}" hint-placeholder-val="{{ false }}">
+            <div>
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0 14px;">
+                <div style="display:flex; align-items:center; gap:9px; min-width:0;">
+                  <sc-if value="{{ rcCanBack }}" hint-placeholder-val="{{ false }}"><button onClick="{{ rcBack }}" style="width:32px; height:32px; flex:none; border:1px solid #E8EFF8; background:#fff; border-radius:9px; cursor:pointer; color:#5A6B86; font-size:16px;">‹</button></sc-if>
+                  <div style="font-size:19px; font-weight:700; font-family:'Sora',sans-serif; color:#0E2143; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ rcHeaderTitle }}</div>
+                </div>
+                <sc-if value="{{ rcCatalog }}" hint-placeholder-val="{{ true }}"><button onClick="{{ rcHistory }}" style="flex:none; font-size:12px; font-weight:600; color:#2563EB; background:none; border:none; cursor:pointer;">ประวัติ · {{ rcCreatedCount }}</button></sc-if>
+              </div>
+
+              <!-- CATALOG -->
+              <sc-if value="{{ rcCatalog }}" hint-placeholder-val="{{ true }}">
+                <div style="font-size:12.5px; color:#8595B0; margin-bottom:13px; line-height:1.5;">เลือกสินค้า/บริการเพื่อสร้างออเดอร์แทนลูกค้า ระบบจะผูก ref code ของคุณให้อัตโนมัติ</div>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                  <sc-for list="{{ rcCatalogRows }}" as="p" hint-placeholder-count="4">
+                    <button onClick="{{ p.onPick }}" style="display:flex; align-items:center; gap:12px; width:100%; text-align:left; padding:13px; border:1px solid #E8EFF8; background:#fff; border-radius:14px; cursor:pointer;">
+                      <div style="width:46px; height:46px; flex:none; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:20px; background:{{ p.iconBg }}; color:{{ p.iconFg }};">{{ p.icon }}</div>
+                      <div style="flex:1; min-width:0;"><div style="font-size:13.5px; font-weight:700; color:#0E2143; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ p.title }}</div><div style="font-size:11px; color:#8595B0; margin-top:1px;">{{ p.type }}</div></div>
+                      <div style="text-align:right; flex:none;"><div style="font-family:'Sora',sans-serif; font-size:15px; font-weight:700; color:#2563EB;">{{ p.price }}</div><div style="font-size:11px; color:#A6B2C9;">เลือก →</div></div>
+                    </button>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <!-- DETAIL -->
+              <sc-if value="{{ rcDetail }}" hint-placeholder-val="{{ false }}">
+                <div style="height:96px; border-radius:15px; background:linear-gradient(135deg,#EAF1FE,#DCE9FD); display:flex; align-items:center; justify-content:center; font-size:38px; color:#2563EB; margin-bottom:14px;">{{ rcProdIcon }}</div>
+                <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:6px;"><div style="font-size:17px; font-weight:700; color:#0E2143; line-height:1.25;">{{ rcProdTitle }}</div><span style="flex:none; font-size:11px; font-weight:600; color:#2563EB; background:#EAF1FE; padding:3px 10px; border-radius:7px;">{{ rcProdType }}</span></div>
+                <div style="font-size:12.5px; color:#8595B0; margin-bottom:13px; line-height:1.5;">{{ rcProdSub }}</div>
+                <div style="font-family:'Sora',sans-serif; font-size:25px; font-weight:700; color:#2563EB; margin-bottom:16px;">{{ rcProdPrice }}</div>
+                <div style="font-size:12px; font-weight:700; color:#0E2143; margin-bottom:9px;">รายการที่รวม</div>
+                <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:18px;">
+                  <sc-for list="{{ rcIncludes }}" as="it" hint-placeholder-count="3"><div style="display:flex; gap:9px;"><span style="color:#0F9D70;">✓</span><span style="font-size:12.5px; color:#42506b;">{{ it }}</span></div></sc-for>
+                </div>
+                <button onClick="{{ rcToForm }}" style="width:100%; padding:13px; border:none; border-radius:12px; background:#2563EB; color:#fff; font-size:14px; font-weight:700; cursor:pointer;">สั่งซื้อแทนลูกค้า →</button>
+              </sc-if>
+
+              <!-- FORM -->
+              <sc-if value="{{ rcForm2 }}" hint-placeholder-val="{{ false }}">
+                <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">ชื่อ–นามสกุลลูกค้า</label>
+                <input value="{{ rcName }}" onChange="{{ onRcName }}" placeholder="เช่น ธนกร ใจดี" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; margin-bottom:12px; outline:none;">
+                <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:10px; margin-bottom:12px;">
+                  <div><label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">เบอร์โทร</label><input value="{{ rcPhone }}" onChange="{{ onRcPhone }}" placeholder="08x-xxx-xxxx" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; outline:none;"></div>
+                  <div><label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">อายุ</label><input value="{{ rcAge }}" onChange="{{ onRcAge }}" placeholder="36" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; outline:none;"></div>
+                </div>
+                <sc-if value="{{ rcIsService }}" hint-placeholder-val="{{ true }}">
+                  <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">สาขาที่สะดวก</label>
+                  <select value="{{ rcBranch }}" onChange="{{ onRcBranch }}" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; margin-bottom:12px; outline:none; background:#fff; color:#0E2143;">
+                    <sc-for list="{{ rcBranchOpts }}" as="b" hint-placeholder-count="3"><option value="{{ b }}">{{ b }}</option></sc-for>
+                  </select>
+                  <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">วันที่สะดวก</label>
+                  <select value="{{ rcDate }}" onChange="{{ onRcDate }}" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; outline:none; background:#fff; color:#0E2143;">
+                    <option value="">เลือกวัน</option><option value="พรุ่งนี้ 27 มิ.ย.">พรุ่งนี้ 27 มิ.ย.</option><option value="เสาร์ 28 มิ.ย.">เสาร์ 28 มิ.ย.</option><option value="อาทิตย์ 29 มิ.ย.">อาทิตย์ 29 มิ.ย.</option><option value="จันทร์ 30 มิ.ย.">จันทร์ 30 มิ.ย.</option>
+                  </select>
+                </sc-if>
+                <sc-if value="{{ rcIsProduct }}" hint-placeholder-val="{{ false }}">
+                  <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">ที่อยู่จัดส่ง</label>
+                  <textarea value="{{ rcAddr }}" onChange="{{ onRcAddr }}" rows="2" placeholder="บ้านเลขที่ ถนน แขวง เขต จังหวัด รหัสไปรษณีย์" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13px; outline:none; resize:vertical; font-family:inherit;"></textarea>
+                </sc-if>
+                <sc-if value="{{ hasRcError }}" hint-placeholder-val="{{ false }}"><div style="display:flex; align-items:center; gap:8px; padding:9px 12px; border-radius:9px; background:#FBE3E4; margin-top:12px;"><span style="color:#DC2626;">⚠</span><span style="font-size:11.5px; color:#B91C1C;">{{ rcError }}</span></div></sc-if>
+                <button onClick="{{ rcToSummary }}" style="width:100%; margin-top:16px; padding:13px; border:none; border-radius:12px; background:#2563EB; color:#fff; font-size:14px; font-weight:700; cursor:pointer;">ดูสรุปออเดอร์</button>
+              </sc-if>
+
+              <!-- SUMMARY -->
+              <sc-if value="{{ rcSummary }}" hint-placeholder-val="{{ false }}">
+                <div style="background:#fff; border:1px solid #E8EFF8; border-radius:13px; padding:15px; margin-bottom:12px;">
+                  <div style="font-size:12px; font-weight:700; color:#0E2143; margin-bottom:11px;">รายการออเดอร์</div>
+                  <div style="display:flex; flex-direction:column; gap:9px; font-size:12.5px;">
+                    <div style="display:flex; justify-content:space-between; gap:12px;"><span style="color:#8595B0;">แพ็กเกจ</span><span style="font-weight:600; color:#0E2143; text-align:right;">{{ rcProdTitle }}</span></div>
+                    <div style="display:flex; justify-content:space-between; gap:12px;"><span style="color:#8595B0;">ลูกค้า</span><span style="font-weight:600; color:#0E2143; text-align:right;">{{ rcSumName }} · {{ rcSumPhone }}</span></div>
+                    <sc-if value="{{ rcIsService }}" hint-placeholder-val="{{ true }}"><div style="display:flex; justify-content:space-between; gap:12px;"><span style="color:#8595B0;">สาขา · วัน</span><span style="font-weight:600; color:#0E2143; text-align:right;">{{ rcSumBranch }} · {{ rcSumDate }}</span></div></sc-if>
+                    <sc-if value="{{ rcIsProduct }}" hint-placeholder-val="{{ false }}"><div style="display:flex; justify-content:space-between; gap:12px;"><span style="color:#8595B0;">ที่อยู่</span><span style="font-weight:600; color:#0E2143; text-align:right; max-width:62%;">{{ rcSumAddr }}</span></div></sc-if>
+                  </div>
+                </div>
+                <div style="background:linear-gradient(135deg,#0F9D70,#10B981); border-radius:13px; padding:15px; margin-bottom:12px; color:#fff;">
+                  <div style="font-size:11.5px; opacity:.85;">คอมมิชชั่นโดยประมาณ (8%)</div>
+                  <div style="font-family:'Sora',sans-serif; font-size:25px; font-weight:700; margin:2px 0 6px;">{{ rcCommEst }}</div>
+                  <div style="font-size:11px; opacity:.85;">โค้ดผู้แนะนำ {{ rcRefCode }} · จ่ายเมื่อออเดอร์ยืนยันชำระ</div>
+                </div>
+                <div style="background:#fff; border:1px solid #E8EFF8; border-radius:13px; padding:15px; display:flex; justify-content:space-between; align-items:baseline;"><span style="font-size:13px; font-weight:700; color:#0E2143;">ยอดออเดอร์</span><span style="font-family:'Sora',sans-serif; font-size:22px; font-weight:700; color:#2563EB;">{{ rcTotal }}</span></div>
+                <button onClick="{{ rcCreate }}" style="width:100%; margin-top:16px; padding:13px; border:none; border-radius:12px; background:#2563EB; color:#fff; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center;"><sc-if value="{{ rcLoading }}" hint-placeholder-val="{{ false }}"><span style="display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.5); border-top-color:#fff; border-radius:50%; animation:mc_spin .7s linear infinite; margin-right:8px;"></span></sc-if>สร้างออเดอร์</button>
+              </sc-if>
+
+              <!-- SUCCESS -->
+              <sc-if value="{{ rcSuccess }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align:center; padding:14px 0 18px;">
+                  <div style="width:64px; height:64px; border-radius:50%; background:rgba(16,185,129,.12); display:flex; align-items:center; justify-content:center; font-size:32px; color:#10B981; margin:0 auto 12px;">✓</div>
+                  <div style="font-size:18px; font-weight:700; color:#0E2143;">สร้างออเดอร์สำเร็จ</div>
+                  <div style="font-family:'Sora',sans-serif; font-size:15px; font-weight:700; color:#2563EB; margin-top:6px;">{{ rcOrderId }}</div>
+                  <div style="display:inline-block; margin-top:8px; font-size:11.5px; font-weight:600; padding:3px 11px; border-radius:7px; background:#FDF1DE; color:#C9810A;">รอลูกค้าชำระเงิน</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:11px; padding:13px; background:#F0FBF4; border:1px solid #CDEBD8; border-radius:13px; margin-bottom:16px;">
+                  <div style="width:34px; height:34px; flex:none; border-radius:9px; background:rgba(16,185,129,.14); color:#0F9D70; display:flex; align-items:center; justify-content:center; font-size:16px;">⇆</div>
+                  <div style="font-size:12px; color:#42506b; line-height:1.5;">คอมมิชชั่น <b style="color:#0F9D70;">{{ rcCommEst }}</b> จะเข้าบัญชีของคุณเมื่อออเดอร์ถูกยืนยันการชำระเงิน</div>
+                </div>
+                <button onClick="{{ rcReset }}" style="width:100%; padding:13px; border:none; border-radius:12px; background:#2563EB; color:#fff; font-size:14px; font-weight:700; cursor:pointer; margin-bottom:9px;">สร้างออเดอร์อีก</button>
+                <button onClick="{{ rcHistory }}" style="width:100%; padding:12px; border:1px solid #E8EFF8; border-radius:12px; background:#fff; color:#2563EB; font-size:13.5px; font-weight:700; cursor:pointer;">ดูประวัติออเดอร์ที่สร้าง</button>
+              </sc-if>
+
+              <!-- HISTORY -->
+              <sc-if value="{{ rcHistoryView }}" hint-placeholder-val="{{ false }}">
+                <sc-if value="{{ rcHasCreated }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex; flex-direction:column; gap:9px;">
+                  <sc-for list="{{ rcCreatedRows }}" as="o" hint-placeholder-count="3">
+                    <div style="background:#fff; border:1px solid #E8EFF8; border-radius:13px; padding:13px;">
+                      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:5px;"><span style="font-family:'Sora',sans-serif; font-size:12.5px; font-weight:600; color:#2563EB;">{{ o.id }}</span><span style="font-size:10.5px; font-weight:600; padding:2px 9px; border-radius:6px; background:{{ o.statusBg }}; color:{{ o.statusFg }};">{{ o.status }}</span></div>
+                      <div style="font-size:12.5px; font-weight:600; color:#0E2143;">{{ o.pkg }}</div>
+                      <div style="display:flex; align-items:center; justify-content:space-between; margin-top:7px;"><span style="font-size:11.5px; color:#8595B0;">{{ o.custShort }} · {{ o.amount }}</span><span style="font-size:12.5px; font-weight:700; color:#0F9D70;">+฿{{ o.commission }}</span></div>
+                    </div>
+                  </sc-for>
+                </div>
+                </sc-if>
+                <sc-if value="{{ rcHasCreated }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#fff; border:1px solid #E8EFF8; border-radius:14px; padding:40px 20px; text-align:center;">
+                    <div style="width:48px; height:48px; border-radius:50%; background:#F0F4FA; display:flex; align-items:center; justify-content:center; font-size:21px; color:#A6B2C9; margin:0 auto 11px;">＋</div>
+                    <div style="font-size:14px; font-weight:700; color:#0E2143;">ยังไม่มีออเดอร์ที่สร้าง</div>
+                    <div style="font-size:12px; color:#8595B0; margin-top:4px;">กดสร้างออเดอร์ให้ลูกค้าเพื่อเริ่มรับคอมมิชชั่น</div>
+                  </div>
+                </sc-if>
+              </sc-if>
+            </div>
+            </sc-if>
+
           </div>
           <!-- bottom nav -->
           <div style="flex:none; display:flex; padding:8px 14px 18px; border-top:1px solid #E8EFF8; background:#fff;">
             <button onClick="{{ setRefHome }}" style="{{ navHome }}"><span style="font-size:18px;">⌂</span>หน้าหลัก</button>
             <button onClick="{{ setRefShare }}" style="{{ navShare }}"><span style="font-size:18px;">⇪</span>แชร์</button>
             <button onClick="{{ setRefEarn }}" style="{{ navEarn }}"><span style="font-size:18px;">฿</span>รายได้</button>
+            <button onClick="{{ openRefCreate }}" style="{{ navCreate }}"><span style="font-size:18px;">＋</span>สั่งซื้อ</button>
           </div>
         </div>
       </div>
@@ -928,7 +1594,9 @@
         </div>
         <div style="padding:22px; display:flex; flex-direction:column; align-items:center; gap:14px;">
           <div style="padding:16px; background:#fff; border:1px solid #EEF2F8; border-radius:13px; box-shadow:0 4px 16px rgba(14,33,67,.06);">
-            <img src="{{ qrImageUrl }}" alt="Referral QR" style="display:block; width:222px; height:222px;">
+            <div style="display:grid; grid-template-columns:repeat(25,1fr); grid-template-rows:repeat(25,1fr); width:222px; height:222px; gap:0;">
+              <sc-for list="{{ qrCells }}" as="cell" hint-placeholder-count="40"><div style="{{ cell.cellStyle }}"></div></sc-for>
+            </div>
           </div>
           <div style="font-family:'Sora',sans-serif; font-weight:700; font-size:16px; color:#2563EB; letter-spacing:.3px;">{{ qrCode }}</div>
           <div style="display:flex; align-items:center; gap:8px; width:100%;">
@@ -974,8 +1642,8 @@
           <button onClick="{{ submitLogin }}" style="width:100%; padding:12px; border:none; border-radius:10px; background:#2563EB; color:#fff; font-size:14.5px; font-weight:700; cursor:pointer; margin-bottom:10px;">เข้าสู่ระบบในฐานะ {{ loginRoleLabel }}</button>
 
           <div style="display:flex; align-items:center; justify-content:space-between;">
-            <sc-if value="{{ canRegister }}" hint-placeholder-val="{{ false }}"><button style="font-size:12.5px; font-weight:600; color:#2563EB; background:none; border:none; cursor:pointer;">สมัครเป็น{{ loginRoleLabel }}</button></sc-if>
-            <span style="font-size:11.5px; color:#A6B2C9; margin-left:auto; text-align:right;">{{ loginHelpText }}</span>
+            <sc-if value="{{ canRegister }}" hint-placeholder-val="{{ true }}"><button style="font-size:12.5px; font-weight:600; color:#2563EB; background:none; border:none; cursor:pointer;">สมัครเป็น{{ loginRoleLabel }}</button></sc-if>
+            <button onClick="{{ demoMismatch }}" style="font-size:11.5px; color:#A6B2C9; background:none; border:none; cursor:pointer; margin-left:auto;">ดูตัวอย่าง error บัญชีผิดบทบาท</button>
           </div>
         </div>
       </div>
@@ -990,20 +1658,28 @@ class Component extends DCLogic {
 
   state = {
     module: 'admin', adminView: 'dashboard', dataState: 'loading',
-    loggedIn: false, role: 'admin', accountName: 'ทีมแอดมิน',
+    loggedIn: false, role: 'admin', accountName: '?????????',
     showLogin: true, loginRole: 'admin', loginEmail: '', loginPwd: '', loginError: '',
     refTab: 'home', chatStage: 0, copied: false,
     selectedOrderId: null, selectedStep: null,
     showForm: false, formMode: 'new', formType: 'service', formData: null,
     orders: [], ordFilter: 'all', ordSearch: '', ordSort: 'newest', ordSel: {},
+    orderSeq: 0, commExtra: [],
     refSub: 'list', commFilter: 'pending', commSel: {},
     convId: null, convMode: {}, payId: null, payFilter: 'submitted',
-    prodSearch: '', prodStatus: 'all', prodCat: 'all', showBranches: false,
+    prodSearch: '', prodStatus: 'all', prodCat: 'all', showBranches: false, catView: 'products',
     stockReason: 'restock', stockQty: '', stockLog: [],
+    stockSel: 0, stockBranchSel: '', stMoveReason: 'restock', stMoveQty: '', stMoveNote: '', stMoveOp: 'ทีมแอดมิน', stockBook: null, stockMoves2: [],
     commOverride: {}, qrRef: null,
     payOverride: {}, payNote: '',
-    lineCopied: false, lineTestText: '',
+    lineCopied: false, lineTestText: '', lineConn: 'missing', lineVerifying: false, lineTestConv: '',
     convMsgs: {}, convInput: '',
+    coOpen:false, coStep:'detail', coProduct:null, coForm:null, coPay:'promptpay', coLoading:false, coError:'', coStatus:'', coOrderId:'',
+    rcStep:'catalog', rcProduct:null, rcForm:null, rcOrderId:'', rcLoading:false, rcError:'',
+    rcCreated:[],
+    fulfillOpen:false, fulfillKind:'service', fulfillOrderId:null, fulfillData:null, fulfillLoading:false, fulfillError:'',
+    refDrawerCode:null, refForm:null, refError:'', refStatusOverride:{}, refProfileOverride:{}, refSchemeOverride:{}, refAuditLog:{}, refExtra:[],
+    auditLog: {},
     now: Date.now(),
   };
 
@@ -1014,18 +1690,23 @@ class Component extends DCLogic {
 
   _seedOrders() { return []; }
 
-  // Production runtime data is supplied by mira-design-adapter.js from Supabase.
+  _seedAudit() { return {}; }
+
+  _seedStock() { return {}; }
+
   _products = [];
-  _emptyProduct = { title:'', type:'service', price:'', oldPrice:'', category:'checkup', status:'active', stock:0, reserved:0, branches:[], desc:'', includes:[], stripe:false, rag:false };
+  _emptyProduct = { title:'', type:'service', price:'', oldPrice:'', category:'general', status:'active', stock:0, reserved:0, branches:[], desc:'', includes:[], stripe:false, rag:false };
+
   _referrers = [];
   _commissions = [];
   _branches = [];
   _conversations = [];
   _payments = [];
+
   _line = {
-    webhook: '', channelSecret: false, accessToken: false, verified: false,
-    lastEvent: { type: 'No live LINE event loaded', time: '-' }, lastReply: { status: '-', time: '-' },
-    events: [],
+    webhook:'', channelSecret:false, accessToken:false, verified:false,
+    lastEvent:{ type:'-', time:'-' }, lastReply:{ status:'-', time:'-' },
+    events:[],
   };
 
   _timers = [];
@@ -1047,6 +1728,7 @@ class Component extends DCLogic {
   }
 
   componentDidMount() {
+    this.setState({ stockBook: this._seedStock() });
     this._tick = setInterval(() => {
       const now = Date.now();
       this.setState((s) => {
@@ -1072,6 +1754,9 @@ class Component extends DCLogic {
     return { text, urgent: rem < 7200000 };
   }
   _mutate(id, fn) { this.setState((s) => ({ orders: (s.orders || []).map((o) => o.id === id ? fn(Object.assign({}, o)) : o) })); }
+  _refNameForCode(code){ const r=this._allReferrers().find((x)=>x.code===code); return r?r.name:'—'; }
+  _createOrder = () => { this.setState({ coError:'Backend order creation required' }); return ''; };
+  _addCommission = () => {};
   advanceOrder = (id) => this._mutate(id, (o) => { if (o.cancelled || o.archived) return o; if (o.stage <= 2) o.stage = 3; else if (o.stage < 5) o.stage = o.stage + 1; return o; });
   cancelOrder = (id) => this._mutate(id, (o) => { o.cancelled = true; return o; });
   reopenOrder = (id) => this._mutate(id, (o) => { o.cancelled = false; o.archived = false; o.expired = false; o.stage = 2; o.deadlineAt = Date.now() + 86400000; return o; });
@@ -1189,9 +1874,11 @@ class Component extends DCLogic {
     const activeStage = { title: labels[sel], lines, note, hasNote: !!note, stateLabel: aMap[aState].l, stateBg: aMap[aState].bg, stateFg: aMap[aState].fg };
     const kindMeta = kind === 'product' ? { label:'สินค้า', bg:'rgba(139,92,246,.12)', fg:'#7C3AED' } : { label:'บริการ', bg:'rgba(37,99,235,.1)', fg:'#2563EB' };
     const transcript = (o.transcript || []).map((m) => ({ text: m.text, bubbleStyle: m.role === 'user' ? 'align-self:flex-end; max-width:82%; padding:9px 13px; border-radius:13px 13px 4px 13px; background:#2563EB; color:#fff; font-size:12.5px; line-height:1.4;' : 'align-self:flex-start; max-width:82%; padding:9px 13px; border-radius:13px 13px 13px 4px; background:#F2F6FC; color:#0E2143; font-size:12.5px; line-height:1.4;' }));
+    const _aud = ((this.state && this.state.auditLog) || {})[o.id] || [];
+    const audit = _aud.map((a, i) => ({ action:a.action, by:a.by, time:a.time, notLast:i < _aud.length - 1, dotStyle:'background:'+(i === _aud.length - 1 ? '#2563EB' : '#10B981')+';' }));
     return Object.assign({}, d, {
-      steps, transcript, activeStage,
-      onPrimary: (e) => { if (e && e.stopPropagation) e.stopPropagation(); if (d.primStage) { const ns = Math.min((o.stage || 0) + 1, labels.length - 1); this.advanceOrder(o.id); this.setState({ selectedStep: ns }); } else if (d.onPrimary) d.onPrimary(e); },
+      steps, transcript, activeStage, audit,
+      onPrimary: (e) => { if (e && e.stopPropagation) e.stopPropagation(); if (d.primStage) { if (o.stage === 3 && !o.cancelled && !o.archived) { this.openFulfill(o); return; } const ns = Math.min((o.stage || 0) + 1, labels.length - 1); this.advanceOrder(o.id); this._audit(o.id, o.stage === 2 ? 'ยืนยันการชำระเงิน' : o.stage >= 4 ? 'ปิดงาน (เสร็จสิ้น)' : 'อัปเดตสถานะ'); this.setState({ selectedStep: ns }); } else if (d.onPrimary) d.onPrimary(e); },
       kindLabel: kindMeta.label, kindBg: kindMeta.bg, kindFg: kindMeta.fg,
       primaryStyle: 'flex:1; padding:12px; border:none; cursor:pointer; border-radius:10px; color:#fff; font-size:13.5px; font-weight:700; background:' + (d.primaryColor || '#2563EB') + ';',
     });
@@ -1253,7 +1940,7 @@ class Component extends DCLogic {
   _commMeta(st) { const m={ pending:{l:'รออนุมัติ',fg:'#C9810A',bg:'#FDF1DE'}, approved:{l:'อนุมัติแล้ว',fg:'#2563EB',bg:'#EAF1FE'}, paid:{l:'จ่ายแล้ว',fg:'#0F9D70',bg:'rgba(16,185,129,.12)'}, void:{l:'ยกเลิก',fg:'#94A3B8',bg:'#F1F5F9'} }; return m[st]||m.void; }
   _commModel(s) {
     const ov=s.commOverride||{}; const sel=s.commSel||{};
-    const all=this._commissions.map((c)=>Object.assign({},c,{ eff: ov[c.id]||c.status }));
+    const all=this._commissions.concat(s.commExtra||[]).map((c)=>Object.assign({},c,{ eff: ov[c.id]||c.status }));
     const counts={pending:0,approved:0,paid:0,void:0}; all.forEach((c)=>{ if(counts[c.eff]!==undefined)counts[c.eff]++; });
     const f=s.commFilter||'pending';
     let rows=all.filter((c)=>c.eff===f).map((c)=>{ const m=this._commMeta(c.eff); return Object.assign({},c,{
@@ -1269,7 +1956,31 @@ class Component extends DCLogic {
   setCommStatus=(id,st)=>this.setState((s)=>({ commOverride:Object.assign({},s.commOverride,{[id]:st}) }));
   commBulk=(st)=>this.setState((s)=>{ const sel=s.commSel||{}; const ov=Object.assign({},s.commOverride); Object.keys(sel).forEach((id)=>{ ov[id]=st; }); return {commOverride:ov, commSel:{}}; });
   setCommFilter=(f)=>this.setState({ commFilter:f, commSel:{} });
-  _refModel() { return this._referrers.map((r,i)=>Object.assign({},r,{ index:i, statusLabel:r.status==='active'?'ใช้งาน':'รออนุมัติ', statusFg:r.status==='active'?'#0F9D70':'#C9810A', statusBg:r.status==='active'?'rgba(16,185,129,.12)':'#FDF1DE', typeBg:'#F1F5F9', link:'mira.health/r/'+r.code, onCopy:this.copyLink, onQr:()=>this.setState({qrRef:r.code}), rowStyle:'display:grid; grid-template-columns:1.5fr 1.4fr 1.3fr 0.6fr 0.9fr 0.8fr; align-items:center; gap:10px; padding:13px 16px; border-bottom:1px solid #F4F7FB; font-size:13px;' })); }
+  _refStatusMeta(st){ return st==='active'?{l:'ใช้งาน',fg:'#0F9D70',bg:'rgba(16,185,129,.12)'} : st==='inactive'?{l:'ปิดใช้งาน',fg:'#94A3B8',bg:'#F1F5F9'} : {l:'รออนุมัติ',fg:'#C9810A',bg:'#FDF1DE'}; }
+  _allReferrers(){ const s=this.state||{}; const so=s.refStatusOverride||{}; const po=s.refProfileOverride||{}; const so2=s.refSchemeOverride||{}; const extra=s.refExtra||[]; return this._referrers.concat(extra).map((r)=>{ const o=Object.assign({}, r, po[r.code]||{}); if(so[r.code]) o.status=so[r.code]; if(so2[r.code]) o.scheme=so2[r.code]; return o; }); }
+  _refModel() { return this._allReferrers().map((r,i)=>{ const meta=this._refStatusMeta(r.status); return Object.assign({},r,{ index:i, statusLabel:meta.l, statusFg:meta.fg, statusBg:meta.bg, typeBg:'#F1F5F9', link:'mira.health/r/'+r.code, onCopy:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.copyLink(); }, onQr:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.setState({qrRef:r.code}); }, onOpen:()=>this.openRefProfile(r.code), rowStyle:'display:grid; grid-template-columns:1.5fr 1.4fr 1.3fr 0.6fr 0.9fr 0.8fr; align-items:center; gap:10px; padding:13px 16px; border-bottom:1px solid #F4F7FB; font-size:13px; cursor:pointer; transition:background .12s;' }); }); }
+  _schemeStr(f){ return 'ตรวจ '+f.sCheckup+'% · เลือด '+f.sBlood+'% · หัวใจ '+f.sHeart+'% · อื่น '+f.sOther+'%'; }
+  openRefProfile = (code) => { const r=this._allReferrers().find((x)=>x.code===code); if(!r)return; this.setState({ refDrawerCode:code, refError:'', refForm:{ name:r.name, phone:r.phone, type:r.type, email:'', code:r.code, status:r.status, sCheckup:'10', sBlood:'10', sHeart:'10', sOther:'10' } }); };
+  openRefCreate2 = () => this.setState({ refDrawerCode:'__new__', refError:'', refForm:{ name:'', phone:'', type:'staff', email:'', code:'', status:'pending', sCheckup:'10', sBlood:'10', sHeart:'10', sOther:'10' } });
+  closeRefDrawer = () => this.setState({ refDrawerCode:null, refError:'' });
+  _setRefForm = (k,v) => this.setState((s)=>({ refForm:Object.assign({}, s.refForm, {[k]:v}), refError:'' }));
+  _refAuditPush = (code, action) => this.setState((s)=>{ const log=Object.assign({}, s.refAuditLog); log[code]=[{ by:s.accountName||'ทีมแอดมิน', action, time:'เมื่อสักครู่' }].concat(log[code]||[]); return { refAuditLog:log }; });
+  saveRefProfile = () => this.setState({ refError:'Backend referrer save required' });
+  saveRefScheme = () => this.setState({ refError:'Backend commission scheme save required' });
+  refSetStatus = () => this.setState({ refError:'Backend referrer status update required' });
+  // ===== Stock movement subpage =====
+  applyStockMove = () => this.setState({ stMoveQty:'', stMoveNote:'' });
+  enableStockTracking = () => {};
+  _refProfile(s) {
+    const code=s.refDrawerCode; if(!code) return null;
+    const isNew=code==='__new__'; const f=s.refForm||{};
+    const r= isNew ? { code:f.code, name:f.name, status:f.status } : (this._allReferrers().find((x)=>x.code===code)||{});
+    const status=(isNew?f.status:r.status)||'pending'; const meta=this._refStatusMeta(status);
+    const orders=isNew?[]:(s.orders||[]).map((o)=>this._decorate(o, s.now||Date.now())).filter((o)=>o.refCode===code || (o.referrer||'').indexOf(code)!==-1).map((o)=>({ id:o.id, pkg:o.pkg, amount:o.amount, statusLabel:o.statusLabel, statusBg:o.statusBg, statusFg:o.statusFg }));
+    const ledger=isNew?[]:(this._commissions.concat(s.commExtra||[])).filter((c)=>c.code===code).map((c)=>{ const m=this._commMeta((s.commOverride||{})[c.id]||c.status); return { id:c.id, product:c.product, amount:c.amount, date:c.date, statusLabel:m.l, statusFg:m.fg, statusBg:m.bg }; });
+    const auditAll=(s.refAuditLog||{})[code]||[]; const schemeAudit=auditAll.find((a)=>a.action.indexOf('สูตรคอมมิชชั่น')!==-1);
+    return { code, isNew, name:isNew?(f.name||'ผู้แนะนำใหม่'):r.name, avatar:((isNew?f.name:r.name)||'?').trim().charAt(0)||'+', statusLabel:meta.l, statusFg:meta.fg, statusBg:meta.bg, status, orders, ordersCount:orders.length, ledger, ledgerCount:ledger.length, audit:auditAll, hasAudit:auditAll.length>0, schemeAudit:schemeAudit||null, hasSchemeAudit:!!schemeAudit, link:'mira.health/r/'+(f.code||code), qrCells:this._qrCells('https://mira.health/r/'+(f.code||code)), canApprove:status==='pending', canDeactivate:status==='active', canReactivate:status==='inactive' };
+  }
   // ===== conversations =====
   _convMeta(ch) { return ch==='LINE' ? { bg:'rgba(6,199,85,.12)', fg:'#06A04A' } : { bg:'#EAF1FE', fg:'#2563EB' }; }
   _convModel(s) {
@@ -1318,6 +2029,8 @@ class Component extends DCLogic {
   // ===== LINE =====
   copyWebhook=()=>{ this.setState({ lineCopied:true }); this._timers.push(setTimeout(()=>this.setState({lineCopied:false}),1600)); };
   sendLineTest=()=>this.setState({ lineTestText:'' });
+  verifyLine = () => this.setState({ lineConn:'missing', lineVerifying:false });
+  goReplyConv = () => { const id=this.state.lineTestConv||this._conversations[0].id; this.setState({ adminView:'conv', convId:id }); };
 
   // ===== chrome / nav helpers =====
   _tab(active) { return 'padding:7px 16px; border:none; cursor:pointer; border-radius:8px; font-size:13.5px; font-weight:600; ' + (active ? 'background:#2563EB; color:#fff; box-shadow:0 2px 6px rgba(37,99,235,.25);' : 'background:transparent; color:#5A6B86;'); }
@@ -1326,8 +2039,43 @@ class Component extends DCLogic {
   _seg(active) { return 'padding:11px 8px; border-radius:9px; cursor:pointer; font-size:13.5px; font-weight:700; border:1px solid; text-align:center; transition:all .15s; line-height:1.1; ' + (active ? 'background:#EAF1FE; border-color:#2563EB; color:#2563EB;' : 'background:#fff; border-color:#E4ECF8; color:#8595B0;'); }
 
   setModule = (m) => { this.setState({ module: m }); if (m === 'chat') { this._clear(); this.setState({ chatStage: 0 }); this._timers.push(setTimeout(this.playChat, 320)); } };
-  playChat = () => { this._clear(); this.setState({ chatStage: 0 }); const delays=[450,1100,1000,1200,1200,1000]; let acc=0; delays.forEach((d,i)=>{ acc+=d; this._timers.push(setTimeout(()=>this.setState({chatStage:i+1}), acc)); }); };
+  playChat = () => { this._clear(); this.setState({ chatStage: 0, chatMessages: [] }); };
   chatPay = () => this.setState({ chatStage: 7 });
+  // ===== AI Chat checkout / order / payment =====
+  _chatProducts = {};
+  openCheckout = (key) => { const p = this._chatProducts[key]; if(!p) return; this.setState({ coOpen:true, coStep:'detail', coProduct:p, coForm:{ name:'', phone:'', age:'', note:'', branch:(p.branches&&p.branches[0])||'', date:'', time:'เช้า (09:00–12:00)', qty:1, addr:'', shipNote:'' }, coPay:'promptpay', coLoading:false, coError:'', coStatus:'', coOrderId:'' }); };
+  closeCheckout = () => this.setState({ coOpen:false });
+  _setCo = (k,v) => this.setState((s)=>({ coForm:Object.assign({}, s.coForm, {[k]:v}), coError:'' }));
+  coGoForm = () => this.setState({ coStep:'form', coError:'' });
+  coGoSummary = () => {
+    const f = this.state.coForm||{}; const p = this.state.coProduct||{};
+    if(!f.name || !f.phone){ this.setState({ coError:'กรุณากรอกชื่อและเบอร์โทรให้ครบ' }); return; }
+    if(p.type==='product'){ if(!f.addr){ this.setState({ coError:'กรุณากรอกที่อยู่จัดส่ง' }); return; } }
+    else { if(!f.date){ this.setState({ coError:'กรุณาเลือกวันที่สะดวก' }); return; } }
+    this.setState({ coStep:'summary', coError:'' });
+  };
+  coCreateOrder = () => this.setState({ coLoading:false, coError:'Backend AI checkout create-order required' });
+  setCoPay = (m) => this.setState({ coPay:m });
+  coConfirmPay = () => this.setState({ coLoading:false, coError:'Backend payment confirmation required' });
+  coBack = () => this.setState((s)=>{ const m={form:'detail',summary:'form',pay:'summary'}; return { coStep:m[s.coStep]||'detail', coError:'' }; });
+  _coFooter = () => { const st=this.state.coStep||'detail'; if(this.state.coLoading) return; if(st==='detail')this.coGoForm(); else if(st==='form')this.coGoSummary(); else if(st==='summary')this.coCreateOrder(); else if(st==='pay')this.coConfirmPay(); else this.closeCheckout(); };
+  _coTab = (a) => 'flex:1; padding:9px 6px; border-radius:9px; cursor:pointer; font-size:11.5px; font-weight:700; border:1px solid; text-align:center; transition:all .15s; ' + (a?'background:#EAF1FE; border-color:#2563EB; color:#2563EB;':'background:#fff; border-color:#E4ECF8; color:#8595B0;');
+  // ===== Referral direct purchase (referrer creates order for customer) =====
+  openRefCreate = () => this.setState({ refTab:'create', rcStep:'catalog', rcError:'' });
+  rcPick = (p) => this.setState({ rcStep:'detail', rcProduct:p });
+  rcToForm = () => { const p=this.state.rcProduct||{}; this.setState({ rcStep:'form', rcForm:{ name:'', phone:'', age:'', branch:(p.branches&&p.branches[0])||'', date:'', addr:'' }, rcError:'' }); };
+  _setRc = (k,v) => this.setState((s)=>({ rcForm:Object.assign({}, s.rcForm, {[k]:v}), rcError:'' }));
+  rcToSummary = () => { const f=this.state.rcForm||{}; const p=this.state.rcProduct||{}; if(!f.name||!f.phone){ this.setState({ rcError:'กรอกชื่อและเบอร์ลูกค้าให้ครบ' }); return; } if(p.type==='product'){ if(!f.addr){ this.setState({ rcError:'กรอกที่อยู่จัดส่ง' }); return; } } else { if(!f.date){ this.setState({ rcError:'เลือกวันที่สะดวก' }); return; } } this.setState({ rcStep:'summary', rcError:'' }); };
+  rcCreate = () => this.setState({ rcLoading:false, rcError:'Backend referral order required' });
+  rcReset = () => this.setState({ rcStep:'catalog', rcProduct:null, rcForm:null, rcError:'' });
+  rcHistory = () => this.setState({ rcStep:'history' });
+  rcBack = () => this.setState((s)=>{ const m={detail:'catalog',form:'detail',summary:'form',history:'catalog'}; return { rcStep:m[s.rcStep]||'catalog', rcError:'' }; });
+  // ===== Admin order booking / fulfillment + audit =====
+  _audit = (id, action, by) => this.setState((s)=>{ const log=Object.assign({}, s.auditLog); log[id]=(log[id]||[]).concat([{ by: by || s.accountName || 'ทีมแอดมิน', action, time:'เมื่อสักครู่' }]); return { auditLog:log }; });
+  openFulfill = (o) => { const P=(o.kind||'service')==='product'; this.setState({ fulfillOpen:true, fulfillKind:P?'product':'service', fulfillOrderId:o.id, fulfillError:'', fulfillData: P ? { addr:o.addr||'', courier:o.courier||'Kerry Express', tracking:o.tracking||'', note:'' } : { date:'', time:'เช้า (09:00–12:00)', branch:o.branch||'', note:'' } }); };
+  closeFulfill = () => this.setState({ fulfillOpen:false, fulfillError:'' });
+  _setFulfill = (k,v) => this.setState((s)=>({ fulfillData:Object.assign({}, s.fulfillData, {[k]:v}), fulfillError:'' }));
+  confirmFulfill = () => this.setState({ fulfillLoading:false, fulfillError:'Backend fulfillment action required' });
   componentDidUpdate(pp, ps) { if (ps && ps.chatStage !== this.state.chatStage && this._chatScroll) { requestAnimationFrame(()=>{ if(this._chatScroll) this._chatScroll.scrollTop=this._chatScroll.scrollHeight; }); } }
   openLogin = () => this.setState({ showLogin: true, loginError: '', loginRole: this.state.role || 'admin' });
   closeLogin = () => this.setState({ showLogin: false });
@@ -1342,12 +2090,7 @@ class Component extends DCLogic {
   demoMismatch = () => this.setState({ loginError: 'บัญชีนี้ไม่มีสิทธิ์เข้าใช้งานในบทบาทที่เลือก — โปรดเลือกบทบาทให้ตรงกับบัญชีของคุณ' });
 
   setDataState = (v) => this.setState({ dataState: v });
-  copyLink = async () => {
-    const link = this.state.qrRef ? 'https://mira.health/r/'+this.state.qrRef : '';
-    if (link && navigator.clipboard) await navigator.clipboard.writeText(link);
-    this.setState({ copied: true });
-    this._timers.push(setTimeout(() => this.setState({ copied: false }), 1600));
-  };
+  copyLink = () => { this.setState({ copied: true }); this._timers.push(setTimeout(() => this.setState({ copied: false }), 1600)); };
 
   renderVals() {
     const s = this.state || {};
@@ -1378,6 +2121,22 @@ class Component extends DCLogic {
       { label:'เสร็จสิ้น', count:cc.done, pct:(cc.done/mx*100)+'%', color:'#10B981' },
     ];
 
+    // ===== AI Chat checkout precompute =====
+    const _co = s.coForm||{}; const _cp = s.coProduct||{}; const _coP = _cp.type==='product';
+    const _coStepIdx = ({detail:0,form:1,summary:2,pay:3,status:3})[s.coStep||'detail'];
+    const _coBar = (on)=>'flex:1; height:3px; border-radius:2px; background:'+(on?'#2563EB':'#E4ECF8')+';';
+    const _coUnit = this._num(_cp.price); const _coQty = _coP?(_co.qty||1):1; const _coTotal = _coUnit*_coQty;
+    const _coStatusRaw = [ {l:'เก็บข้อมูลครบ',st:'done'}, {l:'ชำระเงินสำเร็จ',st:'done'}, {l:'ยืนยันออเดอร์แล้ว',st:'current'}, {l:(_coP?'กำลังจัดส่ง':'จองคิว / นัดหมาย'),st:'todo'}, {l:'เสร็จสิ้น',st:'todo'} ];
+    // ===== Referral direct purchase precompute =====
+    const _rcP = s.rcProduct||{}; const _rf = s.rcForm||{}; const _rcProd = _rcP.type==='product';
+    const _rcComm = this._baht(Math.round(this._num(_rcP.price)*0.08));
+
+    const _fk = s.fulfillKind||'service'; const _fd = s.fulfillData||{};
+    const _rp = this._refProfile(s) || {}; const _rpf = s.refForm || {};
+    const _sp = (this._products[s.stockSel||0] || this._products[0] || {}); const _book = s.stockBook || this._seedStock(); const _sb = _book[_sp.title] || { available:0, reserved:0, sold:0, damaged:0, tracking:false };
+    const _lc = s.lineConn||'connected';
+    const _credMeta = (st)=> st==='connected'?{l:'เชื่อมต่อแล้ว',fg:'#0F9D70',bg:'rgba(16,185,129,.12)',icon:'✓'} : st==='missing'?{l:'ยังไม่ตั้งค่า',fg:'#C9810A',bg:'#FDF1DE',icon:'!'} : {l:'ไม่ถูกต้อง',fg:'#DC2626',bg:'#FBE3E4',icon:'✕'};
+    const _credSt = _lc==='connected'?['connected','connected','connected'] : _lc==='missing'?['connected','connected','missing'] : ['connected','invalid','connected'];
     const isNormal = ds === 'normal';
     return {
       // chrome
@@ -1429,9 +2188,10 @@ class Component extends DCLogic {
       showOrder: s.adminView==='orders' && !!om.liveSel, sel: this._buildSel(om.liveSel, s.selectedStep), closeOrder: this.closeOrder,
       showForm: s.adminView==='catalog' && s.showForm, closeForm: this.closeForm,
       // products + branches
-      inProducts: !s.showBranches, inBranches: s.showBranches,
-      toggleBranches: () => this.setState((p)=>({ showBranches:!p.showBranches })),
-      backToProducts: () => this.setState({ showBranches:false }),
+      inProducts: (s.catView||'products')==='products', inBranches: s.catView==='branches', inStock: s.catView==='stock',
+      toggleBranches: () => this.setState({ catView:'branches' }),
+      backToProducts: () => this.setState({ catView:'products' }),
+      goStock: () => this.setState({ catView:'stock' }),
       prodRows: (ds==='empty') ? [] : this._prodModel(s),
       prodEmpty: (ds==='empty') || this._prodModel(s).length===0,
       prodHasRows: (ds!=='empty') && this._prodModel(s).length>0,
@@ -1442,6 +2202,18 @@ class Component extends DCLogic {
       prodCatVal: s.prodCat||'all', onProdCat:(e)=>this.setState({prodCat:e.target.value}),
       openNewProduct: () => this.openForm('new', Object.assign({}, this._emptyProduct)),
       branchRows: this._branchRows(),
+      // ===== Stock movement =====
+      stockProducts: this._products.map((p,i)=>({ title:p.title, idx:i, active:(s.stockSel||0)===i, onPick:()=>this.setState({stockSel:i, stMoveQty:'', stMoveNote:''}), chipStyle:'padding:8px 13px; border-radius:9px; cursor:pointer; font-size:12.5px; font-weight:600; white-space:nowrap; border:1px solid; '+((s.stockSel||0)===i?'background:#2563EB; border-color:#2563EB; color:#fff;':'background:#fff; border-color:#E9EEF6; color:#5A6B86;') })),
+      stockSelTitle:_sp.title||'', stockTrackingOn:!!_sb.tracking, stockTrackingOff:!_sb.tracking, enableStockTracking:this.enableStockTracking,
+      stockBranchOpts:(_sp.branches||[]), stockBranchVal:s.stockBranchSel||((_sp.branches&&_sp.branches[0])||''), onStockBranch:(e)=>this.setState({stockBranchSel:e.target.value}),
+      stAvailable:String(_sb.available), stReserved:String(_sb.reserved), stSold:String(_sb.sold), stDamaged:String(_sb.damaged),
+      stockMoveReasons:['restock','adjust','damage','reserve','sold'].map((k)=>({ key:k, label:({restock:'เติมสต็อก',adjust:'ปรับยอด',damage:'ตัดของเสีย',reserve:'จองสินค้า',sold:'ตัดขาย'})[k], segStyle:this._seg((s.stMoveReason||'restock')===k)+' font-size:11.5px; padding:9px 4px;', onClick:()=>this.setState({stMoveReason:k}) })),
+      stMoveQtyVal:s.stMoveQty||'', onStMoveQty:(e)=>this.setState({stMoveQty:e.target.value}),
+      stMoveNoteVal:s.stMoveNote||'', onStMoveNote:(e)=>this.setState({stMoveNote:e.target.value}),
+      stMoveOpVal:s.stMoveOp||'ทีมแอดมิน', onStMoveOp:(e)=>this.setState({stMoveOp:e.target.value}),
+      applyStockMove:this.applyStockMove,
+      stockMoveRows:(s.stockMoves2||[]).filter((m)=>m.product===_sp.title).map((m)=>({ reason:m.reason, qty:m.qty, branch:m.branch, note:m.note, op:m.op, time:m.time, qtyColor:(m.qty&&m.qty[0]==='+')?'#0F9D70':(m.qty&&m.qty[0]==='−')?'#DC2626':'#42506b' })),
+      stockHasMoves:(s.stockMoves2||[]).filter((m)=>m.product===_sp.title).length>0,
       // product modal
       fd: s.formData || this._emptyProduct,
       fdAvailable: Math.max(0, ((s.formData||{}).stock||0) - ((s.formData||{}).reserved||0)),
@@ -1465,13 +2237,32 @@ class Component extends DCLogic {
       setRefList: ()=>this.setState({refSub:'list'}), setRefComm: ()=>this.setState({refSub:'comm'}),
       refTabListStyle: this._subtab(s.refSub!=='comm'), refTabCommStyle: this._subtab(s.refSub==='comm'),
       refRows: this._refModel(),
+      // ===== Referrer profile / create drawer =====
+      openRefCreate2:this.openRefCreate2,
+      refDrawerShow: s.adminView==='referrers' && !!s.refDrawerCode && isNormal,
+      refP:_rp, refPTitle:_rp.isNew?'เพิ่มผู้แนะนำใหม่':(_rp.name||''),
+      refHasActions: !_rp.isNew && (_rp.canApprove||_rp.canDeactivate||_rp.canReactivate),
+      closeRefDrawer:this.closeRefDrawer, saveRefProfile:this.saveRefProfile, saveRefScheme:this.saveRefScheme,
+      refApprove:()=>this.refSetStatus(s.refDrawerCode,'active','อนุมัติผู้แนะนำ'), refDeactivate:()=>this.refSetStatus(s.refDrawerCode,'inactive','ปิดใช้งานผู้แนะนำ'), refReactivate:()=>this.refSetStatus(s.refDrawerCode,'active','เปิดใช้งานอีกครั้ง'),
+      rfName:_rpf.name||'', onRfName:(e)=>this._setRefForm('name',e.target.value),
+      rfPhone:_rpf.phone||'', onRfPhone:(e)=>this._setRefForm('phone',e.target.value),
+      rfEmail:_rpf.email||'', onRfEmail:(e)=>this._setRefForm('email',e.target.value),
+      rfCode:_rpf.code||'', onRfCode:(e)=>this._setRefForm('code',e.target.value),
+      rfTypePerson:this._seg(_rpf.type==='บุคคล'), rfTypeTeam:this._seg(_rpf.type==='ทีม'), rfTypePartner:this._seg(_rpf.type==='พาร์ทเนอร์'),
+      setRfPerson:()=>this._setRefForm('type','บุคคล'), setRfTeam:()=>this._setRefForm('type','ทีม'), setRfPartner:()=>this._setRefForm('type','พาร์ทเนอร์'),
+      rfStatusActive:this._seg(_rpf.status==='active'), rfStatusPending:this._seg(_rpf.status==='pending'),
+      setRfActive:()=>this._setRefForm('status','active'), setRfPending:()=>this._setRefForm('status','pending'),
+      rfCheckup:_rpf.sCheckup||'', onRfCheckup:(e)=>this._setRefForm('sCheckup',e.target.value),
+      rfBlood:_rpf.sBlood||'', onRfBlood:(e)=>this._setRefForm('sBlood',e.target.value),
+      rfHeart:_rpf.sHeart||'', onRfHeart:(e)=>this._setRefForm('sHeart',e.target.value),
+      rfOther:_rpf.sOther||'', onRfOther:(e)=>this._setRefForm('sOther',e.target.value),
+      hasRefError:!!s.refError, refErrorText:s.refError||'',
       commRows: cm.rows, commHasRows: cm.rows.length>0, commEmpty: cm.rows.length===0,
       commFilters: [{key:'pending',label:'รออนุมัติ'},{key:'approved',label:'อนุมัติแล้ว'},{key:'paid',label:'จ่ายแล้ว'},{key:'void',label:'ยกเลิก'}].map((f)=>({ key:f.key, label:f.label, count:cm.counts[f.key], chipStyle:this._fchip((s.commFilter||'pending')===f.key), countStyle:'font-size:11px; font-weight:700; padding:1px 6px; border-radius:6px; '+((s.commFilter||'pending')===f.key?'background:rgba(255,255,255,.25); color:#fff;':'background:#EEF3FB; color:#7B89A4;'), onClick:()=>this.setCommFilter(f.key) })),
       commHasSel: Object.keys(s.commSel||{}).length>0, commSelCount: Object.keys(s.commSel||{}).length,
       commBulkApprove: ()=>this.commBulk('approved'), commBulkPay: ()=>this.commBulk('paid'), commClearSel: ()=>this.setState({commSel:{}}),
       // qr popover
       qrShow: !!s.qrRef, qrCode: s.qrRef||'', qrLink: 'mira.health/r/'+(s.qrRef||''),
-      qrImageUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=222x222&data='+encodeURIComponent('https://mira.health/r/'+(s.qrRef||'')),
       qrCells: this._qrCells('https://mira.health/r/'+(s.qrRef||'')), closeQr: ()=>this.setState({qrRef:null}),
       stopProp: (e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); },
       // conversations
@@ -1496,19 +2287,86 @@ class Component extends DCLogic {
       lineCopied: s.lineCopied, lineNotCopied: !s.lineCopied, copyWebhook: this.copyWebhook,
       lineTestVal: s.lineTestText||'', onLineTest:(e)=>this.setState({lineTestText:e.target.value}), sendLineTest: this.sendLineTest,
       goConvLine: ()=>this.setState({adminView:'conv'}), goOrdersLine: ()=>this.setState({adminView:'orders'}),
+      // LINE setup / verify / test-via-conversation
+      lineConnLabel:_credMeta(_lc).l, lineConnFg:_credMeta(_lc).fg, lineConnBg:_credMeta(_lc).bg,
+      lineCredRows:[ {label:'Webhook URL', sub:this._line.webhook}, {label:'Channel secret', sub:'whsec_••••••••3f2a'}, {label:'Channel access token', sub:'••••••••••••9Kd1'} ].map((c,i)=>{ const m=_credMeta(_credSt[i]); return { label:c.label, sub:c.sub, stLabel:m.l, stFg:m.fg, stBg:m.bg, stIcon:m.icon }; }),
+      lineVerifying:!!s.lineVerifying, lineNotVerifying:!s.lineVerifying, verifyLine:this.verifyLine,
+      lineDemoConnected:this._dchip(_lc==='connected','blue'), lineDemoMissing:this._dchip(_lc==='missing','amber'), lineDemoInvalid:this._dchip(_lc==='invalid','error'),
+      setLineConnected:()=>{}, setLineMissing:()=>{}, setLineInvalid:()=>{},
+      lineTestConvOpts:this._conversations.map((c)=>({ id:c.id, label:c.customer+' · '+c.channel })),
+      lineTestConvVal:s.lineTestConv||this._conversations[0].id, onLineTestConv:(e)=>this.setState({lineTestConv:e.target.value}), goReplyConv:this.goReplyConv,
       // AI chat
       csGreet: (s.chatStage||0)>=1, csUserQ: (s.chatStage||0)>=2, csTyping: (s.chatStage||0)===2,
       csRecommend: (s.chatStage||0)>=3, csCards: (s.chatStage||0)>=4, csUserPick: (s.chatStage||0)>=5,
       csOrder: (s.chatStage||0)>=5, csPay: (s.chatStage||0)===6, csPaid: (s.chatStage||0)>=7,
       replayChat: this.playChat, chatPay: this.chatPay, chatScrollRef: (el)=>{ this._chatScroll=el; },
       chatQrCells: this._qrCells('promptpay://0899999999/3900'),
+      // ===== AI Chat checkout =====
+      coOpen:!!s.coOpen,
+      coStepDetail:(s.coStep||'detail')==='detail', coStepForm:s.coStep==='form', coStepSummary:s.coStep==='summary', coStepPay:s.coStep==='pay', coStepStatus:s.coStep==='status',
+      coIsProduct:_coP, coIsService:!_coP,
+      coTitle:_cp.title||'', coSub:_cp.sub||'', coPrice:_cp.price||'', coOldPrice:_cp.oldPrice||'', coHasOld:!!_cp.oldPrice,
+      coTypeLabel:_coP?'สินค้า':'บริการ', coProductIcon:_coP?'▦':'＋', coIncludes:_cp.includes||[],
+      coHeaderTitle:({detail:_cp.title||'รายละเอียด',form:'กรอกข้อมูล',summary:'สรุปออเดอร์',pay:'ชำระเงิน',status:'สถานะออเดอร์'})[s.coStep||'detail'],
+      coHeaderSub:({detail:_coP?'สินค้า · จัดส่ง':'บริการ · นัดหมาย',form:_coP?'ผู้รับ + ที่อยู่จัดส่ง':'ผู้ติดต่อ + นัดหมาย',summary:'ตรวจสอบก่อนสร้างออเดอร์',pay:(s.coOrderId||''),status:(s.coOrderId||'')})[s.coStep||'detail'],
+      coSteps:[0,1,2,3].map((i)=>({ barStyle:_coBar(i<=_coStepIdx) })),
+      coCanBack:['form','summary','pay'].indexOf(s.coStep)!==-1, coBack:this.coBack, closeCheckout:this.closeCheckout,
+      coName:_co.name||'', onCoName:(e)=>this._setCo('name',e.target.value),
+      coPhone:_co.phone||'', onCoPhone:(e)=>this._setCo('phone',e.target.value),
+      coAge:_co.age||'', onCoAge:(e)=>this._setCo('age',e.target.value),
+      coNote:_co.note||'', onCoNote:(e)=>this._setCo('note',e.target.value),
+      coBranch:_co.branch||'', onCoBranch:(e)=>this._setCo('branch',e.target.value), coBranchOpts:(_cp.branches||[]),
+      coDate:_co.date||'', onCoDate:(e)=>this._setCo('date',e.target.value),
+      coTime:_co.time||'', onCoTime:(e)=>this._setCo('time',e.target.value),
+      coQtyText:String(_coQty), coDecQty:()=>this.setState((st)=>({coForm:Object.assign({},st.coForm,{qty:Math.max(1,((st.coForm||{}).qty||1)-1)})})), coIncQty:()=>this.setState((st)=>({coForm:Object.assign({},st.coForm,{qty:((st.coForm||{}).qty||1)+1})})),
+      coAddr:_co.addr||'', onCoAddr:(e)=>this._setCo('addr',e.target.value),
+      coShipNote:_co.shipNote||'', onCoShipNote:(e)=>this._setCo('shipNote',e.target.value),
+      coSumName:_co.name||'—', coSumPhone:_co.phone||'—', coSumAge:_co.age?(_co.age+' ปี'):'—', coHasAge:!!_co.age, coHasNote:!!_co.note, coSumNote:_co.note||'',
+      coSumBranch:_co.branch||'—', coSumDate:((_co.date||'รอเลือกวัน')+' · '+(_co.time||'')), coSumAddr:_co.addr||'—', coSumQty:String(_coQty), coHasShipNote:!!_co.shipNote, coSumShipNote:_co.shipNote||'',
+      coRefCode:'-', coUnitText:_cp.price||'', coTotalText:this._baht(_coTotal), coQtyMulti:_coP&&_coQty>1, coQtyMultiText:(_cp.price||'')+' × '+_coQty,
+      coPayPromptpay:(s.coPay||'promptpay')==='promptpay', coPayCard:s.coPay==='card', coPaySlip:s.coPay==='slip',
+      setCoPP:()=>this.setCoPay('promptpay'), setCoCard:()=>this.setCoPay('card'), setCoSlip:()=>this.setCoPay('slip'),
+      coTabPP:this._coTab((s.coPay||'promptpay')==='promptpay'), coTabCard:this._coTab(s.coPay==='card'), coTabSlip:this._coTab(s.coPay==='slip'),
+      coQrCells:this._qrCells('promptpay://0899999999/'+_coTotal), coOrderId:s.coOrderId||'',
+      coStatusSteps:_coStatusRaw.map((x,i)=>({ label:x.l, showCheck:x.st==='done', notLast:i<_coStatusRaw.length-1, dotStyle:(x.st==='done'?'background:#10B981; border-color:#10B981;':x.st==='current'?'background:#fff; border-color:#2563EB; box-shadow:0 0 0 4px rgba(37,99,235,.16);':'background:#fff; border-color:#D7E0EE;'), lineStyle:'background:'+(x.st==='done'?'#10B981':'#E4ECF8')+';', labelStyle:(x.st==='current'?'color:#2563EB; font-weight:700;':x.st==='done'?'color:#42506b;':'color:#9DB1D6;') })),
+      coLoading:!!s.coLoading, hasCoError:!!s.coError, coError:s.coError||'', coHasFooter:true,
+      coFooterLabel: s.coLoading ? ((s.coStep==='pay')?'กำลังตรวจสลิป…':(s.coStep==='summary')?'กำลังสร้างออเดอร์…':'กำลังโหลด…') : (({detail:'ดำเนินการต่อ',form:'ดูสรุปออเดอร์',summary:'สร้างออเดอร์ · ชำระเงิน',pay:'ยืนยันการชำระเงิน',status:'เสร็จสิ้น · ปิดหน้าต่าง'})[s.coStep||'detail']),
+      coFooterAction:this._coFooter, coFooterStyle:'width:100%; padding:13px; border:none; border-radius:11px; background:#2563EB; color:#fff; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center;',
+      openCompCheckout:()=>this.openCheckout('comp'), openBasicCheckout:()=>this.openCheckout('basic'), openKitCheckout:()=>this.openCheckout('kit'),
+      // ===== Referral direct purchase =====
+      refCreate: s.refTab==='create', openRefCreate:this.openRefCreate, navCreate:this._nav(s.refTab==='create'),
+      rcCatalog:(s.rcStep||'catalog')==='catalog', rcDetail:s.rcStep==='detail', rcForm2:s.rcStep==='form', rcSummary:s.rcStep==='summary', rcSuccess:s.rcStep==='success', rcHistoryView:s.rcStep==='history',
+      rcHeaderTitle:({catalog:'สั่งซื้อแทนลูกค้า',detail:'รายละเอียด',form:'ข้อมูลลูกค้า',summary:'สรุปออเดอร์',success:'สำเร็จ',history:'ออเดอร์ที่สร้าง'})[s.rcStep||'catalog'],
+      rcCanBack:['detail','form','summary','history'].indexOf(s.rcStep)!==-1, rcBack:this.rcBack,
+      rcCreatedCount:(s.rcCreated||[]).length, rcHistory:this.rcHistory,
+      rcCatalogRows: this._products.filter((p)=>p.status==='active').map((p)=>{ const cm=this._catMeta(p.category); const prod=p.type==='product'; return { title:p.title, price:'฿'+p.price, type:prod?'สินค้า':'บริการ', icon:prod?'▦':cm.icon, iconBg:cm.bg, iconFg:cm.fg, onPick:()=>this.rcPick({ title:p.title, type:p.type, price:'฿'+p.price, oldPrice:p.oldPrice?('฿'+p.oldPrice):'', sub:p.desc, includes:p.includes, branches:p.branches }) }; }),
+      rcProdTitle:_rcP.title||'', rcProdPrice:_rcP.price||'', rcProdSub:_rcP.sub||'', rcProdType:_rcProd?'สินค้า':'บริการ', rcProdIcon:_rcProd?'▦':'＋', rcIncludes:_rcP.includes||[], rcIsService:!_rcProd, rcIsProduct:_rcProd, rcToForm:this.rcToForm,
+      rcName:_rf.name||'', onRcName:(e)=>this._setRc('name',e.target.value), rcPhone:_rf.phone||'', onRcPhone:(e)=>this._setRc('phone',e.target.value), rcAge:_rf.age||'', onRcAge:(e)=>this._setRc('age',e.target.value),
+      rcBranch:_rf.branch||'', onRcBranch:(e)=>this._setRc('branch',e.target.value), rcBranchOpts:(_rcP.branches||[]), rcDate:_rf.date||'', onRcDate:(e)=>this._setRc('date',e.target.value), rcAddr:_rf.addr||'', onRcAddr:(e)=>this._setRc('addr',e.target.value),
+      rcToSummary:this.rcToSummary, hasRcError:!!s.rcError, rcError:s.rcError||'', rcLoading:!!s.rcLoading,
+      rcSumName:_rf.name||'—', rcSumPhone:_rf.phone||'—', rcSumBranch:_rf.branch||'—', rcSumDate:_rf.date||'รอเลือกวัน', rcSumAddr:_rf.addr||'—',
+      rcCommEst:_rcComm, rcTotal:_rcP.price||'', rcRefCode:'-', rcCreate:this.rcCreate, rcOrderId:s.rcOrderId||'', rcReset:this.rcReset,
+      rcCreatedRows:(s.rcCreated||[]).map((o)=>{ const m=({'รอชำระ':{bg:'#FDF1DE',fg:'#C9810A'},'ยืนยันแล้ว':{bg:'#EAF1FE',fg:'#2563EB'},'เสร็จสิ้น':{bg:'rgba(16,185,129,.12)',fg:'#0F9D70'}})[o.status]||{bg:'#F1F5F9',fg:'#94A3B8'}; return Object.assign({},o,{ statusBg:m.bg, statusFg:m.fg }); }), rcHasCreated:(s.rcCreated||[]).length>0,
+      // ===== Admin fulfillment modal =====
+      fulfillOpen:!!s.fulfillOpen, fulfillIsService:_fk==='service', fulfillIsProduct:_fk==='product',
+      fulfillTitle:_fk==='product'?'บันทึกการจัดส่ง':'จองคิว / นัดหมาย',
+      fulfillSub:(s.fulfillOrderId||'')+' · '+(_fk==='product'?'กรอกข้อมูลขนส่งและเลขพัสดุ':'เลือกวันเวลาและสาขานัดหมาย'),
+      fulfillConfirmLabel: s.fulfillLoading ? 'กำลังบันทึก…' : (_fk==='product'?'ยืนยันการจัดส่ง':'ยืนยันการจอง'),
+      closeFulfill:this.closeFulfill, confirmFulfill:this.confirmFulfill, fulfillLoading:!!s.fulfillLoading, hasFulfillError:!!s.fulfillError, fulfillError:s.fulfillError||'',
+      fulfillDate:_fd.date||'', onFulfillDate:(e)=>this._setFulfill('date',e.target.value),
+      fulfillTime:_fd.time||'', onFulfillTime:(e)=>this._setFulfill('time',e.target.value),
+      fulfillBranch:_fd.branch||'', onFulfillBranch:(e)=>this._setFulfill('branch',e.target.value), fulfillBranchOpts:this._branches.map((b)=>b.name),
+      fulfillAddr:_fd.addr||'', onFulfillAddr:(e)=>this._setFulfill('addr',e.target.value),
+      fulfillCourier:_fd.courier||'Kerry Express', onFulfillCourier:(e)=>this._setFulfill('courier',e.target.value), fulfillCourierOpts:['Kerry Express','Flash Express','J&T Express','ไปรษณีย์ไทย EMS','Ninja Van'],
+      fulfillTracking:_fd.tracking||'', onFulfillTracking:(e)=>this._setFulfill('tracking',e.target.value),
+      fulfillNote:_fd.note||'', onFulfillNote:(e)=>this._setFulfill('note',e.target.value),
+      fulfillConfirmStyle:'padding:11px 22px; border:none; border-radius:10px; background:'+(_fk==='product'?'#2563EB':'#7C3AED')+'; color:#fff; font-size:13.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:8px;',
       // referral (logged-in referrer = คุณ นภา)
       refHome: s.refTab==='home', refShare: s.refTab==='share', refEarn: s.refTab==='earnings',
       setRefHome: ()=>this.setState({refTab:'home'}), setRefShare: ()=>this.setState({refTab:'share'}), setRefEarn: ()=>this.setState({refTab:'earnings'}),
       navHome: this._nav(s.refTab==='home'), navShare: this._nav(s.refTab==='share'), navEarn: this._nav(s.refTab==='earnings'),
-      refQrImageUrl: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22188%22 height=%22188%22 viewBox=%220 0 188 188%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23F5F8FC%22/%3E%3C/svg%3E',
-      refQrCells: [], refMyCode: '-', refMyLink: '-',
-      refTotalComm: '฿0', refMonthComm: '฿0',
+      refQrCells: this._qrCells(''), refMyCode: '-', refMyLink: '-',
+      refTotalComm: '฿4,820', refMonthComm: '฿534',
       refOrders: [],
       refOrderCount: 0,
       copied: s.copied, notCopied: !s.copied, copyLink: this.copyLink,
@@ -1521,8 +2379,7 @@ class Component extends DCLogic {
       onLoginEmail: (e) => this.setState({ loginEmail: e.target.value }), onLoginPwd: (e) => this.setState({ loginPwd: e.target.value }),
       hasLoginError: !!s.loginError, loginError: s.loginError,
       loginRoleLabel: { admin:'ทีมงาน', referral:'ผู้แนะนำ', customer:'ลูกค้า' }[s.loginRole],
-      canRegister: false,
-      loginHelpText: 'ใช้บัญชีจริงที่มีสิทธิ์ใน tenant เท่านั้น',
+      canRegister: s.loginRole !== 'admin',
       submitLogin: this.submitLogin, demoMismatch: this.demoMismatch,
     };
   }

@@ -305,6 +305,7 @@
     return {
       _raw: row,
       _rawId: row.id,
+      _catalogKey: row.catalog_key || "",
       _branchIds: branchInfo.ids,
       title: compact(row.name, "สินค้า/บริการ"),
       type: row.category === "product" ? "product" : "service",
@@ -566,9 +567,11 @@
     };
     logic.setState({
       dataState: options.dataState || "empty",
+      lineConn: "missing",
       loggedIn: Boolean(options.loggedIn),
       orders: [],
       showLogin: Boolean(options.showLogin),
+      stockBook: {},
     });
   }
 
@@ -641,6 +644,70 @@
     };
   }
 
+  function productCheckoutPayload(product) {
+    const priceNumber = numberValue(product.price);
+    return {
+      _branchIds: product._branchIds || [],
+      _catalogKey: product._catalogKey || product.catalog_key || "",
+      _rawId: product._rawId || product._raw?.id || "",
+      branches: Array.isArray(product.branches) ? product.branches : [],
+      includes: Array.isArray(product.includes) ? product.includes : [],
+      oldPrice: product.oldPrice ? (String(product.oldPrice).startsWith("฿") ? product.oldPrice : baht(numberValue(product.oldPrice))) : "",
+      price: String(product.price || "").startsWith("฿") ? product.price : baht(priceNumber),
+      sub: compact(product.desc || product.description || product.sub, ""),
+      title: compact(product.title || product.name, "สินค้า/บริการ"),
+      type: product.type || (product.category === "product" ? "product" : "service"),
+    };
+  }
+
+  function branchIdForProductSelection(product, branchName) {
+    const branches = Array.isArray(product.branches) ? product.branches : [];
+    const branchIds = Array.isArray(product._branchIds) ? product._branchIds : [];
+    const index = branches.findIndex((name) => name === branchName);
+    return index >= 0 ? branchIds[index] : "";
+  }
+
+  function referrerType(value) {
+    const raw = compact(value, "staff").toLowerCase();
+    if (raw.includes("creator")) return "creator";
+    if (raw.includes("doctor") || raw.includes("แพทย์")) return "doctor";
+    if (raw.includes("nurse") || raw.includes("พยาบาล")) return "nurse";
+    return "staff";
+  }
+
+  function commissionSchemeFromForm(form) {
+    const defaultRate = numberValue(form.sOther || form.sCheckup || 10) || 10;
+    return {
+      by_category: {
+        blood: numberValue(form.sBlood || defaultRate) || defaultRate,
+        checkup: numberValue(form.sCheckup || defaultRate) || defaultRate,
+        heart: numberValue(form.sHeart || defaultRate) || defaultRate,
+      },
+      default: defaultRate,
+      mode: "percent",
+    };
+  }
+
+  function schemeToFormValues(scheme) {
+    const defaultRate = scheme && Number.isFinite(Number(scheme.default)) ? Number(scheme.default) : 10;
+    const byCategory = scheme && scheme.by_category ? scheme.by_category : {};
+    return {
+      sBlood: String(byCategory.blood ?? defaultRate),
+      sCheckup: String(byCategory.checkup ?? defaultRate),
+      sHeart: String(byCategory.heart ?? defaultRate),
+      sOther: String(defaultRate),
+    };
+  }
+
+  function bookingAtFromFulfill(data) {
+    const date = compact(data.date, "");
+    if (!date) return "";
+    const match = compact(data.time, "").match(/(\d{2}):(\d{2})/);
+    const hour = match ? match[1] : "09";
+    const minute = match ? match[2] : "00";
+    return `${date}T${hour}:${minute}:00+07:00`;
+  }
+
   function patchActions(logic, config, refresh) {
     logic.__miraBackendConfig = config;
     logic.__miraRefresh = refresh;
@@ -652,10 +719,78 @@
 
     const originalOpenForm = logic.openForm?.bind(logic);
 
+    logic.openBackendCheckout = (product) => {
+      const checkoutProduct = productCheckoutPayload(product || {});
+      if (!checkoutProduct._catalogKey && !checkoutProduct._rawId) {
+        noteMissing("Checkout needs a real backend catalog product.");
+        return;
+      }
+      logic.setState({
+        coError: "",
+        coForm: {
+          addr: "",
+          age: "",
+          branch: (checkoutProduct.branches && checkoutProduct.branches[0]) || "",
+          date: "",
+          name: "",
+          note: "",
+          phone: "",
+          qty: 1,
+          shipNote: "",
+          time: "เช้า (09:00-12:00)",
+        },
+        coLoading: false,
+        coOpen: true,
+        coOrderId: "",
+        coPay: "promptpay",
+        coProduct: checkoutProduct,
+        coStatus: "",
+        coStep: "detail",
+      });
+    };
+
     logic.openForm = (mode, product) => {
       originalOpenForm && originalOpenForm(mode, product);
       const current = product || {};
       logic.setState({ formData: { ...current, _rawId: rawProductId(logic, current) } });
+    };
+
+    logic.openRefCreate2 = () => {
+      logic.setState({
+        refDrawerCode: "__new__",
+        refError: "",
+        refForm: {
+          code: "",
+          email: "",
+          name: "",
+          phone: "",
+          status: "pending",
+          type: "staff",
+          ...schemeToFormValues({ default: 10, by_category: {} }),
+        },
+      });
+    };
+
+    logic.openRefProfile = (code) => {
+      const referrer = (logic._referrers || []).find((row) => row.code === code);
+      if (!referrer) {
+        noteMissing("Referrer drawer needs a backend referrer row.");
+        return;
+      }
+      const schemeValues = schemeToFormValues(referrer._raw && referrer._raw.commission_scheme);
+      logic.setState({
+        refDrawerCode: referrer.code,
+        refError: "",
+        refForm: {
+          code: referrer.code,
+          email: "",
+          name: referrer.name,
+          phone: referrer.phone === "-" ? "" : referrer.phone,
+          status: referrer.status,
+          type: referrer.type,
+          ...schemeValues,
+        },
+      });
     };
 
     logic.submitLogin = async () => {
@@ -829,6 +964,15 @@
       noteMissing("Stock controls are visible in the supplied UI, but production products do not have stock/reserved columns yet.");
     };
 
+    logic.applyStockMove = () => {
+      noteMissing("Inventory movement UI is present, but production has no stock ledger/movement backend contract yet.");
+      logic.setState({ stMoveNote: "", stMoveQty: "" });
+    };
+
+    logic.enableStockTracking = () => {
+      noteMissing("Stock tracking toggle needs production stock columns or a stock ledger table before it can persist.");
+    };
+
     logic.copyLink = async () => {
       const snapshot = logic.__miraSnapshot || {};
       const currentReferrer = snapshot.currentReferrer || null;
@@ -902,6 +1046,249 @@
       noteMissing("LINE test send has no production backend contract in this UI. Configure/test LINE through the live webhook and chat inbox.");
       logic.setState({ lineTestText: "" });
     };
+
+    logic.verifyLine = () => {
+      noteMissing("LINE verify button in the supplied UI is a mock timer. Production verification needs a backend health-check contract for LINE credentials/webhook.");
+      logic.setState({ lineVerifying: false, lineConn: "missing" });
+    };
+
+    logic._createOrder = () => {
+      noteMissing("Design in-memory order creation is disabled. Orders must be created by a production backend contract.");
+      return "";
+    };
+
+    logic._addCommission = () => {
+      noteMissing("Design in-memory commission creation is disabled. Commissions must come from commission_entries.");
+    };
+
+    logic.coCreateOrder = () => {
+      noteMissing("AI checkout bottom sheet has UI, but there is no production create-order API for this direct form yet. Use the live AI chat flow until a backend contract is added.");
+      logic.setState({
+        coError: "ยังไม่มี backend สำหรับสร้างออเดอร์จากฟอร์ม AI Checkout นี้โดยตรง กรุณาใช้แชต AI จริง หรือเพิ่ม contract สร้างออเดอร์ก่อน",
+        coLoading: false,
+      });
+    };
+
+    logic.coConfirmPay = () => {
+      noteMissing("AI checkout payment confirmation needs a real backend order id plus PromptPay/Stripe/slip verification contract.");
+      logic.setState({
+        coError: "ยังยืนยันชำระเงินจาก bottom sheet นี้ไม่ได้ เพราะยังไม่มีออเดอร์จริงจาก backend",
+        coLoading: false,
+      });
+    };
+
+    logic.rcCreate = async () => {
+      if (logic.state.rcLoading) return;
+      const configNow = logic.__miraBackendConfig || window.MIRA_BACKEND_CONFIG || {};
+      const product = logic.state.rcProduct || {};
+      const form = logic.state.rcForm || {};
+      const buyerAge = Number(form.age);
+      const catalogKey = product._catalogKey || product.catalog_key || "";
+      if (!catalogKey) {
+        logic.setState({ rcError: "สินค้านี้ยังไม่มี catalog_key จาก backend", rcLoading: false });
+        noteMissing("Referral direct purchase needs a backend catalog_key.");
+        return;
+      }
+      if (product.type === "product") {
+        logic.setState({ rcError: "สินค้าจัดส่งยังไม่มี field ที่อยู่จัดส่งใน referrer-order contract", rcLoading: false });
+        noteMissing("Referral product shipment needs a backend shipping-address contract before it can create real orders.");
+        return;
+      }
+      if (!form.name || !form.phone || !Number.isInteger(buyerAge) || buyerAge < 1 || buyerAge > 120) {
+        logic.setState({ rcError: "กรอกชื่อ เบอร์โทร และอายุลูกค้าให้ครบ", rcLoading: false });
+        return;
+      }
+      try {
+        logic.setState({ rcError: "", rcLoading: true });
+        const branchId = branchIdForProductSelection(product, form.branch);
+        const response = await invokeFunction(configNow, "referrer-order", {
+          action: "create_order",
+          buyer_age: buyerAge,
+          buyer_name: String(form.name).trim(),
+          buyer_phone: String(form.phone).trim(),
+          catalog_key: catalogKey,
+          ...(branchId ? { branch_id: branchId } : {}),
+          ...(form.date ? { preferred_date: form.date } : {}),
+          tenant_slug: configNow.tenantSlug || "demo-hospital",
+        });
+        const displayId = response && response.order && response.order.id ? orderDisplayId(response.order) : "";
+        const entry = {
+          amount: product.price || "",
+          commission: "รอคำนวณหลังชำระเงิน",
+          custShort: logic._shortName ? logic._shortName(form.name) : compact(form.name, ""),
+          id: displayId || "backend",
+          pkg: product.title || "",
+          status: "รอชำระ",
+        };
+        logic.setState((state) => ({
+          rcCreated: [entry].concat(state.rcCreated || []),
+          rcLoading: false,
+          rcOrderId: displayId,
+          rcStep: "success",
+        }));
+        noteAction(`referral order created ${displayId || ""}`.trim());
+        await refreshFromLogic(logic);
+      } catch (error) {
+        noteError("referrer-order create failed", error);
+        logic.setState({ rcError: error.message || "สร้างออเดอร์ referral ไม่สำเร็จ", rcLoading: false });
+      }
+    };
+
+    logic.confirmFulfill = async () => {
+      if (logic.state.fulfillLoading) return;
+      const displayId = logic.state.fulfillOrderId;
+      const orderId = rawOrderId(logic, displayId);
+      const data = logic.state.fulfillData || {};
+      if (!orderId) {
+        logic.setState({ fulfillError: "ออเดอร์นี้ยังไม่ผูกกับ backend order id" });
+        noteMissing("Fulfillment action needs a backend order id.");
+        return;
+      }
+      if (logic.state.fulfillKind === "product") {
+        logic.setState({ fulfillError: "ยังไม่มี backend field สำหรับ courier/tracking ของสินค้าจัดส่ง" });
+        noteMissing("Product fulfillment needs courier/tracking fields and a backend action before it can persist.");
+        return;
+      }
+      const bookingAt = bookingAtFromFulfill(data);
+      if (!bookingAt) {
+        logic.setState({ fulfillError: "เลือกวันนัดหมายก่อนบันทึก" });
+        return;
+      }
+      try {
+        logic.setState({ fulfillError: "", fulfillLoading: true });
+        await invokeFunction(logic.__miraBackendConfig, "admin-order-action", {
+          action: "book",
+          booking_at: bookingAt,
+          ...(data.note ? { note: data.note } : {}),
+          order_id: orderId,
+        });
+        noteAction(`order ${displayId} booked`);
+        logic.setState({ fulfillLoading: false, fulfillOpen: false, selectedStep: 4 });
+        await refreshFromLogic(logic);
+      } catch (error) {
+        noteError("order booking failed", error);
+        logic.setState({ fulfillError: error.message || "บันทึกนัดหมายไม่สำเร็จ", fulfillLoading: false });
+      }
+    };
+
+    logic.saveRefProfile = async () => {
+      const snapshot = logic.__miraSnapshot || {};
+      const tenantId = snapshot.tenant && snapshot.tenant.id;
+      const form = logic.state.refForm || {};
+      const code = logic.state.refDrawerCode;
+      if (!tenantId) {
+        logic.setState({ refError: "ต้องโหลด tenant จาก backend ก่อน" });
+        return;
+      }
+      if (!form.name || !String(form.name).trim()) {
+        logic.setState({ refError: "กรอกชื่อผู้แนะนำก่อนบันทึก" });
+        return;
+      }
+      if (form.email) {
+        noteMissing("Referrer email is visible in the supplied UI, but the production referrers table has no email column.");
+      }
+      const payload = {
+        active: form.status === "active",
+        commission_scheme: commissionSchemeFromForm(form),
+        name: String(form.name).trim(),
+        phone: form.phone ? String(form.phone).trim() : null,
+        tenant_id: tenantId,
+        type: referrerType(form.type),
+      };
+      try {
+        let saved = null;
+        if (code === "__new__") {
+          const customCode = String(form.code || "").trim().toUpperCase();
+          const rows = await rest(logic.__miraBackendConfig, "referrers?select=id,tenant_id,name,ref_code,type,phone,auth_user_id,commission_scheme,active,created_at", {
+            body: {
+              ...payload,
+              ...(customCode && /^[0-9A-HJKMNP-TV-Z]{6}$/.test(customCode) ? { ref_code: customCode } : {}),
+            },
+            method: "POST",
+            prefer: "return=representation",
+          });
+          saved = Array.isArray(rows) ? rows[0] : rows;
+          noteAction("referrer created");
+        } else {
+          const referrer = (logic._referrers || []).find((row) => row.code === code);
+          if (!referrer || !referrer._rawId) {
+            logic.setState({ refError: "ไม่พบ backend row ของผู้แนะนำนี้" });
+            return;
+          }
+          const rows = await rest(logic.__miraBackendConfig, `referrers?id=eq.${referrer._rawId}&tenant_id=eq.${tenantId}&select=id,tenant_id,name,ref_code,type,phone,auth_user_id,commission_scheme,active,created_at`, {
+            body: payload,
+            method: "PATCH",
+            prefer: "return=representation",
+          });
+          saved = Array.isArray(rows) ? rows[0] : rows;
+          noteAction(`referrer ${code} updated`);
+        }
+        logic.setState({
+          refDrawerCode: saved && saved.ref_code ? saved.ref_code : code,
+          refError: "",
+        });
+        await refreshFromLogic(logic);
+      } catch (error) {
+        noteError("referrer save failed", error);
+        logic.setState({ refError: error.message || "บันทึกผู้แนะนำไม่สำเร็จ" });
+      }
+    };
+
+    logic.saveRefScheme = async () => {
+      const snapshot = logic.__miraSnapshot || {};
+      const tenantId = snapshot.tenant && snapshot.tenant.id;
+      const code = logic.state.refDrawerCode;
+      const form = logic.state.refForm || {};
+      const referrer = (logic._referrers || []).find((row) => row.code === code);
+      if (!tenantId || !referrer || !referrer._rawId) {
+        logic.setState({ refError: "ต้องเลือกผู้แนะนำที่มี backend row ก่อน" });
+        return;
+      }
+      try {
+        await rest(logic.__miraBackendConfig, `referrers?id=eq.${referrer._rawId}&tenant_id=eq.${tenantId}&select=id`, {
+          body: { commission_scheme: commissionSchemeFromForm(form) },
+          method: "PATCH",
+          prefer: "return=minimal",
+        });
+        noteAction(`referrer ${code} commission scheme updated`);
+        logic.setState({ refError: "" });
+        await refreshFromLogic(logic);
+      } catch (error) {
+        noteError("referrer scheme save failed", error);
+        logic.setState({ refError: error.message || "บันทึกสูตรคอมมิชชั่นไม่สำเร็จ" });
+      }
+    };
+
+    logic.refSetStatus = async (code, status) => {
+      const snapshot = logic.__miraSnapshot || {};
+      const tenantId = snapshot.tenant && snapshot.tenant.id;
+      const referrer = (logic._referrers || []).find((row) => row.code === code);
+      if (!tenantId || !referrer || !referrer._rawId) {
+        logic.setState({ refError: "ต้องเลือกผู้แนะนำที่มี backend row ก่อน" });
+        return;
+      }
+      try {
+        await rest(logic.__miraBackendConfig, `referrers?id=eq.${referrer._rawId}&tenant_id=eq.${tenantId}&select=id`, {
+          body: { active: status === "active" },
+          method: "PATCH",
+          prefer: "return=minimal",
+        });
+        noteAction(`referrer ${code} ${status}`);
+        logic.setState({ refError: "" });
+        await refreshFromLogic(logic);
+      } catch (error) {
+        noteError("referrer status update failed", error);
+        logic.setState({ refError: error.message || "อัปเดตสถานะผู้แนะนำไม่สำเร็จ" });
+      }
+    };
+
+    logic.reopenOrder = () => {
+      noteMissing("Reopen needs a protected order state-machine action before it can persist.");
+    };
+
+    logic.restoreOrder = () => {
+      noteMissing("Restore from archive has no backend action in admin-order-action yet.");
+    };
   }
 
   function patchRenderVals(logic) {
@@ -930,11 +1317,47 @@
       const chatMessages = this.state.chatMessages || [
         messageBubble("ai", "เชื่อมต่อ AI backend แล้ว พิมพ์ข้อความเพื่อถาม Mira ได้เลย"),
       ];
+      const chatCards = this.state.chatCards || [];
+      const catalogRows = (this._products || [])
+        .filter((product) => product.status === "active")
+        .map((product) => {
+          const meta = this._catMeta ? this._catMeta(product.category) : { bg: "#EAF1FE", fg: "#2563EB", icon: "+" };
+          const checkoutProduct = productCheckoutPayload(product);
+          const isProduct = checkoutProduct.type === "product";
+          return {
+            icon: isProduct ? "▦" : meta.icon,
+            iconBg: meta.bg,
+            iconFg: meta.fg,
+            onPick: () => this.rcPick(checkoutProduct),
+            price: checkoutProduct.price,
+            title: checkoutProduct.title,
+            type: isProduct ? "สินค้า" : "บริการ",
+          };
+        });
+      const backendReferralRows = refOrders.map((order) => ({
+        amount: order.amount,
+        commission: order.commission || "รอคำนวณ",
+        custShort: order.custShort || order.customer,
+        id: order.id,
+        pkg: order.pkg,
+        status: order.statusLabel || (order.stage >= 3 ? "ยืนยันแล้ว" : "รอชำระ"),
+      }));
+      const stateReferralRows = Array.isArray(this.state.rcCreated) ? this.state.rcCreated : [];
+      const rcCreatedRows = stateReferralRows.concat(backendReferralRows.filter((row) => !stateReferralRows.some((item) => item.id === row.id)));
+      const rcDecoratedRows = rcCreatedRows.map((order) => {
+        const meta = ({
+          "รอชำระ": { bg: "#FDF1DE", fg: "#C9810A" },
+          "ยืนยันแล้ว": { bg: "#EAF1FE", fg: "#2563EB" },
+          "เสร็จสิ้น": { bg: "rgba(16,185,129,.12)", fg: "#0F9D70" },
+        })[order.status] || { bg: "#F1F5F9", fg: "#64748B" };
+        return { ...order, statusBg: meta.bg, statusFg: meta.fg };
+      });
 
       return {
         ...vals,
         chatInputVal: this.state.chatInput || "",
-        chatLiveCards: this.state.chatCards || [],
+        chatHasLiveCards: chatCards.length > 0,
+        chatLiveCards: chatCards,
         chatLiveLoading: Boolean(this.state.chatLoading),
         chatLiveMessages: chatMessages,
         chatPay: () => noteMissing("Payment upload/checkout needs the real order panel UI contract in this supplied chat screen."),
@@ -997,6 +1420,12 @@
         refTotalComm: baht(totalCommission),
         qrImageUrl: qrImageUrl(popupRefLink, 222),
         qrLink: popupRefLink || "-",
+        coRefCode: refCode || "-",
+        rcCatalogRows: catalogRows,
+        rcCreatedCount: rcDecoratedRows.length,
+        rcCreatedRows: rcDecoratedRows,
+        rcHasCreated: rcDecoratedRows.length > 0,
+        rcRefCode: refCode || "-",
         canRegister: false,
         loginHelpText: "ใช้บัญชีจริงที่มีสิทธิ์ใน tenant เท่านั้น",
         saveProductForm: this.saveProductForm,
@@ -1005,16 +1434,36 @@
     logic.__miraRenderPatched = true;
   }
 
-  function mapChatCards(cards, products) {
+  function mapChatCards(cards, products, logic) {
     const fromCards = Array.isArray(cards)
       ? cards.flatMap((card) => Array.isArray(card.products) ? card.products : Array.isArray(card.items) ? card.items : [])
       : [];
     const source = fromCards.length ? fromCards : products || [];
-    return source.slice(0, 3).map((item) => ({
-      description: compact(item.description || item.subtitle || item.category, ""),
-      price: item.price_baht != null ? baht(item.price_baht) : item.price || "",
-      title: compact(item.name || item.title, "สินค้า/บริการ"),
-    }));
+    return source.slice(0, 3).map((item) => {
+      const product = productCheckoutPayload({
+        _catalogKey: item.catalog_key || item.catalogKey || "",
+        branches: item.branches || [],
+        category: item.category,
+        desc: item.description || item.subtitle || "",
+        includes: item.includes || [],
+        name: item.name,
+        price: item.price_baht != null ? baht(item.price_baht) : item.price || "",
+        title: item.title,
+        type: item.category === "product" || item.type === "product" ? "product" : "service",
+      });
+      return {
+        description: compact(product.sub || item.category, ""),
+        openCheckout: () => {
+          if (logic && logic.openBackendCheckout) {
+            logic.openBackendCheckout(product);
+          } else {
+            noteMissing("Checkout action needs the backend adapter to be ready.");
+          }
+        },
+        price: product.price,
+        title: product.title,
+      };
+    });
   }
 
   function patchChat(logic) {
@@ -1042,7 +1491,7 @@
         }, { allowAnon: true });
         const answer = compact(response && response.text, "AI backend returned an empty response.");
         logic.setState((state) => ({
-          chatCards: mapChatCards(response && response.cards, response && response.products),
+          chatCards: mapChatCards(response && response.cards, response && response.products, logic),
           chatLoading: false,
           chatMessages: [...(state.chatMessages || []), messageBubble("ai", answer)],
           chatSessionId: response && response.session_id ? response.session_id : state.chatSessionId,
@@ -1066,15 +1515,20 @@
     logic._payments = snapshot.payments;
     logic._products = snapshot.products;
     logic._referrers = snapshot.referrers;
+    logic._chatProducts = Object.fromEntries(
+      snapshot.products.map((product, index) => [product._catalogKey || product._rawId || `product-${index}`, productCheckoutPayload(product)]),
+    );
     logic.__miraSnapshot = snapshot;
 
     logic.setState({
       accountName: snapshot.tenant.display_name || "ทีมแอดมิน",
       dataState: "normal",
+      lineConn: snapshot.line && snapshot.line.verified ? "connected" : "missing",
       loggedIn: true,
       orders: snapshot.orders,
       role: snapshot.currentReferrer && !snapshot.membershipRole ? "referral" : "admin",
       showLogin: false,
+      stockBook: {},
     });
 
     STATUS.instance = true;
