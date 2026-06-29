@@ -559,7 +559,7 @@ function initMailtoForm() {
         `เบอร์ติดต่อ: ${data.get('phone') ?? ''}`,
         `ประเภทธุรกิจ: ${data.get('businessType') ?? ''}`,
       ].join('\n');
-      const subject = encodeURIComponent('Mira demo request');
+      const subject = encodeURIComponent('Mila AI consultation');
       window.location.href = `mailto:${recipient}?subject=${subject}&body=${encodeURIComponent(body)}`;
       showNote(`เปิดแอปอีเมลของคุณแล้ว — ถ้าไม่ขึ้น ส่งตรงได้ที่ ${recipient}`);
     };

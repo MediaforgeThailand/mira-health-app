@@ -26,7 +26,7 @@
 - `npm run v2:edge-security-audit` passed and now covers chat/admin order tenant-scope invariants plus action-response persistence and template guards.
 - `git diff --check` passed.
 - Direct status-write audit allows status writes only inside `public.transition_order(...)`; app/admin direct reads do not update status.
-- `npx.cmd -y deno@2.8.2 test --allow-env --allow-net --import-map=supabase/functions/import_map.json supabase/functions/_shared/__tests__` passed with 83 shared tests, including the Phase 3 order, PromptPay, and B4 slip-path guard tests.
+- `npx.cmd -y deno@2.8.2 test --allow-env --allow-net --import-map=supabase/functions/import_map.json supabase/functions/_shared/__tests__` passed for the active shared Deno tests, including the Phase 3 order, PromptPay, and B4 slip-path guard tests.
 
 ## Boundaries
 

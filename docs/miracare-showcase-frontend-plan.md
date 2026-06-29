@@ -265,3 +265,8 @@ Hard rules:
 
 Start now with Phase S0 and report what you changed when it is done.
 ```
+# SUPERSEDED 2026-06-23
+
+This showcase plan is historical. New work should not build more showcase/mockup surfaces. The current direction is a real AI Sales and MarTech system with `/` as a simple system directory. See `AGENTS.md` and `docs/ai-sales-martech-context.md`.
+
+---

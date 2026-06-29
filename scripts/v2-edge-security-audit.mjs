@@ -11,14 +11,10 @@ const files = {
   factExtractor: 'supabase/functions/fact-extractor/index.ts',
   facts: 'supabase/functions/_shared/facts.ts',
   internalAuth: 'supabase/functions/_shared/internalAuth.ts',
-  labConfirm: 'supabase/functions/lab-confirm/index.ts',
-  labIngest: 'supabase/functions/lab-ingest/index.ts',
   line: 'supabase/functions/_shared/line.ts',
   lineWebhook: 'supabase/functions/line-webhook/index.ts',
   orchestrate: 'supabase/functions/_shared/orchestrate.ts',
   orders: 'supabase/functions/_shared/orders.ts',
-  pdpaDelete: 'supabase/functions/pdpa-delete/index.ts',
-  pdpaExport: 'supabase/functions/pdpa-export/index.ts',
   referralBind: 'supabase/functions/referral-bind/index.ts',
   referralBindShared: 'supabase/functions/_shared/referralBind.ts',
   referralSelfProvision: 'supabase/functions/referral-self-provision/index.ts',
@@ -31,7 +27,6 @@ const files = {
   storage: 'supabase/functions/_shared/storage.ts',
   systemNoticeMigration: 'supabase/migrations/20260611061000_a2_system_notice_single_source.sql',
   templates: 'supabase/functions/_shared/templates.ts',
-  wearableIngest: 'supabase/functions/wearable-ingest/index.ts',
 };
 
 const v2EdgeFunctions = {
@@ -39,18 +34,13 @@ const v2EdgeFunctions = {
   adminOrderAction: files.adminOrderAction,
   chatOrchestrator: files.chatOrchestrator,
   factExtractor: files.factExtractor,
-  labIngest: files.labIngest,
   lineWebhook: files.lineWebhook,
-  labConfirm: files.labConfirm,
-  pdpaDelete: files.pdpaDelete,
-  pdpaExport: files.pdpaExport,
   referralBind: files.referralBind,
   referralSelfProvision: files.referralSelfProvision,
   referrerOrder: files.referrerOrder,
   stripeCheckout: files.stripeCheckout,
   stripePromptpayQr: files.stripePromptpayQr,
   stripeWebhook: files.stripeWebhook,
-  wearableIngest: files.wearableIngest,
 };
 
 async function read(relativePath) {
@@ -118,12 +108,8 @@ expect(
   sources.internalAuth.includes('constantTimeEqual') &&
     sources.internalAuth.includes('Internal service-role authorization required.') &&
     sources.factExtractor.includes("import { assertInternalServiceRoleAuthorization } from '../_shared/internalAuth.ts'") &&
-    sources.factExtractor.includes("assertInternalServiceRoleAuthorization(req.headers.get('authorization'))") &&
-    sources.labIngest.includes("import { assertInternalServiceRoleAuthorization } from '../_shared/internalAuth.ts'") &&
-    sources.labIngest.includes("assertInternalServiceRoleAuthorization(req.headers.get('authorization'))") &&
-    sources.wearableIngest.includes("import { assertInternalServiceRoleAuthorization } from '../_shared/internalAuth.ts'") &&
-    sources.wearableIngest.includes("assertInternalServiceRoleAuthorization(req.headers.get('authorization'))"),
-  'fact-extractor, lab-ingest, and wearable-ingest must require the shared constant-time service-role guard before internal work',
+    sources.factExtractor.includes("assertInternalServiceRoleAuthorization(req.headers.get('authorization'))"),
+  'fact-extractor must require the shared constant-time service-role guard before internal work',
 );
 
 expect(
@@ -225,30 +211,6 @@ expect(
   sources.factExtractor.includes('tenant_id: `eq.${session.tenant_id}`') &&
     sources.facts.includes('tenant_id: `eq.${tenantId}`'),
   'fact extraction follow-up reads and writes must include tenant filters after session ownership is known',
-);
-
-expect(
-  'lab and wearable follow-up tenant filters',
-  sources.labIngest.includes('tenant_id: `eq.${customer.tenant_id}`') &&
-    sources.labIngest.includes('tenant_id: `eq.${report.tenant_id}`') &&
-    sources.wearableIngest.includes('tenant_id: `eq.${customer.tenant_id}`') &&
-    sources.wearableIngest.includes('tenant_id: customer.tenant_id') &&
-    !sources.wearableIngest.includes('tenant_slug'),
-  'lab and wearable internal functions must derive tenant context from customer/report rows and reject request tenant fields',
-);
-
-expect(
-  'lab confirmation trusted write path',
-  sources.labConfirm.includes('resolveAuthUserId(req.headers.get') &&
-    sources.labConfirm.includes("report.status !== 'needs_confirmation'") &&
-    sources.labConfirm.includes('auth_user_id: `eq.${authUserId}`') &&
-    sources.labConfirm.includes('tenant_id: `eq.${report.tenant_id}`') &&
-    sources.labConfirm.includes('Lab result ${confirmation.test_code} is not part of this report.') &&
-    sources.labConfirm.includes("confirmed: true") &&
-    sources.labConfirm.includes("status: 'ready'") &&
-    sources.labConfirm.includes('await insertLabFacts(customer, updatedReport, results)') &&
-    sources.labIngest.includes("import { insertLabFacts } from '../_shared/labFacts.ts'"),
-  'lab-confirm must validate customer-owned needs_confirmation reports, update trusted rows, mark ready, and share the lab fact insertion helper',
 );
 
 expect(

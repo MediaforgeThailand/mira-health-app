@@ -21,9 +21,7 @@ import type { ShowcaseAuth, ShowcaseHref, ShowcaseModuleId, ShowcaseStatus } fro
 const logo = require('@/assets/images/mira-care-logo.png');
 
 const statusTone: Record<ShowcaseStatus, { backgroundColor: string; color: string; label: string }> = {
-  concept: { backgroundColor: '#EAF0FF', color: '#3155A5', label: 'CONCEPT' },
   live: { backgroundColor: '#E7F8F2', color: '#087B5D', label: 'LIVE' },
-  mockup: { backgroundColor: '#FFF3CF', color: '#7A5A05', label: 'MOCKUP' },
   planned: { backgroundColor: '#EDF2F7', color: '#587177', label: 'PLANNED' },
 };
 

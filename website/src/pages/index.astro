@@ -1,50 +1,7 @@
 ---
-import '../styles/tokens.css';
-import '../styles/base.css';
-import Nav from '../components/Nav.astro';
-import Hero from '../components/Hero.astro';
-import SectionProblem from '../components/SectionProblem.astro';
-import SectionWhatIsMira from '../components/SectionWhatIsMira.astro';
-import SectionAiChat from '../components/SectionAiChat.astro';
-import SectionImplementation from '../components/SectionImplementation.astro';
-import SectionReferral from '../components/SectionReferral.astro';
-import SectionAdmin from '../components/SectionAdmin.astro';
-import SectionChannels from '../components/SectionChannels.astro';
-import VerticalCare from '../components/VerticalCare.astro';
-import VerticalBeauty from '../components/VerticalBeauty.astro';
-import SectionProof from '../components/SectionProof.astro';
-import SectionProcess from '../components/SectionProcess.astro';
-import SectionFaq from '../components/SectionFaq.astro';
-import Cta from '../components/Cta.astro';
-import Footer from '../components/Footer.astro';
-
-const title = 'Mira — Enterprise AI Sales Platform | AI Sales Chat + Referral Engine สำหรับองค์กร';
-const description = 'Mira คือ AI Sales Chat + Referral Engine ที่ทีมเราออกแบบ ติดตั้ง และเชื่อมกับข้อมูลจริงขององค์กร — เปลี่ยนแชทให้เป็นระบบขาย 24 ชั่วโมงที่วัดผลได้';
-const jsonLd = [
-  {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'MediaForge',
-    url: 'https://mira.com',
-  },
-  {
-    '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
-    name: 'Mira',
-    applicationCategory: 'BusinessApplication',
-    operatingSystem: 'Web, iOS, Android, LINE',
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'THB',
-      description: 'Demo by appointment',
-    },
-    publisher: {
-      '@type': 'Organization',
-      name: 'MediaForge',
-    },
-  },
-];
+const title = 'Mira AI Sales Platform';
+const description =
+  'Live Mira AI system shell for AI Sales Chat, Referral Program, and Admin Panel.';
 ---
 
 <!doctype html>
@@ -54,48 +11,35 @@ const jsonLd = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#051226" />
+    <meta name="theme-color" content="#EAF2FF" />
     <link rel="icon" href="/favicon.png" type="image/png" />
-    <link rel="preload" href="/fonts/anuphan-thai-400-normal.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/anuphan-thai-600-normal.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/space-grotesk-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
-    <meta property="og:image" content="/og.png" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content="/og.png" />
-    <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />
-    <script is:inline>
-      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        document.documentElement.classList.add('has-motion');
+    <style>
+      html,
+      body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100%;
+        background: #eaf2ff;
       }
-    </script>
+
+      body {
+        overflow: hidden;
+      }
+
+      .live-system-frame {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        border: 0;
+        background: #eaf2ff;
+      }
+    </style>
   </head>
   <body>
-    <div class="scroll-progress" aria-hidden="true"><span></span></div>
-    <Nav />
-    <main>
-      <Hero />
-      <SectionProblem />
-      <SectionWhatIsMira />
-      <SectionAiChat />
-      <SectionReferral />
-      <SectionAdmin />
-      <SectionChannels />
-      <VerticalCare />
-      <VerticalBeauty />
-      <SectionProof />
-      <SectionImplementation />
-      <SectionProcess />
-      <SectionFaq />
-      <Cta />
-    </main>
-    <Footer />
-    <script>
-      import '../scripts/motion';
-    </script>
+    <iframe
+      class="live-system-frame"
+      src="/showcase/"
+      title="Mira AI Sales Platform"
+    ></iframe>
   </body>
 </html>

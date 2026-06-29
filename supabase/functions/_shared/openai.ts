@@ -1,21 +1,5 @@
 import { HttpError } from './http.ts';
-import {
-  LAB_SUMMARY_DISCLAIMER_TH,
-  SUPPORTED_LAB_TEST_CODES,
-  formatLabCodeNormalizationTable,
-  sanitizeLabSummary,
-} from './lab.ts';
 import type { FactKeyRow } from './types.ts';
-
-export type LabVisionResult = {
-  confidence: number;
-  mapped_code: string | null;
-  ref_high: number | null;
-  ref_low: number | null;
-  test_name_raw: string;
-  unit: string | null;
-  value: number | null;
-};
 
 type RuntimeDeno = {
   env: {
@@ -74,18 +58,6 @@ function extractText(data: OpenAIResponse) {
     .find((text) => text?.trim());
 
   return contentText?.trim() ?? '';
-}
-
-function bytesToBase64(bytes: Uint8Array) {
-  let binary = '';
-  const chunkSize = 0x8000;
-
-  for (let index = 0; index < bytes.length; index += chunkSize) {
-    const chunk = bytes.subarray(index, index + chunkSize);
-    binary += String.fromCharCode(...chunk);
-  }
-
-  return btoa(binary);
 }
 
 async function postResponses(body: Record<string, unknown>, timeoutMs: number) {
@@ -334,127 +306,3 @@ export async function callOrderFieldExtractor(message: string) {
   }
 }
 
-export async function callLabVisionExtractor(bytes: Uint8Array, contentType: string) {
-  const model = envOrDefault('VISION_MODEL', envOrDefault('FACT_MODEL', 'gpt-5-mini'));
-  const normalizationTable = formatLabCodeNormalizationTable();
-  const schema = {
-    additionalProperties: false,
-    properties: {
-      results: {
-        items: {
-          additionalProperties: false,
-          properties: {
-            confidence: {
-              maximum: 1,
-              minimum: 0,
-              type: 'number',
-            },
-            mapped_code: {
-              enum: [...SUPPORTED_LAB_TEST_CODES, null],
-            },
-            ref_high: {
-              type: ['number', 'null'],
-            },
-            ref_low: {
-              type: ['number', 'null'],
-            },
-            test_name_raw: {
-              type: 'string',
-            },
-            unit: {
-              type: ['string', 'null'],
-            },
-            value: {
-              type: ['number', 'null'],
-            },
-          },
-          required: ['test_name_raw', 'mapped_code', 'value', 'unit', 'ref_low', 'ref_high', 'confidence'],
-          type: 'object',
-        },
-        type: 'array',
-      },
-    },
-    required: ['results'],
-    type: 'object',
-  };
-  const imageUrl = `data:${contentType};base64,${bytesToBase64(bytes)}`;
-  const payload = await postResponses(
-    {
-      input: [
-        {
-          content:
-            `Extract lab result rows from Thai/English medical lab images. Return only values visible in the image. Do not infer values not visible. Use this normalization table for mapped_code:\n${normalizationTable}`,
-          role: 'system',
-        },
-        {
-          content: [
-            {
-              text: 'Read the attached lab report image. Use null mapped_code when the raw row does not explicitly match the normalization table.',
-              type: 'input_text',
-            },
-            {
-              image_url: imageUrl,
-              type: 'input_image',
-            },
-          ],
-          role: 'user',
-        },
-      ],
-      model,
-      store: false,
-      text: {
-        format: {
-          name: 'mira_lab_result_extraction',
-          schema,
-          strict: true,
-          type: 'json_schema',
-        },
-      },
-    },
-    45000,
-  );
-  const text = extractText(payload);
-
-  try {
-    const parsed = JSON.parse(text) as { results?: unknown };
-
-    if (!Array.isArray(parsed.results)) {
-      return [];
-    }
-
-    return parsed.results.filter((item): item is LabVisionResult => {
-      if (!item || typeof item !== 'object') {
-        return false;
-      }
-
-      const row = item as Record<string, unknown>;
-
-      return typeof row.test_name_raw === 'string' && typeof row.confidence === 'number';
-    });
-  } catch {
-    throw new HttpError('UPSTREAM', 'Lab extractor returned invalid JSON.', 502);
-  }
-}
-
-export async function callLabSummary(results: LabVisionResult[]) {
-  const model = envOrDefault('FACT_MODEL', 'gpt-5-mini');
-  const payload = await postResponses(
-    {
-      input: [
-        {
-          content:
-            `Write a plain Thai health-check summary in 3-5 sentences from the provided lab rows. Do not use the Thai word for diagnosis. Always include: "${LAB_SUMMARY_DISCLAIMER_TH}".`,
-          role: 'system',
-        },
-        {
-          content: JSON.stringify(results.slice(0, 30)),
-          role: 'user',
-        },
-      ],
-      model,
-      store: false,
-    },
-    30000,
-  );
-  return sanitizeLabSummary(extractText(payload));
-}

@@ -85,9 +85,6 @@ jobs:
       - name: Edge security audit
         run: npm run v2:edge-security-audit
 
-      - name: Health safety audit
-        run: npm run v2:health-safety-audit
-
       - name: Type mirror audit
         run: npm run types:mirror-audit
 

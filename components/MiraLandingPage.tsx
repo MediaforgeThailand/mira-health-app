@@ -52,8 +52,8 @@ const suites = [
   {
     accent: landingColor.mintBright,
     label: 'MiraCare',
-    title: 'สำหรับโรงพยาบาล',
-    body: 'ตัวหลักคือ AI Chat + Referral ที่ปรับให้เหมาะกับโรงพยาบาล ทั้งภาษา flow การ consult และ CI ขององค์กร พร้อม Health Dashboard เป็น option เสริมสำหรับผลแลบ wearable และข้อมูลสุขภาพส่วนบุคคล',
+    title: 'สำหรับธุรกิจบริการ',
+    body: 'ตัวหลักคือ AI Chat + Referral ที่ปรับให้เหมาะกับสินค้า บริการ ภาษาแบรนด์ และ flow การขายขององค์กร พร้อมข้อมูลหลังบ้านที่ทีมใช้งานต่อได้จริง',
   },
   {
     accent: landingColor.coralSoft,
@@ -70,7 +70,7 @@ export default function MiraLandingPage() {
   const heroHeight = Math.max(isCompact ? 660 : 620, Math.min(isCompact ? 760 : 720, height * 0.88));
 
   function openContact() {
-    void Linking.openURL('mailto:hello@mira.com?subject=Mira%20demo%20request');
+    void Linking.openURL('mailto:hello@mira.com?subject=Mila%20AI%20consultation');
   }
 
   return (
@@ -107,7 +107,7 @@ export default function MiraLandingPage() {
                 ระบบที่ช่วยให้ลูกค้าคุยกับ AI, ได้คำแนะนำที่เหมาะกับข้อมูลขององค์กรคุณ, และถูกพาไปจนปิดการขายได้ในตัว
               </Text>
               <Text style={styles.heroBody}>
-                คุณควบคุมสินค้า ราคา แคมเปญ referral และข้อมูลหลังบ้านได้เอง Mira ปรับให้เข้ากับโรงพยาบาล คลินิก หรือองค์กรสุขภาพของคุณได้ทั้ง PWA, App และ LINE OA
+                คุณควบคุมสินค้า ราคา แคมเปญ referral และข้อมูลหลังบ้านได้เอง Mira ปรับให้เข้ากับธุรกิจบริการ ทีมขาย หรือองค์กรที่ต้องการ AI Sales ได้ทั้ง PWA, App และ LINE OA
               </Text>
 
               <View style={styles.heroButtons}>

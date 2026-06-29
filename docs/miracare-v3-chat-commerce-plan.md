@@ -384,3 +384,8 @@ LIFF mini-form for LINE (design seam only), PSP/automatic payment verification (
 1. ✅ Category set starts with `checkup` / `vaccine` only (per-tenant extensible via `product_categories` rows; no extra seed needed).
 2. ✅ Customer cancellation rules stay exactly as the existing state machine allows (customer cancel up to `awaiting_payment`; no account-screen cancel for `submitted`).
 3. ✅ `อายุ` collected at purchase IS written to `user_facts` (key `age`, source `user_form`, confidence 1.0) — only when the customer has an active `health_data_collection` consent; skip silently otherwise. **Audit note 2026-06-12: not yet implemented — the decision had not reached the repo when V3-2 was built; tracked as follow-up F1 in `docs/v3-audit-report-2026-06-12.md`.**
+# SUPERSEDED FOR NEW PRODUCT DIRECTION 2026-06-23
+
+This chat-commerce plan is historical evidence for the existing engine. New work should adapt the engine into a generic AI Sales and MarTech system, not expand healthcare/showcase scope. See `AGENTS.md` and `docs/ai-sales-martech-context.md`.
+
+---

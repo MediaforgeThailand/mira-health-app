@@ -11,6 +11,8 @@ const factExtractorPath = path.join(repoRoot, 'supabase', 'functions', 'fact-ext
 const openAiPath = path.join(repoRoot, 'supabase', 'functions', '_shared', 'openai.ts');
 const markerPath = path.join(repoRoot, 'supabase', 'functions', '_shared', 'marker.ts');
 const prototypePanelPath = path.join(repoRoot, 'components', 'PrototypeChatPanel.tsx');
+const chatRoutePath = path.join(repoRoot, 'app', 'chat.tsx');
+const chatShellPath = path.join(repoRoot, 'components', 'chat', 'MiraChatRedesign.tsx');
 const miraChatPath = path.join(repoRoot, 'lib', 'ai', 'miraChat.ts');
 const legacyMiraChatPath = path.join(repoRoot, 'supabase', 'functions', 'mira-chat', 'index.ts');
 const messageBubblePath = path.join(repoRoot, 'components', 'chat', 'MessageBubble.tsx');
@@ -25,6 +27,9 @@ const edgeFunctionSource = [
   await fs.readFile(markerPath, 'utf8'),
 ].join('\n');
 const prototypePanelSource = await fs.readFile(prototypePanelPath, 'utf8');
+const chatRouteSource = await fs.readFile(chatRoutePath, 'utf8');
+const chatShellSource = await fs.readFile(chatShellPath, 'utf8');
+const chatUiSource = [prototypePanelSource, chatShellSource].join('\n');
 const factExtractorSource = await fs.readFile(factExtractorPath, 'utf8');
 const miraChatSource = await fs.readFile(miraChatPath, 'utf8');
 const openAiPlaybookSource = await fs.readFile(openAiPlaybookPath, 'utf8');
@@ -130,11 +135,14 @@ assert(
     edgeFunctionSource.includes('products: productRows.map(toChatProduct)'),
 );
 assert('fact extractor is service-role internal only', factExtractorSource.includes('assertInternalServiceRoleAuthorization') && factExtractorSource.includes("req.headers.get('authorization')"));
-assert('prototype has no canned numbered compactTips', !prototypePanelSource.includes('compactTips'));
+assert('chat shell has no canned numbered compactTips', !chatUiSource.includes('compactTips'));
 assert(
-  'prototype uses live Supabase chat only',
+  'primary chat route uses live Supabase chat only',
+  chatRouteSource.includes('PrototypeChatPanel') &&
   prototypePanelSource.includes('aiChatConfigStatus.hasSupabaseProxy') &&
-    prototypePanelSource.includes('askAiWithRag({ messages: nextMessages, question })') &&
+    prototypePanelSource.includes('askAiWithRag') &&
+    prototypePanelSource.includes('messages: nextMessages') &&
+    prototypePanelSource.includes('question: trimmedQuestion') &&
     !prototypePanelSource.includes('createNaturalHealthFallbackAnswer') &&
     !prototypePanelSource.includes('createSmallTalkAnswer') &&
     !prototypePanelSource.includes('createDemoAnswer') &&
@@ -149,35 +157,33 @@ assert(
     miraChatSource.includes('apiOrderStatusToUiCard'),
 );
 assert(
-  'prototype renders backend category cards',
-  prototypePanelSource.includes('CategoryGridCard') &&
-    prototypePanelSource.includes("card.type === 'category_grid'") &&
+  'primary chat renders backend category cards',
+  chatUiSource.includes('MiraCategoryGrid') &&
+    chatUiSource.includes("card.type === 'category_grid'") &&
     prototypePanelSource.includes("type: 'browse_category'"),
 );
 assert(
-  'prototype renders live order info form',
-  prototypePanelSource.includes('PrototypeOrderFormCard') &&
+  'primary chat renders live order info form',
+  chatUiSource.includes('submitOrderForm') &&
     prototypePanelSource.includes("type: 'order_form_submit'") &&
     prototypePanelSource.includes('buyer_name') &&
     prototypePanelSource.includes('buyer_phone') &&
     prototypePanelSource.includes('buyer_age'),
 );
 assert(
-  'prototype order form uses date range selector',
-  prototypePanelSource.includes('createPreferredDateOptions') &&
-    prototypePanelSource.includes('orderDatePickerButton') &&
-    prototypePanelSource.includes('orderCalendarPanel') &&
-    prototypePanelSource.includes('preferredMonthTitle') &&
-    prototypePanelSource.includes('preferredTimeSlots') &&
-    prototypePanelSource.includes('orderTimeSlotButton') &&
-    prototypePanelSource.includes('formatPreferredDateRange'),
+  'primary chat order form uses date range selector',
+  chatUiSource.includes('createPreferredDateOptions') &&
+    chatUiSource.includes('preferredDateWeekdays') &&
+    chatUiSource.includes('preferredDateMonthTitles') &&
+    chatUiSource.includes('preferredTimeSlots') &&
+    chatUiSource.includes('formatPreferredDateRange'),
 );
 assert(
-  'prototype order form submits backend-safe buyer fields',
-  prototypePanelSource.includes('buyerPhone: phoneDigits') &&
-    prototypePanelSource.includes('preferredDate: rangeStartKey || undefined') &&
-    prototypePanelSource.includes('/^0[689]\\d{8}$/.test(phoneDigits)') &&
-    prototypePanelSource.includes('ageValue <= 120'),
+  'primary chat order form submits backend-safe buyer fields',
+  chatUiSource.includes('buyerPhone: phoneDigits') &&
+    chatUiSource.includes('preferredDate: rangeStartKey || undefined') &&
+    chatUiSource.includes('/^0[689]\\d{8}$/.test(phoneDigits)') &&
+    chatUiSource.includes('ageValue <= 120'),
 );
 assert('offline fallback has no numbered RAG list template', !miraChatSource.includes('ragMatches.slice(0, 2).map'));
 assert('offline fallback avoids repeated latest-checkup prompt', !miraChatSource.includes('ตรวจล่าสุดเมื่อไหร่คะ ถ้าจำไม่ได้ตอบคร่าวๆ ได้เลย'));
@@ -191,5 +197,5 @@ assert('client calls chat-orchestrator edge function', miraChatSource.includes("
 assert('client no longer calls legacy edge function name', !/supabase\.functions\.invoke\(\s*['"]gemini-chat['"]/.test(miraChatSource));
 assert('legacy mira-chat edge function is deleted', !legacyMiraChatExists);
 assert('chat components include MessageBubble and ProductCarousel', messageBubbleExists && productCarouselExists);
-assert('prototype imports renamed miraChat client', prototypePanelSource.includes("@/lib/ai/miraChat") && !prototypePanelSource.includes("@/lib/ai/gemini"));
-assert('README describes OpenAI Platform prompt path', readmeSource.includes('published MiraCare prompt in OpenAI Platform') && readmeSource.includes('active MiraCare product catalog'));
+assert('primary chat imports renamed miraChat client', prototypePanelSource.includes("@/lib/ai/miraChat") && !prototypePanelSource.includes("@/lib/ai/gemini"));
+assert('README describes OpenAI Platform prompt path', readmeSource.includes('OpenAI Platform prompt contract') && readmeSource.includes('product_catalog'));

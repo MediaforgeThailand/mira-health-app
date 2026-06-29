@@ -3,12 +3,12 @@
 ## Triage Summary
 
 - Local-only implementation status: no unblocked `Missing` rows remain in `docs/v2-gap-analysis.md`; new local work should be added as tests, audits, or docs unless an owner contract is required.
-- Owner decision blockers: `OWNER-REVIEW` legal disclaimer sign-off before the first client launch.
+- Owner decision blockers: none for the active AI Sales / Referral / Admin scope.
 - External setup blockers: LINE sandbox channel credentials and test account.
 
 ## Owner Review
 
-- `OWNER-REVIEW`: The current `LAB_SUMMARY_DISCLAIMER_TH` wording in `supabase/functions/_shared/templates.ts` is the MiraCare v2 default and is mirrored in `lib/templates.ts`. Final tenant/legal sign-off is still required before the first client launch.
+- No active owner-review blockers remain after lab/wearable/health runtime removal.
 
 ## LINE Credentials
 

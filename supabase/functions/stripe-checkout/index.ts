@@ -39,7 +39,7 @@ const requestSchema = z.object({
   tenant_slug: z.string().regex(/^[a-z0-9-]{2,32}$/),
 });
 
-const allowedReturnPaths = new Set(['/chatbot', '/prototype', '/orders', '/order-status']);
+const allowedReturnPaths = new Set(['/chat', '/chatbot', '/prototype', '/orders', '/order-status']);
 
 function embeddedOne<T>(value: Embedded<T>) {
   if (Array.isArray(value)) {
@@ -76,7 +76,7 @@ function checkoutReturnBaseUrl(requestedBaseUrl?: string) {
 
 function checkoutReturnPath(requestedPath?: string) {
   if (!requestedPath) {
-    return '/chatbot';
+    return '/chat';
   }
 
   if (!/^\/[A-Za-z0-9/_-]+$/.test(requestedPath) || !allowedReturnPaths.has(requestedPath)) {

@@ -1,4 +1,4 @@
-import { Link, useLocalSearchParams } from 'expo-router';
+import { Link } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
@@ -14,7 +14,6 @@ import {
   type HospitalProduct,
   type TenantMemberContext,
 } from '@/lib/marketplace/hospitalProducts';
-import { showcaseDemoAdminOrders, showcaseDemoBranches, showcaseDemoCommissions, showcaseDemoProducts, showcaseDemoReferrers, showcaseDemoTenantContext } from '@/lib/showcase/demoFixtures';
 import { supabase, supabaseConfigStatus } from '@/lib/supabase';
 import type { CommissionEntryRow, OrderRow, ReferrerRow } from '@/lib/types/api';
 
@@ -172,10 +171,8 @@ function orderStatusTone(status: OrderRow['status']): 'amber' | 'blue' | 'danger
 
 export default function AdminDashboardScreen() {
   const auth = useAuthSession();
-  const { tour } = useLocalSearchParams<{ tour?: string }>();
   const { width } = useWindowDimensions();
   const isWide = width >= 1080;
-  const isTourMode = tour === 'admin';
   const [branches, setBranches] = useState<BranchSummary[]>([]);
   const [commissions, setCommissions] = useState<CommissionEntryRow[]>([]);
   const [orders, setOrders] = useState<DashboardOrder[]>([]);
@@ -183,36 +180,38 @@ export default function AdminDashboardScreen() {
   const [referrers, setReferrers] = useState<ReferrerRow[]>([]);
   const [tenantContext, setTenantContext] = useState<TenantMemberContext | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [demoFallbackReason, setDemoFallbackReason] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const isBaseDemoMode = isTourMode || !auth.session || !supabaseConfigStatus.isConfigured;
-  const isDemoMode = isBaseDemoMode || Boolean(demoFallbackReason);
-
-  const loadDemoDashboard = useCallback((reason: string | null = null) => {
-    setDemoFallbackReason(reason);
-    setTenantContext(showcaseDemoTenantContext);
-    setProducts(showcaseDemoProducts);
-    setBranches(showcaseDemoBranches);
-    setOrders(showcaseDemoAdminOrders);
-    setReferrers(showcaseDemoReferrers);
-    setCommissions(showcaseDemoCommissions);
-  }, []);
+  const backendReady = supabaseConfigStatus.isConfigured;
 
   const loadDashboard = useCallback(async () => {
-    if (isBaseDemoMode) {
-      loadDemoDashboard(null);
-      return true;
+    if (auth.isLoading) {
+      return false;
+    }
+
+    if (!backendReady || !auth.user) {
+      setTenantContext(null);
+      setProducts([]);
+      setBranches([]);
+      setOrders([]);
+      setReferrers([]);
+      setCommissions([]);
+      return false;
     }
 
     const context = await loadTenantMemberContext();
 
     if (!context) {
-      loadDemoDashboard(`บัญชีนี้ยังไม่ได้เชื่อมกับ tenant "${defaultTenantSlug}"`);
-      return true;
+      setTenantContext(null);
+      setProducts([]);
+      setBranches([]);
+      setOrders([]);
+      setReferrers([]);
+      setCommissions([]);
+      setError(`บัญชีนี้ยังไม่ได้เชื่อมกับ tenant "${defaultTenantSlug}"`);
+      return false;
     }
 
-    setDemoFallbackReason(null);
     setTenantContext(context);
 
     const [productRows, branchRows, orderResult, referrerResult, commissionResult] = await Promise.all([
@@ -274,18 +273,15 @@ export default function AdminDashboardScreen() {
     ]);
 
     if (orderResult.error) {
-      loadDemoDashboard(orderResult.error.message);
-      return true;
+      throw new Error(orderResult.error.message);
     }
 
     if (referrerResult.error) {
-      loadDemoDashboard(referrerResult.error.message);
-      return true;
+      throw new Error(referrerResult.error.message);
     }
 
     if (commissionResult.error) {
-      loadDemoDashboard(commissionResult.error.message);
-      return true;
+      throw new Error(commissionResult.error.message);
     }
 
     setProducts(productRows);
@@ -293,8 +289,8 @@ export default function AdminDashboardScreen() {
     setOrders((orderResult.data ?? []) as unknown as DashboardOrder[]);
     setReferrers((referrerResult.data ?? []) as unknown as ReferrerRow[]);
     setCommissions((commissionResult.data ?? []) as unknown as CommissionEntryRow[]);
-    return false;
-  }, [isBaseDemoMode, loadDemoDashboard]);
+    return true;
+  }, [auth.isLoading, auth.user, backendReady]);
 
   useEffect(() => {
     let isMounted = true;
@@ -307,7 +303,13 @@ export default function AdminDashboardScreen() {
       } catch (loadError) {
         if (isMounted) {
           const reason = loadError instanceof Error ? loadError.message : 'โหลด dashboard จาก backend ไม่สำเร็จ';
-          loadDemoDashboard(reason);
+          setTenantContext(null);
+          setProducts([]);
+          setBranches([]);
+          setOrders([]);
+          setReferrers([]);
+          setCommissions([]);
+          setError(reason);
         }
       } finally {
         if (isMounted) {
@@ -328,12 +330,17 @@ export default function AdminDashboardScreen() {
       setIsLoading(true);
       setError(null);
       setMessage(null);
-      const usedDemo = await loadDashboard();
-      setMessage(usedDemo ? 'กำลังแสดงข้อมูลตัวอย่าง' : 'รีเฟรชข้อมูลหลังบ้านแล้ว');
+      const loadedData = await loadDashboard();
+      setMessage(loadedData ? 'รีเฟรชข้อมูลหลังบ้านแล้ว' : 'ยังไม่มีข้อมูลจริงให้แสดงในสถานะปัจจุบัน');
     } catch (refreshError) {
       const reason = refreshError instanceof Error ? refreshError.message : 'รีเฟรช dashboard ไม่สำเร็จ';
-      loadDemoDashboard(reason);
-      setMessage('กำลังแสดงข้อมูลตัวอย่าง');
+      setTenantContext(null);
+      setProducts([]);
+      setBranches([]);
+      setOrders([]);
+      setReferrers([]);
+      setCommissions([]);
+      setError(reason);
     } finally {
       setIsLoading(false);
     }
@@ -380,21 +387,24 @@ export default function AdminDashboardScreen() {
             </Text>
           </View>
           <View style={styles.topActions}>
-            <Pill label={isDemoMode ? 'โหมดตัวอย่าง' : 'เชื่อมต่อระบบจริง'} tone={isDemoMode ? 'amber' : 'mint'} />
+            <Pill label={backendReady ? 'เชื่อมต่อระบบจริง' : 'ยังไม่เชื่อม backend'} tone={backendReady ? 'mint' : 'amber'} />
             <Pressable disabled={isLoading} onPress={() => void refreshDashboard()} style={[styles.secondaryButton, isLoading ? styles.disabled : null]}>
               <Text style={styles.secondaryButtonText}>{isLoading ? 'กำลังโหลด' : 'รีเฟรช'}</Text>
             </Pressable>
           </View>
         </View>
 
-        {isDemoMode ? (
+        {!backendReady ? (
           <View style={styles.notice}>
-            <Text style={styles.noticeTitle}>โหมดตัวอย่าง</Text>
-            <Text style={styles.noticeBody}>
-              {demoFallbackReason
-                ? `กำลังแสดงข้อมูลตัวอย่าง เพราะ ${demoFallbackReason}`
-                : 'หน้านี้จะแสดงข้อมูลจริงทันทีเมื่อ login ด้วยบัญชี tenant admin/staff ที่มีสิทธิ์อ่าน backend'}
-            </Text>
+            <Text style={styles.noticeTitle}>ยังไม่ได้เชื่อมต่อ backend</Text>
+            <Text style={styles.noticeBody}>ตั้งค่า Supabase ก่อน หน้านี้จึงจะแสดงภาพรวม order, catalog, branches และ referral จริงได้</Text>
+          </View>
+        ) : null}
+
+        {backendReady && !auth.session ? (
+          <View style={styles.notice}>
+            <Text style={styles.noticeTitle}>กรุณาเข้าสู่ระบบ</Text>
+            <Text style={styles.noticeBody}>ต้องเข้าสู่ระบบด้วยบัญชี tenant admin/staff ก่อนจึงจะเห็น dashboard จริง</Text>
           </View>
         ) : null}
         {error ? <Banner tone="error" text={error} /> : null}
@@ -416,7 +426,7 @@ export default function AdminDashboardScreen() {
                 <Text style={styles.panelTitle}>ออเดอร์ 7 วันล่าสุด</Text>
                 <Text style={styles.panelMeta}>จำนวนรายการจาก backend</Text>
               </View>
-              <Link href={{ pathname: '/admin/orders', params: { tour: 'admin' } }} asChild>
+              <Link href="/admin/orders" asChild>
                 <Pressable style={styles.textButton}>
                   <Text style={styles.textButtonLabel}>เปิดคิว</Text>
                 </Pressable>
@@ -442,7 +452,7 @@ export default function AdminDashboardScreen() {
               <Text style={styles.cardBody}>
                 {topProduct ? `${topProduct.count} orders · ${formatMoney(topProduct.revenue)}` : 'ยังไม่มี order ที่จ่ายเงินในช่วงข้อมูลล่าสุด'}
               </Text>
-              <Link href={{ pathname: '/admin/catalog', params: { tour: 'admin' } }} asChild>
+              <Link href="/admin/catalog" asChild>
                 <Pressable style={styles.primaryButton}>
                   <Text style={styles.primaryButtonText}>เปิด catalog</Text>
                 </Pressable>
@@ -534,7 +544,7 @@ function OrderRowCard({ order }: { order: DashboardOrder }) {
 
 function QuickLink({ body, href, title }: { body: string; href: string; title: string }) {
   return (
-    <Link href={{ pathname: href as never, params: { tour: 'admin' } }} asChild>
+    <Link href={href as never} asChild>
       <Pressable style={styles.quickLink}>
         <View style={styles.quickLinkTop}>
           <Text style={styles.quickTitle}>{title}</Text>

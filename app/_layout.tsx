@@ -74,6 +74,7 @@ function RootLayoutNav() {
             <Stack.Screen name="tour/[module]" options={{ headerShown: false }} />
             <Stack.Screen name="package-detail" options={{ headerShown: false }} />
             <Stack.Screen name="checkout" options={{ headerShown: false }} />
+            <Stack.Screen name="chat" options={{ headerShown: false }} />
             <Stack.Screen name="orders" options={{ headerShown: false }} />
             <Stack.Screen name="order-status" options={{ headerShown: false }} />
             <Stack.Screen name="login" options={{ headerShown: false }} />
@@ -82,15 +83,8 @@ function RootLayoutNav() {
             <Stack.Screen name="admin" options={{ headerShown: false }} />
             <Stack.Screen name="sales-portal" options={{ headerShown: false }} />
             <Stack.Screen name="staff-referral" options={{ headerShown: false }} />
-            <Stack.Screen name="user-profile" options={{ headerShown: false }} />
             <Stack.Screen name="prototype" options={{ headerShown: false }} />
             <Stack.Screen name="r/[ref_code]" options={{ headerShown: false }} />
-            <Stack.Screen name="body-overview" options={{ headerShown: false }} />
-            <Stack.Screen name="wearable-health" options={{ headerShown: false }} />
-            <Stack.Screen name="health-check-results" options={{ headerShown: false }} />
-            <Stack.Screen name="health/lab-upload" options={{ headerShown: false }} />
-            <Stack.Screen name="showcase/line-preview" options={{ headerShown: false }} />
-            <Stack.Screen name="showcase/admin/orders" options={{ headerShown: false }} />
           </Stack>
           <TourPill />
         </ThemeProvider>

@@ -17,9 +17,9 @@
 - `npm run chat:quality` passed after Phase 6 implementation.
 - `git diff --check` passed after Phase 6 implementation.
 - `npx.cmd -y deno@2.8.2 test --allow-env --import-map=supabase/functions/import_map.json supabase/functions/_shared/__tests__/line_test.ts` passed with 14 LINE helper tests covering tenant token lookup, underscore-normalized tenant env fallback, signature verification, text truncation, empty-product handling, Flex product postbacks, LINE QR image payloads, payment postbacks, and LINE postback-to-action mapping.
-- `npx.cmd -y deno@2.8.2 test --allow-env --allow-net --import-map=supabase/functions/import_map.json supabase/functions/_shared/__tests__/` passed with 83 shared tests.
+- `npx.cmd -y deno@2.8.2 test --allow-env --allow-net --import-map=supabase/functions/import_map.json supabase/functions/_shared/__tests__/` passed for the active shared Deno tests.
 - `npm run v2:edge-security-audit` passed and now asserts LINE PromptPay QR replies render/upload PNGs and send LINE `image` messages while keeping payment postbacks available.
-- `npm run v2:deno-check` passed for all 8 v2 edge entrypoints, including `line-webhook`.
+- `npm run v2:deno-check` passed for the active v2 edge entrypoints, including `line-webhook`.
 - The final LINE env audit confirms `LINE_CHANNEL_TOKEN__<tenant_slug>` is the primary channel token name, matching the technical spec.
 
 ## Boundaries

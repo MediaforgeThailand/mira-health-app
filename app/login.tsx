@@ -39,7 +39,7 @@ const modeCopy: Record<LoginMode, LoginCopy> = {
   },
   chat: {
     accountKind: 'customer',
-    defaultRedirect: '/prototype',
+    defaultRedirect: '/chat',
     eyebrow: 'Chat AI',
     footerLabel: 'Chat AI',
     hint: 'บัญชีลูกค้าสำหรับคุยกับ Mira AI, เก็บประวัติแชต, ออเดอร์ และข้อมูลสุขภาพของตัวเอง',

@@ -51,5 +51,7 @@ expo-*.log
 .codex-logs/
 .expo-preview-logs/
 .understand-anything/
+.refs/
 .chrome-profile-*/
 .codex-mira-landing-*.png
+.codex-marketing-team-*.png

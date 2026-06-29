@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
@@ -7,7 +6,6 @@ import { Pill } from '@/components/MiraUI';
 import { MiraDesign, softShadow } from '@/constants/Design';
 import { invokeFunction } from '@/lib/api/client';
 import { useAuthSession } from '@/lib/auth/useAuthSession';
-import { showcaseDemoTranscript } from '@/lib/showcase/demoFixtures';
 import { supabase, supabaseConfigStatus } from '@/lib/supabase';
 
 type CustomerJoin = { line_user_id: string | null; nickname: string | null };
@@ -76,7 +74,6 @@ function ChannelBadge({ channel }: { channel: string | null }) {
 
 export function ConversationsConsole() {
   const { session: authSession } = useAuthSession();
-  const { tour } = useLocalSearchParams<{ tour?: string }>();
   const queryClient = useQueryClient();
   const { width } = useWindowDimensions();
   const isCompact = width < 880;
@@ -85,30 +82,7 @@ export function ConversationsConsole() {
   const [draft, setDraft] = useState('');
   const [errorText, setErrorText] = useState<string | null>(null);
 
-  const isTourMode = tour === 'admin';
-  const ready = supabaseConfigStatus.isConfigured && Boolean(authSession) && !isTourMode;
-  const demoSessions = useMemo<SessionListRow[]>(
-    () => [
-      {
-        agent_mode: 'ai',
-        channel: 'line',
-        customers: { line_user_id: 'demo-line-user', nickname: 'บอส' },
-        id: 'demo-session',
-        last_message_at: showcaseDemoTranscript[showcaseDemoTranscript.length - 1]?.created_at ?? null,
-      },
-    ],
-    [],
-  );
-  const demoMessages = useMemo<MessageRow[]>(
-    () =>
-      showcaseDemoTranscript.map((message) => ({
-        content: message.content,
-        created_at: message.created_at,
-        id: message.id,
-        role: message.role,
-      })),
-    [],
-  );
+  const ready = supabaseConfigStatus.isConfigured && Boolean(authSession);
 
   const sessionsQuery = useQuery({
     enabled: ready,
@@ -158,13 +132,11 @@ export function ConversationsConsole() {
     refetchInterval: 4000,
   });
 
-  const isDemoMode = !ready || sessionsQuery.isError || transcriptQuery.isError;
-  const fetchedSessions = isDemoMode
-    ? demoSessions.filter((row) => channelFilter === 'all' || row.channel === channelFilter)
-    : sessionsQuery.data ?? [];
+  const hasQueryError = sessionsQuery.isError || transcriptQuery.isError;
+  const fetchedSessions = sessionsQuery.data ?? [];
   const visibleSessions = fetchedSessions;
-  const activeSelectedId = isDemoMode ? selectedId ?? visibleSessions[0]?.id ?? null : selectedId;
-  const visibleMessages = isDemoMode && activeSelectedId ? demoMessages : transcriptQuery.data ?? [];
+  const activeSelectedId = selectedId;
+  const visibleMessages = transcriptQuery.data ?? [];
   const selectedSession = useMemo(
     () => visibleSessions.find((row) => row.id === activeSelectedId) ?? null,
     [activeSelectedId, visibleSessions],
@@ -192,7 +164,7 @@ export function ConversationsConsole() {
     },
   });
 
-  const isHuman = !isDemoMode && selectedSession?.agent_mode === 'human';
+  const isHuman = ready && !hasQueryError && selectedSession?.agent_mode === 'human';
 
   return (
     <View style={[styles.shell, isCompact ? styles.shellCompact : null]}>
@@ -214,8 +186,10 @@ export function ConversationsConsole() {
             );
           })}
         </View>
-        {sessionsQuery.isLoading && !isDemoMode ? <ActivityIndicator color={MiraDesign.color.showcaseBlue} /> : null}
-        {isDemoMode ? <Text style={styles.demoNote}>โหมดตัวอย่าง: แสดง transcript ตัวอย่างแบบอ่านอย่างเดียว</Text> : null}
+        {sessionsQuery.isLoading && ready ? <ActivityIndicator color={MiraDesign.color.showcaseBlue} /> : null}
+        {!supabaseConfigStatus.isConfigured ? <Text style={styles.noticeText}>ยังไม่ได้เชื่อมต่อ backend สำหรับกล่องข้อความ</Text> : null}
+        {supabaseConfigStatus.isConfigured && !authSession ? <Text style={styles.noticeText}>กรุณาเข้าสู่ระบบก่อนดูบทสนทนาจริง</Text> : null}
+        {hasQueryError ? <Text style={styles.noticeText}>โหลดบทสนทนาจาก backend ไม่สำเร็จ</Text> : null}
         <ScrollView contentContainerStyle={styles.inboxList}>
           {visibleSessions.map((row) => {
             const active = row.id === activeSelectedId;
@@ -255,7 +229,7 @@ export function ConversationsConsole() {
                 <ChannelBadge channel={selectedSession.channel} />
               </View>
               <Pressable
-                disabled={isDemoMode || modeMutation.isPending}
+                disabled={!ready || hasQueryError || modeMutation.isPending}
                 onPress={() => modeMutation.mutate(isHuman ? 'ai' : 'human')}
                 style={[styles.modeBtn, isHuman ? styles.modeBtnReturn : styles.modeBtnTakeover]}
               >
@@ -295,7 +269,7 @@ export function ConversationsConsole() {
                 value={draft}
               />
               <Pressable
-                disabled={isDemoMode || !isHuman || !draft.trim() || replyMutation.isPending}
+                disabled={!ready || hasQueryError || !isHuman || !draft.trim() || replyMutation.isPending}
                 onPress={() => replyMutation.mutate(draft.trim())}
                 style={[styles.sendBtn, !isHuman || !draft.trim() ? styles.sendBtnDisabled : null]}
               >
@@ -321,7 +295,7 @@ const styles = StyleSheet.create({
   filterChipText: { color: MiraDesign.color.showcaseNavySoft, fontSize: 12, fontWeight: '800' },
   filterChipTextActive: { color: '#fff' },
   inboxList: { gap: 8 },
-  demoNote: { backgroundColor: MiraDesign.color.showcaseBlueSoft, borderRadius: MiraDesign.radius.sm, color: MiraDesign.color.showcaseNavy, fontSize: 12, fontWeight: '800', padding: 10 },
+  noticeText: { backgroundColor: MiraDesign.color.showcaseBlueSoft, borderRadius: MiraDesign.radius.sm, color: MiraDesign.color.showcaseNavy, fontSize: 12, fontWeight: '800', padding: 10 },
   inboxRow: { borderColor: MiraDesign.color.showcaseLine, borderRadius: MiraDesign.radius.sm, borderWidth: 1, gap: 6, padding: 12 },
   inboxRowActive: { backgroundColor: MiraDesign.color.showcaseBlueSoft, borderColor: MiraDesign.color.showcaseBlue },
   inboxRowTop: { alignItems: 'center', flexDirection: 'row', gap: 8, justifyContent: 'space-between' },

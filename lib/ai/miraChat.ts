@@ -1,5 +1,6 @@
-import type { RagMatch } from '@/lib/rag/retriever';
+﻿import type { RagMatch } from '@/lib/rag/retriever';
 import { invokeFunction } from '@/lib/api/client';
+import { defaultTenantSlug, resolvePrimaryTenantSlug } from '@/lib/marketplace/hospitalProducts';
 import { supabase, supabaseConfigStatus } from '@/lib/supabase';
 import type {
   ChatAction,
@@ -83,7 +84,7 @@ export const DEFAULT_USER_NICKNAME = process.env.EXPO_PUBLIC_USER_NICKNAME?.trim
 export function formatUserDisplayName(userNickname = DEFAULT_USER_NICKNAME) {
   const nickname = userNickname.trim() || FALLBACK_USER_NICKNAME;
 
-  return nickname.startsWith('คุณ') ? nickname : `คุณ${nickname}`;
+  return nickname.startsWith('à¸„à¸¸à¸“') ? nickname : `à¸„à¸¸à¸“${nickname}`;
 }
 
 export const aiChatConfig = {
@@ -93,7 +94,6 @@ export const aiChatConfig = {
 
 const hasExternalProxy = Boolean(aiChatConfig.proxyUrl);
 const hasSupabaseProxy = supabaseConfigStatus.isConfigured;
-export const defaultTenantSlug = process.env.EXPO_PUBLIC_MIRA_TENANT_SLUG?.trim() || 'demo-hospital';
 let orchestratorSessionId: string | null = null;
 
 export const aiChatConfigStatus = {
@@ -102,6 +102,10 @@ export const aiChatConfigStatus = {
   hasSupabaseProxy,
   mode: hasSupabaseProxy ? 'supabase-edge-function' : hasExternalProxy ? 'external-proxy' : 'offline',
 };
+
+async function resolveChatTenantSlug() {
+  return resolvePrimaryTenantSlug(defaultTenantSlug);
+}
 
 const chatMessageSelect = 'id,session_id,role,content,marker_product_ids,cards,openai_response_id,client_msg_id,created_at';
 const chatHistoryPageSize = 40;
@@ -303,6 +307,7 @@ export async function loadHealthDataConsent(): Promise<HealthDataConsentState> {
 
 export async function refreshActiveOrderPanel(sessionId?: string | null): Promise<ChatOrchestratorResponse> {
   const refCode = await readStoredReferralCode();
+  const tenantSlug = await resolveChatTenantSlug();
 
   const result = await invokeFunction<ChatOrchestratorRequest, ChatOrchestratorResponse>('chat-orchestrator', {
     action: {
@@ -313,7 +318,7 @@ export async function refreshActiveOrderPanel(sessionId?: string | null): Promis
     message: '',
     ref_code: refCode ?? undefined,
     session_id: sessionId ?? orchestratorSessionId,
-    tenant_slug: defaultTenantSlug,
+    tenant_slug: tenantSlug,
   });
 
   orchestratorSessionId = result.session_id;
@@ -332,6 +337,7 @@ async function callSupabaseOrchestrator({
 }): Promise<AskAiResult> {
   const startedAt = Date.now();
   const refCode = await readStoredReferralCode();
+  const tenantSlug = await resolveChatTenantSlug();
 
   const result = await invokeFunction<ChatOrchestratorRequest, ChatOrchestratorResponse>('chat-orchestrator', {
     action: action ?? null,
@@ -340,7 +346,7 @@ async function callSupabaseOrchestrator({
     message: question,
     ref_code: refCode ?? undefined,
     session_id: sessionId ?? orchestratorSessionId,
-    tenant_slug: defaultTenantSlug,
+    tenant_slug: tenantSlug,
   });
   orchestratorSessionId = result.session_id;
   const text = result.text.trim();
@@ -387,6 +393,7 @@ export async function requestPaymentSlipUpload({
   sessionId?: string | null;
 }) {
   const refCode = await readStoredReferralCode();
+  const tenantSlug = await resolveChatTenantSlug();
 
   return invokeFunction<ChatOrchestratorRequest, ChatSlipUploadResponse>('chat-orchestrator', {
     action: {
@@ -399,7 +406,7 @@ export async function requestPaymentSlipUpload({
     message: '',
     ref_code: refCode ?? undefined,
     session_id: sessionId ?? orchestratorSessionId,
-    tenant_slug: defaultTenantSlug,
+    tenant_slug: tenantSlug,
   });
 }
 
@@ -432,13 +439,14 @@ export async function createStripeCheckoutSession({
   sessionId?: string | null;
 }) {
   const returnUrlBase = typeof window !== 'undefined' ? window.location.origin : undefined;
+  const tenantSlug = await resolveChatTenantSlug();
 
   return invokeFunction<StripeCheckoutRequest, StripeCheckoutResponse>('stripe-checkout', {
     order_id: orderId,
     return_path: returnPath,
     return_url_base: returnUrlBase,
     session_id: sessionId ?? orchestratorSessionId,
-    tenant_slug: defaultTenantSlug,
+    tenant_slug: tenantSlug,
   });
 }
 
@@ -450,13 +458,14 @@ export async function createStripePromptPayQr({
   sessionId?: string | null;
 }) {
   const returnUrlBase = typeof window !== 'undefined' ? window.location.origin : undefined;
+  const tenantSlug = await resolveChatTenantSlug();
 
   return invokeFunction<StripePromptPayQrRequest, StripePromptPayQrResponse>('stripe-promptpay-qr', {
     action: 'create',
     order_id: orderId,
     return_url_base: returnUrlBase,
     session_id: sessionId ?? orchestratorSessionId,
-    tenant_slug: defaultTenantSlug,
+    tenant_slug: tenantSlug,
   });
 }
 
@@ -468,13 +477,14 @@ export async function checkStripePromptPayQrStatus({
   sessionId?: string | null;
 }) {
   const returnUrlBase = typeof window !== 'undefined' ? window.location.origin : undefined;
+  const tenantSlug = await resolveChatTenantSlug();
 
   return invokeFunction<StripePromptPayQrRequest, StripePromptPayQrResponse>('stripe-promptpay-qr', {
     action: 'status',
     order_id: orderId,
     return_url_base: returnUrlBase,
     session_id: sessionId ?? orchestratorSessionId,
-    tenant_slug: defaultTenantSlug,
+    tenant_slug: tenantSlug,
   });
 }
 
@@ -622,7 +632,7 @@ function apiCategoryGridToUiCard(card: Extract<ChatCard, { type: 'category_grid'
   return {
     categories: card.categories,
     id: `categories-${card.categories.map((category) => category.key).join('-')}`,
-    title: 'หมวดสินค้า',
+    title: 'à¸«à¸¡à¸§à¸”à¸ªà¸´à¸™à¸„à¹‰à¸²',
     type: 'category_grid',
   };
 }
@@ -631,7 +641,7 @@ function apiOrderStatusToUiCard(card: Extract<ChatCard, { type: 'order_status' }
   return {
     id: `orders-${card.orders.map((order) => order.id).join('-') || 'empty'}`,
     orders: card.orders,
-    title: 'สถานะคิว',
+    title: 'à¸ªà¸–à¸²à¸™à¸°à¸„à¸´à¸§',
     type: 'order_status',
   };
 }
@@ -951,22 +961,22 @@ export function createSmallTalkAnswer(question: string, userNickname = DEFAULT_U
     'hello',
     'hey',
     'sawasdee',
-    'สวัสดี',
-    'สวัสดีค่ะ',
-    'สวัสดีครับ',
-    'หวัดดี',
-    'หวัดดีค่ะ',
-    'หวัดดีครับ',
-    'ดีค่ะ',
-    'ดีครับ',
+    'à¸ªà¸§à¸±à¸ªà¸”à¸µ',
+    'à¸ªà¸§à¸±à¸ªà¸”à¸µà¸„à¹ˆà¸°',
+    'à¸ªà¸§à¸±à¸ªà¸”à¸µà¸„à¸£à¸±à¸š',
+    'à¸«à¸§à¸±à¸”à¸”à¸µ',
+    'à¸«à¸§à¸±à¸”à¸”à¸µà¸„à¹ˆà¸°',
+    'à¸«à¸§à¸±à¸”à¸”à¸µà¸„à¸£à¸±à¸š',
+    'à¸”à¸µà¸„à¹ˆà¸°',
+    'à¸”à¸µà¸„à¸£à¸±à¸š',
   ]);
 
   if (greetings.has(normalized)) {
-    return `สวัสดีค่ะ${userDisplayName} วันนี้อยากให้ฉันช่วยเรื่องอะไรคะ`;
+    return `à¸ªà¸§à¸±à¸ªà¸”à¸µà¸„à¹ˆà¸°${userDisplayName} à¸§à¸±à¸™à¸™à¸µà¹‰à¸­à¸¢à¸²à¸à¹ƒà¸«à¹‰à¸‰à¸±à¸™à¸Šà¹ˆà¸§à¸¢à¹€à¸£à¸·à¹ˆà¸­à¸‡à¸­à¸°à¹„à¸£à¸„à¸°`;
   }
 
-  if (['ขอบคุณ', 'ขอบคุณค่ะ', 'ขอบคุณครับ', 'thanks', 'thank you'].includes(normalized)) {
-    return `ยินดีค่ะ${userDisplayName}`;
+  if (['à¸‚à¸­à¸šà¸„à¸¸à¸“', 'à¸‚à¸­à¸šà¸„à¸¸à¸“à¸„à¹ˆà¸°', 'à¸‚à¸­à¸šà¸„à¸¸à¸“à¸„à¸£à¸±à¸š', 'thanks', 'thank you'].includes(normalized)) {
+    return `à¸¢à¸´à¸™à¸”à¸µà¸„à¹ˆà¸°${userDisplayName}`;
   }
 
   return null;
@@ -981,3 +991,4 @@ export function createOfflineRagAnswer(question: string, ragMatches: RagMatch[])
 
   return createNaturalHealthFallbackAnswer(question, { hasMatches: ragMatches.length > 0, userNickname: DEFAULT_USER_NICKNAME });
 }
+
