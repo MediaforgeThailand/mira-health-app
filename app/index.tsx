@@ -6,7 +6,7 @@ import { useAuthSession } from '@/lib/auth/useAuthSession';
 import { defaultTenantSlug } from '@/lib/marketplace/hospitalProducts';
 import { supabaseConfigStatus } from '@/lib/supabase';
 
-const designSrc = './mira-design/mira-core-system.dc.html';
+const designSrc = '/showcase/mira-design/mira-core-system.dc';
 
 type MiraBackendConfig = {
   accessToken: string;
