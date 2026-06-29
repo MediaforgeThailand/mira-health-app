@@ -30,7 +30,7 @@ The repo contains prototype-era code. Rule for the implementing agent:
 - Specifically known-legacy to replace in Phase 2: the Gemini conversation path (`lib/ai/gemini.ts` usage in customer chat, `supabase/functions/gemini-chat`, prompt_versions-driven reply generation). Keep `prompt_versions` tables (history) but the reply path must not read them.
 
 ### 0.3 Environment & secrets
-Edge function env (Supabase secrets): `OPENAI_API_KEY`, `MIRACARE_PROMPT_ID` (= `pmpt_6a29c7e353b88196a6e648b24c54849e0f6204e24d65c021`), `FACT_MODEL` (default `gpt-5-mini`), `LINE_CHANNEL_SECRET__<tenant_slug>`, `LINE_CHANNEL_TOKEN__<tenant_slug>`, `APP_BASE_URL`. Client uses only the anon key. Service-role key never leaves edge functions.
+Edge function env (Supabase secrets): `GEMINI_API_KEY` (or `GOOGLE_API_KEY`), `GEMINI_MODEL` (default `gemini-3.5-flash`), `GEMINI_EXTRACT_MODEL` (default follows `GEMINI_MODEL`), `LINE_CHANNEL_SECRET__<tenant_slug>`, `LINE_CHANNEL_TOKEN__<tenant_slug>`, `APP_BASE_URL`. Client uses only the anon key. Service-role key never leaves edge functions.
 
 ---
 
@@ -401,7 +401,7 @@ return envelope
 
 `POST` (internal; called by orchestrator) `{ message_id }`.
 1. Load message (role must be `user` — else 400) + customer + tenant; load consent; if no consent → exit 0 (extract nothing).
-2. OpenAI structured output (model `FACT_MODEL`), JSON schema:
+2. Gemini structured output (model `GEMINI_EXTRACT_MODEL`, falling back to `GEMINI_MODEL`), JSON schema:
 ```jsonc
 { "facts": [ { "key": "<one of fact_keys registry>", "value": "string", "confidence": 0.0 } ] }
 ```

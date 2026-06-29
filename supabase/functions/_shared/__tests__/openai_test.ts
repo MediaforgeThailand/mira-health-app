@@ -15,15 +15,15 @@ function assertEquals<T>(actual: T, expected: T) {
   }
 }
 
-// Stubs the OpenAI /responses call so callOrderFieldExtractor parses a fixed payload
+// Stubs the Gemini generateContent call so callOrderFieldExtractor parses a fixed payload
 // without a network round-trip. Mirrors the global-fetch stub pattern used by facts_test.
 async function withStubbedExtraction(extractionJson: string, fn: () => Promise<void>) {
   const realFetch = globalThis.fetch;
-  const realKey = Deno.env.get('OPENAI_API_KEY');
-  Deno.env.set('OPENAI_API_KEY', 'test-key');
+  const realKey = Deno.env.get('GEMINI_API_KEY');
+  Deno.env.set('GEMINI_API_KEY', 'test-key');
   globalThis.fetch = (() =>
     Promise.resolve(
-      new Response(JSON.stringify({ output_text: extractionJson }), {
+      new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: extractionJson }] } }] }), {
         headers: { 'content-type': 'application/json' },
         status: 200,
       }),
@@ -33,8 +33,8 @@ async function withStubbedExtraction(extractionJson: string, fn: () => Promise<v
     await fn();
   } finally {
     globalThis.fetch = realFetch;
-    if (realKey === undefined) Deno.env.delete('OPENAI_API_KEY');
-    else Deno.env.set('OPENAI_API_KEY', realKey);
+    if (realKey === undefined) Deno.env.delete('GEMINI_API_KEY');
+    else Deno.env.set('GEMINI_API_KEY', realKey);
   }
 }
 

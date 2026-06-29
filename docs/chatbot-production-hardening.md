@@ -1,6 +1,6 @@
 # Chatbot Production Hardening
 
-This note documents the production-oriented chatbot controls added around OpenAI, the published MiraCare prompt, product-card rendering, logs, and health memory.
+This note documents the production-oriented chatbot controls added around Gemini, product-card rendering, logs, and health memory.
 
 ## Runtime Flow
 
@@ -9,18 +9,18 @@ Expo app
 -> Supabase Auth session
 -> chat-orchestrator Edge Function
 -> MiraCare prompt variables
--> published OpenAI Platform prompt
--> OpenAI Responses API
+-> Gemini provider boundary
+-> Google Gemini GenerateContent API
 -> persistent ai/rag/api logs
 -> app chat UI
 ```
 
-The app must not send full RAG context or prompt overrides from mobile code. In Supabase mode it sends only the user question, short chat history, and user nickname. The Edge Function supplies `brand_name`, `user_nickname`, `personal_context`, `recent_chat`, and `product_catalog`, then calls the published OpenAI Platform prompt with `store: false`.
+The app must not send full RAG context or prompt overrides from mobile code. In Supabase mode it sends only the user question, short chat history, and user nickname. The Edge Function supplies `brand_name`, `user_nickname`, `personal_context`, `recent_chat`, and `product_catalog`, then calls Gemini through the backend provider boundary.
 
 ## Production Tables
 
 - `app_user_roles`: app-level role gate for `admin`, `hospital_staff`, and `user`.
-- `prompt_versions`: legacy/local prompt governance table. The production MiraCare chat path uses the published OpenAI Platform prompt instead.
+- `prompt_versions`: legacy/local prompt governance table. The production MiraCare chat path does not read it for live replies.
 - `ai_request_logs`: persistent model request lifecycle logs.
 - `rag_retrieval_logs`: persistent retrieval logs with matched chunk ids and categories.
 - `api_process_logs`: persistent Edge Function process logs.
@@ -30,7 +30,7 @@ The app must not send full RAG context or prompt overrides from mobile code. In 
 
 ## Prompt Governance
 
-The published MiraCare prompt is the source of truth. Prompt changes must be made and versioned in OpenAI Platform, then regression-tested before deployment. Runtime admin prompt overrides should not be layered onto the production chat path.
+The Gemini provider boundary is the source of truth for live reply behavior. Prompt/instruction changes must be reviewed, regression-tested, and kept inside the shared backend provider path. Runtime admin prompt overrides should not be layered onto the production chat path.
 
 ## Health Memory
 

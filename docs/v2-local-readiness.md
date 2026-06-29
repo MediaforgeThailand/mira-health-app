@@ -2,6 +2,8 @@
 
 Updated: 2026-06-11
 
+Current provider note (2026-06-29): live chat replies now use Gemini through the shared provider boundary. Older OpenAI Platform prompt verification notes below are historical evidence for the pre-Gemini path.
+
 This file separates work that can be hardened locally from work that needs an owner decision or external setup. This file should not list secret values.
 
 ## Local Work Completed Without External Setup

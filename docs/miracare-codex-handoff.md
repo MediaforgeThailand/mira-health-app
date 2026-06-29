@@ -1,14 +1,14 @@
 # Mira AI Sales Chat - Codex Implementation Handoff
 
-Updated: 2026-06-23
+Updated: 2026-06-29
 
-This file describes the current AI chat contract in this repository. The product direction has changed from healthcare-first MiraCare to a reusable AI Sales and MarTech system. The current published OpenAI prompt is still the live prompt contract until the owner publishes a generic AI Sales prompt.
+This file describes the current AI chat contract in this repository. The product direction has changed from healthcare-first MiraCare to a reusable AI Sales and MarTech system. As of 2026-06-29, the live model provider is Google Gemini through the shared `chat-orchestrator` provider boundary.
 
 ## Prime Directive
 
-The published OpenAI Platform prompt is still the source of truth for model behavior. Do not inline the prompt, add hidden system prompts, change variables, change marker syntax, change model/tools, or post-process assistant wording to work around prompt behavior.
+The live Gemini provider must preserve the existing backend contract: same variables, same marker syntax, same catalog/order source of truth, same channel-independent orchestrator, and no local sales-reply scripting outside the provider boundary.
 
-If the current healthcare-oriented prompt blocks AI Sales/MarTech validation, report the gap. The fix is a new owner-approved prompt version plus regression tests, not local reply scripting.
+If the current provider instruction blocks AI Sales/MarTech validation, report the gap. The fix is an owner-approved prompt/instruction update plus regression tests, not ad hoc UI or channel-specific reply scripting.
 
 ## Current Product Intent
 
@@ -20,12 +20,13 @@ Mira is being validated as:
 
 The AI chat should sell only items from the tenant catalog and create orders through the shared backend.
 
-## Current Prompt
+## Current Model Provider
 
-- Prompt ID: `pmpt_6a29c7e353b88196a6e648b24c54849e0f6204e24d65c021`
-- Current default version: 3, since 2026-06-13
-- Override: `MIRA_PROMPT_VERSION` only
-- Store: `false` for real customer traffic
+- Provider: Google Gemini GenerateContent API
+- Runtime file: `supabase/functions/_shared/openai.ts` (legacy filename kept to avoid broad import churn)
+- Chat model secret: `GEMINI_MODEL`
+- Extraction model secret: `GEMINI_EXTRACT_MODEL` (falls back to `GEMINI_MODEL`)
+- API key secret: `GEMINI_API_KEY` or `GOOGLE_API_KEY`
 - Variables:
   - `brand_name`
   - `user_nickname`
@@ -36,20 +37,29 @@ The AI chat should sell only items from the tenant catalog and create orders thr
 Example call shape:
 
 ```ts
-const response = await client.responses.create({
-  prompt: {
-    id: 'pmpt_6a29c7e353b88196a6e648b24c54849e0f6204e24d65c021',
-    variables: {
-      brand_name: tenant.displayName,
-      user_nickname: user.nickname ?? 'ลูกค้า',
-      personal_context: personalContext,
-      recent_chat: recentChat,
-      product_catalog: JSON.stringify(catalogRows),
+const response = await fetch(`${geminiBaseUrl}/models/${model}:generateContent?key=${apiKey}`, {
+  method: 'POST',
+  body: JSON.stringify({
+    contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+    systemInstruction: {
+      parts: [{ text: buildProviderInstruction({
+        brand_name: tenant.displayName,
+        user_nickname: user.nickname ?? 'customer',
+        personal_context: personalContext,
+        recent_chat: recentChat,
+        product_catalog: JSON.stringify(catalogRows),
+      }) }],
     },
-  },
-  input: userMessage,
-  store: false,
+  }),
 });
+```
+
+Legacy reference:
+
+```text
+OpenAI Platform prompt ID: pmpt_6a29c7e353b88196a6e648b24c54849e0f6204e24d65c021
+Last known default: version 3, since 2026-06-13
+Status: replaced on the live chat path by the Gemini provider boundary on 2026-06-29
 ```
 
 ## Backend Responsibilities
@@ -59,7 +69,7 @@ The backend must:
 - resolve tenant/customer/session
 - load confirmed context and recent chat
 - load the sellable product catalog
-- call the prompt
+- call Gemini through the shared provider boundary
 - parse the final marker
 - persist chat messages/cards/order state
 - return UI cards and order panels
@@ -74,7 +84,7 @@ The backend must not:
 
 ## Product Catalog Contract
 
-The prompt receives a JSON array of sellable catalog rows. Keep the array small and relevant.
+The provider receives a JSON array of sellable catalog rows. Keep the array small and relevant.
 
 Required fields:
 
@@ -133,13 +143,14 @@ Primary target flow:
 
 ## Current Regression
 
-The inherited regression runner is:
+Run:
 
 ```bash
-npm run chat:regression:v3
+npm run chat:quality
+npm run v2:verify
 ```
 
-It still reflects the healthcare prompt version. Keep it green while the current prompt is active. When the owner publishes the generic AI Sales prompt, create a new regression suite that covers:
+When the owner publishes a new generic AI Sales prompt/instruction, create or update a regression suite that covers:
 
 - general product browse
 - service booking flow
@@ -154,11 +165,10 @@ It still reflects the healthcare prompt version. Keep it green while the current
 
 Agents do not:
 
-- edit the OpenAI Platform prompt content
-- flip the default prompt version
 - change variable names
 - change marker syntax
 - add local assistant scripts
 - fork channel-specific sales logic
+- reintroduce a second catalog/order source
 
 If one of these is required, stop and ask for owner approval.

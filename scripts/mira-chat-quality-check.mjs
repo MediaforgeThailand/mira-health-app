@@ -124,9 +124,21 @@ assert('prep fallback stays practical without numbered list', prepFallback.inclu
 assert('generated text has no blocked style', !hasBlockedConversationStyle([firstAnswer, secondAnswer, cleanedStyle, cleanedFormStyle, cleanedDisplayStyle, emergencyFallback, resultFallback, prepFallback].join('\n')));
 
 assert('backend has chat orchestrator', edgeFunctionSource.includes('orchestrateChat'));
-assert('edge function references published MiraCare prompt', edgeFunctionSource.includes('pmpt_6a29c7e353b88196a6e648b24c54849e0f6204e24d65c021'));
-assert('edge function sends OpenAI prompt variables', ['brand_name', 'user_nickname', 'personal_context', 'recent_chat', 'product_catalog'].every((key) => edgeFunctionSource.includes(key)));
-assert('edge function disables OpenAI response storage', edgeFunctionSource.includes('store: false'));
+assert(
+  'edge function calls Gemini generateContent, not OpenAI Responses',
+  edgeFunctionSource.includes(':generateContent?key=') &&
+    edgeFunctionSource.includes('GEMINI_API_KEY') &&
+    !edgeFunctionSource.includes('OPENAI_API_KEY') &&
+    !edgeFunctionSource.includes('/responses'),
+);
+assert('edge function sends Gemini prompt variables', ['brand_name', 'user_nickname', 'personal_context', 'recent_chat', 'product_catalog'].every((key) => edgeFunctionSource.includes(key)));
+assert('edge function does not request provider response storage', !edgeFunctionSource.includes('store: true'));
+assert(
+  'Gemini prompt preserves marker contract',
+  edgeFunctionSource.includes('[[products: key1,key2]]') &&
+    edgeFunctionSource.includes('[[categories]]') &&
+    edgeFunctionSource.includes('[[order_status]]'),
+);
 assert(
   'edge function parses v3 markers into cards with legacy product fallback',
   edgeFunctionSource.includes('parseChatMarker') &&
@@ -187,15 +199,15 @@ assert(
 );
 assert('offline fallback has no numbered RAG list template', !miraChatSource.includes('ragMatches.slice(0, 2).map'));
 assert('offline fallback avoids repeated latest-checkup prompt', !miraChatSource.includes('ตรวจล่าสุดเมื่อไหร่คะ ถ้าจำไม่ได้ตอบคร่าวๆ ได้เลย'));
-assert('edge function does not compose local instructions', !edgeFunctionSource.includes('instructions:') && !edgeFunctionSource.includes('createSystemInstruction'));
+assert('edge function uses Gemini systemInstruction only at provider boundary', edgeFunctionSource.includes('systemInstruction') && !miraChatSource.includes('systemPromptOverride'));
 assert('edge function does not read local prompt_versions', !edgeFunctionSource.includes('prompt_versions?select='));
 assert('client does not send system prompt override', !miraChatSource.includes('systemPromptOverride'));
 assert('chat client does not read local prompt_versions', !miraChatSource.includes('prompt_versions'));
-assert('OpenAI chat setting playbook exists with developer message', openAiPlaybookSource.includes('## Developer Message') && openAiPlaybookSource.includes('## Test Prompts'));
-assert('OpenAI playbook includes no-repeat acceptance criteria', openAiPlaybookSource.includes('does not ask the same intake question twice'));
+assert('legacy OpenAI chat setting playbook remains clearly marked legacy', openAiPlaybookSource.includes('Legacy reference') && openAiPlaybookSource.includes('## Test Prompts'));
+assert('legacy playbook includes no-repeat acceptance criteria', openAiPlaybookSource.includes('does not ask the same intake question twice'));
 assert('client calls chat-orchestrator edge function', miraChatSource.includes("'chat-orchestrator'") || miraChatSource.includes('"chat-orchestrator"'));
 assert('client no longer calls legacy edge function name', !/supabase\.functions\.invoke\(\s*['"]gemini-chat['"]/.test(miraChatSource));
 assert('legacy mira-chat edge function is deleted', !legacyMiraChatExists);
 assert('chat components include MessageBubble and ProductCarousel', messageBubbleExists && productCarouselExists);
 assert('primary chat imports renamed miraChat client', prototypePanelSource.includes("@/lib/ai/miraChat") && !prototypePanelSource.includes("@/lib/ai/gemini"));
-assert('README describes OpenAI Platform prompt path', readmeSource.includes('OpenAI Platform prompt contract') && readmeSource.includes('product_catalog'));
+assert('README describes Gemini chat provider path', readmeSource.includes('Gemini') && readmeSource.includes('product_catalog'));

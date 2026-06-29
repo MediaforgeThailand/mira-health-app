@@ -69,7 +69,7 @@ The full gate still includes `v2:open-questions-audit` and `v2:local-readiness-a
 
 ## AI Chat Backend
 
-The customer chat calls the `chat-orchestrator` Supabase Edge Function. The backend supplies:
+The customer chat calls the `chat-orchestrator` Supabase Edge Function. The current Gemini chat contract lives in that Edge Function provider boundary. The backend supplies:
 
 - `brand_name`
 - `user_nickname`
@@ -77,16 +77,14 @@ The customer chat calls the `chat-orchestrator` Supabase Edge Function. The back
 - `recent_chat`
 - `product_catalog`
 
-The current OpenAI Platform prompt contract is documented in `docs/miracare-codex-handoff.md`. It remains binding until the owner publishes a generic AI Sales prompt.
-
-Do not ship an OpenAI API key inside a mobile or web client. Keep it in Edge Function secrets or another backend secret store.
+Do not ship a Gemini/Google API key inside a mobile or web client. Keep it in Edge Function secrets or another backend secret store.
 
 ## Supabase Secrets
 
 ```bash
-supabase secrets set OPENAI_API_KEY=your_openai_api_key_here
-supabase secrets set MIRACARE_PROMPT_ID=pmpt_6a29c7e353b88196a6e648b24c54849e0f6204e24d65c021
-supabase secrets set FACT_MODEL=gpt-5-mini
+supabase secrets set GEMINI_API_KEY=your_google_gemini_api_key_here
+supabase secrets set GEMINI_MODEL=gemini-3.5-flash
+supabase secrets set GEMINI_EXTRACT_MODEL=gemini-3.5-flash
 supabase secrets set APP_BASE_URL=https://your-app.example
 supabase secrets set MIRA_PUBLIC_APP_URL=https://your-app.example
 ```

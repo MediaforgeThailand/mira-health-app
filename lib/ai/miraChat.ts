@@ -88,7 +88,7 @@ export function formatUserDisplayName(userNickname = DEFAULT_USER_NICKNAME) {
 }
 
 export const aiChatConfig = {
-  model: process.env.EXPO_PUBLIC_OPENAI_MODEL ?? 'gpt-5.5',
+  model: process.env.EXPO_PUBLIC_GEMINI_MODEL ?? 'gemini-3.5-flash',
   proxyUrl: process.env.EXPO_PUBLIC_AI_PROXY_URL,
 };
 
@@ -368,8 +368,8 @@ async function callSupabaseOrchestrator({
     nextActions: [],
     order: result.order,
     promptVersion: {
-      id: 'pmpt_6a29c7e353b88196a6e648b24c54849e0f6204e24d65c021',
-      versionKey: 'platform-default',
+      id: 'gemini-provider-boundary',
+      versionKey: aiChatConfig.model,
     },
     ragMatches: [],
     requestId: undefined,
