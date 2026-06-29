@@ -1,0 +1,21 @@
+{
+  "url": "http://127.0.0.1:4321/showcase/",
+  "hasIframe": true,
+  "iframeSrc": "./mira-design/mira-core-system.dc.html",
+  "backendMode": "auth-required",
+  "backendStatus": {
+    "config": true,
+    "errors": [],
+    "instance": false,
+    "lastAction": null,
+    "lastSyncAt": null,
+    "missing": [],
+    "mode": "auth-required"
+  },
+  "hasLogin": true,
+  "hasFakeOrder": false,
+  "hasFakeRef": false,
+  "hasDemoErrorButton": false,
+  "hasRegisterButton": false,
+  "hasProductSeed": false
+}

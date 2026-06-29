@@ -1,0 +1,35 @@
+{
+  "generatedAt": "2026-06-25T14:22:19.168Z",
+  "screenshotPath": "C:\\Users\\taksi\\Documents\\Mira Application\\test-artifacts\\ui-audit-20260625-design-code\\03-showcase-design-code-orders-state.png",
+  "eval": {
+    "adminView": "orders",
+    "backendStatus": {
+      "config": true,
+      "instance": false,
+      "lastSyncAt": null,
+      "mode": "design",
+      "missing": [],
+      "errors": [
+        {
+          "message": "Initial backend sync failed; keeping original design state.",
+          "detail": "Tenant not found: demo-hospital"
+        },
+        {
+          "message": "Initial backend sync failed; keeping original design state.",
+          "detail": "Tenant not found: demo-hospital"
+        },
+        {
+          "message": "Initial backend sync failed; keeping original design state.",
+          "detail": "Tenant not found: demo-hospital"
+        },
+        {
+          "message": "Initial backend sync failed; keeping original design state.",
+          "detail": "Tenant not found: demo-hospital"
+        }
+      ]
+    },
+    "hasFrame": true,
+    "hasLogic": true,
+    "titleText": "M\nMira\nMira Health · องค์กรเดียว\nReferral\nAdmin Panel\nAI Chat\nทีมแอดมิน\nAdmin · ทีมงาน\nท\nADMIN PANEL\n▦\nภาพรวม\n▤\nออเดอร์\n2\n◳\nสินค้า\n⇆\nผู้แนะนำ\n💬\nบทสนทนา\n6\n฿\nการชำระเงิน\n◉\nLINE Channel\nเข้าใช้งานในบทบาท\nAdmin · ทีมงาน\nAdmin Panel\nออเดอร์\nสถานะ backend:\nปกติ\nกำลังโหลด\nว่าง\nผิดพลาด\n⌕\nใหม่ล่าสุด\nยอดสูง → ต่ำ\nยอดต่ำ → สูง\nทั้งหมด\n10\nรอชำระ\n2\nยืนยันแล้ว\n3\nจองคิว/จัดส่ง\n2\nเสร็จสิ้น\n2\nยกเลิก\n1\nคลัง\n1\nออเดอร์\nลูกค้า\nแพ็กเกจ\nยอด\nสถานะ\nการจัดการ\n#MA-1056\nAI Chat\nธีรเดช ว.\n080-444-1212\nComprehensive Health "
+  }
+}
