@@ -43,9 +43,7 @@ for (const snippet of requiredReadinessSnippets) {
   );
 }
 
-const decisionTopics = [
-  'OWNER-REVIEW',
-];
+const decisionTopics = [];
 
 for (const topic of decisionTopics) {
   expect(

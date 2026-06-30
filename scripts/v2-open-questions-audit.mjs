@@ -15,9 +15,8 @@ const [auditReport, gapAnalysis, openQuestions] = await Promise.all(
 const violations = [];
 const openQuestionsLower = normalize(openQuestions);
 
-const requiredSections = ['Owner Review', 'LINE Credentials'];
+const requiredSections = ['LINE Credentials'];
 const requiredTopics = [
-  ['legal lab wording owner review', ['owner-review', 'lab_summary_disclaimer_th']],
   ['LINE sandbox credentials', ['line sandbox channel', 'channel secret', 'channel token']],
 ];
 

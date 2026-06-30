@@ -1,8 +1,7 @@
-import { invokeFunction } from '@/lib/api/client';
+﻿import { invokeFunction } from '@/lib/api/client';
 import { clearStoredReferralCode, readStoredReferralCode } from '@/lib/referrals/attribution';
+import { defaultTenantSlug, resolvePrimaryTenantSlug } from '@/lib/marketplace/hospitalProducts';
 import type { ReferralBindRequest, ReferralBindResponse } from '@/lib/types/api';
-
-const defaultTenantSlug = process.env.EXPO_PUBLIC_MIRA_TENANT_SLUG?.trim() || 'demo-hospital';
 
 export type StoredReferralBindResult = (ReferralBindResponse & { ref_code: string }) | null;
 
@@ -13,9 +12,10 @@ export async function bindStoredReferralToCustomer(tenantSlug = defaultTenantSlu
     return null;
   }
 
+  const resolvedTenantSlug = await resolvePrimaryTenantSlug(tenantSlug);
   const response = await invokeFunction<ReferralBindRequest, ReferralBindResponse>('referral-bind', {
     ref_code: refCode,
-    tenant_slug: tenantSlug,
+    tenant_slug: resolvedTenantSlug,
   });
 
   if (response.bound || response.already_referred) {
@@ -23,5 +23,6 @@ export async function bindStoredReferralToCustomer(tenantSlug = defaultTenantSlu
     return { ...response, ref_code: refCode };
   }
 
-  throw new Error('ไม่สามารถผูก referral code กับบัญชีนี้ได้ กรุณาขอ link ใหม่จากผู้แนะนำ');
+  throw new Error('à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸œà¸¹à¸ referral code à¸à¸±à¸šà¸šà¸±à¸à¸Šà¸µà¸™à¸µà¹‰à¹„à¸”à¹‰ à¸à¸£à¸¸à¸“à¸²à¸‚à¸­ link à¹ƒà¸«à¸¡à¹ˆà¸ˆà¸²à¸à¸œà¸¹à¹‰à¹à¸™à¸°à¸™à¸³');
 }
+

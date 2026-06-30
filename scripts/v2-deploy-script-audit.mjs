@@ -17,11 +17,6 @@ const expectedFunctions = [
   'stripe-checkout',
   'stripe-promptpay-qr',
   'stripe-webhook',
-  'lab-ingest',
-  'lab-confirm',
-  'wearable-ingest',
-  'pdpa-export',
-  'pdpa-delete',
 ];
 const scanRoots = ['scripts', '.github', 'README.md', 'docs'];
 const violations = [];

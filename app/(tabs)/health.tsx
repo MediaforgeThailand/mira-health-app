@@ -1,5 +1,0 @@
-import { HealthInsightScreen } from '@/components/HealthInsightScreens';
-
-export default function HealthScreen() {
-  return <HealthInsightScreen screen="overview" />;
-}

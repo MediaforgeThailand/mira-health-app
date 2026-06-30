@@ -7,21 +7,18 @@ const appRoot = path.join(repoRoot, 'app');
 const registryRelativePath = 'lib/showcase/registry.ts';
 const registryPath = path.join(repoRoot, registryRelativePath);
 const args = new Set(process.argv.slice(2));
-const mockupRibbonMarker = 'SHOWCASE_MOCKUP_RIBBON';
 
 const EXCLUDED_ROUTES = new Map([
   ['/', 'showcase home is the module picker, not a module row'],
   ['/+html', 'expo-router document shell'],
-  ['/+not-found', 'demo safety net'],
+  ['/+not-found', 'router safety net'],
   ['/tour/[module]', 'module tour shell generated from registry'],
   ['/more', 'tab navigation hub; S3 regenerates its rows from registry'],
-  ['/checkout', 'legacy checkout kept out of the tour until chat checkout cleanup'],
-  ['/order-status', 'legacy Stripe return redirect to /user-profile'],
-  ['/ai-body-overview', 'legacy redirect to /body-overview'],
+  ['/order-status', 'legacy Stripe return redirect to /orders'],
+  ['/prototype', 'legacy chat alias redirecting to /chat'],
   ['/staff-referral', 'legacy staff entry redirect to /sales-portal'],
   ['/r/[ref_code]', 'customer referral landing opened only from real sales-portal links'],
   ['/admin/conversations', 'live agent console (staff-only, no public demo fixture)'],
-  ['/showcase/admin/orders', 'showcase URL alias for the canonical admin orders route'],
 ]);
 
 function normalizePath(value) {
@@ -333,18 +330,6 @@ async function runAudit() {
       registeredRoutes.add(pathRoute);
     }
 
-    if (entry.status === 'live') {
-      const liveRoute = hrefRoute ?? pathRoute;
-      const liveRouteFile = liveRoute ? realRoutes.get(liveRoute) : null;
-
-      if (liveRouteFile && liveRouteFile !== '<injected route>') {
-        const source = await fs.readFile(path.join(repoRoot, liveRouteFile), 'utf8');
-
-        if (source.includes(mockupRibbonMarker)) {
-          violations.push(`${entry.id}: live route ${liveRoute} contains ${mockupRibbonMarker}`);
-        }
-      }
-    }
   }
 
   for (const [route, relativePath] of [...realRoutes.entries()].sort(([left], [right]) => left.localeCompare(right))) {

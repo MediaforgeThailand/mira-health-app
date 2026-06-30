@@ -166,7 +166,7 @@ export async function createSignedReadUrl(bucket: string, path: string, expiresI
   return signedPath.startsWith('http') ? signedPath : `${supabaseUrl}/storage/v1${signedPath}`;
 }
 
-// Deletes a single storage object. Used by the PDPA erasure path (R4).
+// Deletes a single storage object for administrative cleanup jobs.
 // Treats 404/400 (object already gone or path malformed) as success so that
 // re-running an erasure stays idempotent; only hard server errors throw.
 export async function deleteStorageObject(bucket: string, path: string) {

@@ -9,7 +9,6 @@ import {
   loadActiveHospitalProducts,
   type HospitalProduct,
 } from '@/lib/marketplace/hospitalProducts';
-import { showcaseDemoProducts } from '@/lib/showcase/demoFixtures';
 
 function resolveParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
@@ -37,12 +36,12 @@ export default function PackageDetailScreen() {
     loadActiveHospitalProducts(80)
       .then((items) => {
         if (isMounted) {
-          setProducts(items.length ? items : showcaseDemoProducts);
+          setProducts(items);
         }
       })
       .catch(() => {
         if (isMounted) {
-          setProducts(showcaseDemoProducts);
+          setProducts([]);
         }
       })
       .finally(() => {
@@ -113,7 +112,7 @@ export default function PackageDetailScreen() {
         </View>
       ))}
 
-      <Link href="/user-profile" asChild>
+      <Link href="/orders" asChild>
         <ActionButton label="ดูคำสั่งซื้อของฉัน" />
       </Link>
       <Link href="/" asChild>

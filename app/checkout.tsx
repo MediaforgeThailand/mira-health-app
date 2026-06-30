@@ -9,7 +9,6 @@ import {
   loadActiveHospitalProducts,
   type HospitalProduct,
 } from '@/lib/marketplace/hospitalProducts';
-import { showcaseDemoProducts } from '@/lib/showcase/demoFixtures';
 
 function resolveParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
@@ -33,12 +32,12 @@ export default function CheckoutScreen() {
     loadActiveHospitalProducts(20)
       .then((items) => {
         if (isMounted) {
-          setProducts(items.length ? items : showcaseDemoProducts);
+          setProducts(items);
         }
       })
       .catch(() => {
         if (isMounted) {
-          setProducts(showcaseDemoProducts);
+          setProducts([]);
         }
       })
       .finally(() => {
@@ -92,7 +91,7 @@ export default function CheckoutScreen() {
             <Pill label={product.catalogKey} tone="blue" />
             <Pill label={getProductCategoryLabel(product.category)} tone="mint" />
           </View>
-          <Link href="/user-profile" asChild>
+          <Link href="/orders" asChild>
             <ActionButton label="View orders" />
           </Link>
         </Card>

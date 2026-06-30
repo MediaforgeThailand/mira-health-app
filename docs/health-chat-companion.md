@@ -50,7 +50,7 @@ Personal health data must not be written into RAG. It belongs in the health data
 
 ## Product Flow
 
-The prototype chat reads product cards from canonical `products` through the backend response. If Supabase has no active products, the prototype falls back to local demo packages so the sales demo stays usable.
+The AI chat reads product cards from canonical `products` through the backend response. If Supabase has no active products, the app should show an explicit empty/setup state instead of falling back to local package fixtures.
 
 Expected flow:
 

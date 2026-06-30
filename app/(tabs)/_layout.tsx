@@ -4,7 +4,7 @@ import { Tabs } from 'expo-router';
 import { MiraDesign, shadow } from '@/constants/Design';
 
 export const unstable_settings = {
-  initialRouteName: 'health',
+  initialRouteName: 'more',
 };
 
 export default function TabLayout() {
@@ -34,18 +34,9 @@ export default function TabLayout() {
         },
       }}>
       <Tabs.Screen
-        name="health"
-        options={{
-          title: 'Health',
-          tabBarIcon: ({ color }) => (
-            <SymbolView name={{ ios: 'heart.text.square.fill', android: 'monitor_heart', web: 'monitor_heart' }} tintColor={color} size={27} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="more"
         options={{
-          title: 'More',
+          title: 'Systems',
           tabBarIcon: ({ color }) => (
             <SymbolView name={{ ios: 'ellipsis.circle.fill', android: 'menu', web: 'menu' }} tintColor={color} size={27} />
           ),

@@ -23,7 +23,6 @@ type SymbolName = ComponentProps<typeof SymbolView>['name'];
 const moduleNumbers: Record<ShowcaseModuleId, string> = {
   admin: '02',
   'ai-chat': '03',
-  health: '04',
   referral: '01',
 };
 
@@ -48,12 +47,6 @@ const moduleVisuals: Record<
     image: require('@/assets/motion/mira-landing-motion-poster.png'),
     wash: '#DDF5F3',
   },
-  health: {
-    fit: 'contain',
-    icon: { android: 'monitor_heart', ios: 'heart.text.square.fill', web: 'monitor_heart' },
-    image: require('@/assets/images/mockup-body-overview.png'),
-    wash: '#DDF3FF',
-  },
   referral: {
     fit: 'cover',
     icon: { android: 'link', ios: 'link', web: 'link' },
@@ -71,16 +64,9 @@ const pageVisuals: Record<string, { fit?: 'contain' | 'cover'; image: ImageSourc
   'admin-operations-hub': { image: require('@/assets/motion/mira-landing-motion-poster.png') },
   'admin-referrers-shared': { image: require('@/assets/images/mira-care-mark.png'), fit: 'contain' },
   'ai-chat-login': { image: require('@/assets/images/mira-care-app-icon.png'), fit: 'contain' },
-  'ai-chat-line-preview': { image: require('@/assets/motion/mira-landing-motion-poster.png') },
   'ai-chat-orders': { image: require('@/assets/images/product-preview-heart.png') },
   'ai-chat-package-detail': { image: require('@/assets/images/sales-package-blood.png') },
   'ai-chat-prototype': { image: require('@/assets/images/mira-care-app-icon.png'), fit: 'contain' },
-  'health-body-overview': { image: require('@/assets/images/mockup-body-overview.png'), fit: 'contain' },
-  'health-lab-results': { image: require('@/assets/images/mockup-health-check-results.png'), fit: 'contain' },
-  'health-lab-upload': { image: require('@/assets/images/mockup-health-check-results.png'), fit: 'contain' },
-  'health-overview-tab': { image: require('@/assets/images/mockup-body-overview.png'), fit: 'contain' },
-  'health-user-profile': { image: require('@/assets/images/mira-care-app-icon.png'), fit: 'contain' },
-  'health-wearable': { image: require('@/assets/images/mockup-wearable-health.png'), fit: 'contain' },
   'referral-admin-referrers': { image: require('@/assets/images/mira-care-mark.png'), fit: 'contain' },
   'referral-login': { image: require('@/assets/images/mira-care-mark.png'), fit: 'contain' },
   'referral-partner-workspace': { image: require('@/assets/images/sales-package-longevity.png') },
@@ -107,7 +93,7 @@ export default function ShowcaseDirectoryScreen() {
   const entries = getShowcaseEntriesForModule(moduleId, true);
   const availableCount = entries.filter((entry) => entry.href).length;
   const liveCount = entries.filter((entry) => entry.status === 'live').length;
-  const mockupCount = entries.filter((entry) => entry.status === 'mockup').length;
+  const protectedCount = entries.filter((entry) => entry.auth !== 'none').length;
 
   async function copyUrl(entry: ShowcaseEntry) {
     const url = buildTourUrl(entry.path, moduleId);
@@ -127,12 +113,12 @@ export default function ShowcaseDirectoryScreen() {
         <Image resizeMode="contain" source={logo} style={styles.logo} />
       </View>
 
-      <ModuleHero availableCount={availableCount} entriesCount={entries.length} liveCount={liveCount} mockupCount={mockupCount} module={module} />
+      <ModuleHero availableCount={availableCount} entriesCount={entries.length} liveCount={liveCount} protectedCount={protectedCount} module={module} />
 
       <Panel style={[styles.scriptPanel, isCompact ? styles.scriptPanelCompact : null]}>
         <View style={[styles.panelHead, isCompact ? styles.panelHeadCompact : null]}>
           <View>
-            <Text style={styles.panelKicker}>DEMO SCRIPT</Text>
+            <Text style={styles.panelKicker}>FLOW</Text>
             <Text style={styles.panelTitle}>ลำดับพรีเซนต์</Text>
           </View>
           <Text style={styles.panelMeta}>{module.script_th.length} ขั้นตอน</Text>
@@ -160,14 +146,14 @@ function ModuleHero({
   availableCount,
   entriesCount,
   liveCount,
-  mockupCount,
   module,
+  protectedCount,
 }: {
   availableCount: number;
   entriesCount: number;
   liveCount: number;
-  mockupCount: number;
   module: ShowcaseModule;
+  protectedCount: number;
 }) {
   const visual = moduleVisuals[module.id];
   const { width } = useWindowDimensions();
@@ -207,7 +193,7 @@ function ModuleHero({
           <HeroMetric label="หน้าในหมวด" value={`${entriesCount}`} />
           <HeroMetric label="เปิดได้" value={`${availableCount}`} />
           <HeroMetric label="LIVE" value={`${liveCount}`} />
-          <HeroMetric label="MOCKUP" value={`${mockupCount}`} />
+          <HeroMetric label="AUTH" value={`${protectedCount}`} />
         </View>
       </View>
     </View>

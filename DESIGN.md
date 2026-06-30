@@ -1,46 +1,100 @@
-# Mira Health Design System
+# Mira AI Sales and MarTech Design System
 
 ## Direction
 
-Clinical marketplace, not admin dashboard. Use an airy ice-white canvas, white cards, teal as the health/trust anchor, blue for marketplace/action, amber/coral for watch/risk status, and visual health graphics before explanatory text.
+Mira should feel like an operating system for AI-led sales, referral growth, and commerce operations. It is not a medical dashboard and not a marketing landing page. The interface should be quiet, direct, and built for repeated operational use.
+
+The primary product surfaces are:
+
+- AI Commerce Chat
+- Admin Commerce
+- Referral Program
+- Sales and order dashboard
+
+Legacy healthcare dashboard screens are archived. They should not appear in the active navigation or define the new visual direction.
 
 ## Color
 
-- Canvas: `#F4F9FA`
+- Canvas: `#EEF6FF`
 - Surface: `#FFFFFF`
-- Strong surface: `#FFFFFF`
-- Ink: `#12343B`
-- Soft ink: `#587177`
-- Primary: `#0EA5A4`
-- Blue accent: `#3278C7`
-- Mint accent: `#5ED5A8`
-- Amber status: `#F5B84B`
-- Coral risk: `#EE6B6E`
+- Soft surface: `#F8FBFF`
+- Ink: `#071D49`
+- Soft ink: `#385780`
+- Primary action: `#176BFF`
+- Deep action: `#0A3A9E`
+- Success/referral: `#18B883`
+- Warning: `#F5B84B`
+- Danger: `#D84A4A`
+- Line: `#C6E0FA`
+
+Use blue for system/action, mint for successful commerce/referral state, amber for attention, and red only for destructive or failed states.
 
 ## Type
 
-Use compact but warmer product typography: 24-31px for screen headlines, 18px for section titles, 14-16px for body and inputs, 11-13px for labels. Use fewer paragraphs; let rings, bars, chips, and metric tiles carry status.
+Use compact, scan-friendly typography:
+
+- Page title: 28-34px
+- Section heading: 18-22px
+- Card/table row title: 15-17px
+- Body: 13-15px
+- Labels/chips: 11-13px
+
+Letter spacing stays `0`. Do not scale font size with viewport width.
 
 ## Layout
 
-Mobile first. Use safe areas, bottom tab navigation, large touch targets, and scrollable content. Keep cards at 8px radius or less and avoid nesting cards inside cards.
+Primary screens should be operational:
 
-## Components
+- real tables/lists over marketing cards
+- clear row actions
+- predictable filters and status chips
+- compact panels without nested cards
+- mobile-first, but desktop should feel like a real workspace
 
-Primary surfaces are health status heroes, package cards, AI match panels, freshness indicators, metric snapshot cards, referral commission cards, and booking handoff panels. Status should be visual first: rings, bars, dots, figure diagrams, and simple colored signals before text.
+The root page is a system directory: rows grouped by AI Sales Chat, Admin Commerce, and Referral Program. It is not a showcase gallery.
 
-## UX Handoff Notes
+## Component Rules
 
-- Designer should create mobile frames for login, AI intake, package marketplace, package detail, checkout, order status, hospital admin lookup, referral partner dashboard, and health dashboard.
-- Each flow needs empty/loading/error/success states before production.
-- Hospital admin screens can be utilitarian and denser than user screens.
-- Health dashboard can support multiple display modes, but the simple visual mode should be the default.
-- Marketplace cards should look like trustworthy healthcare service cards, not generic ecommerce cards.
-- User profile should show identity, consent, goals, and data freshness visually.
+- Use buttons for commands and links for navigation.
+- Use status chips for auth/setup/order states.
+- Use tables or rows for directories, orders, and catalog lists.
+- Use cards only for individual tools, summaries, and empty/error states.
+- Do not place UI cards inside other cards.
+- Do not create new mockup ribbons for primary routes.
+
+## AI Sales Chat
+
+Chat should feel like a real sales operator:
+
+- customer messages and assistant answers are the core
+- catalog cards are rendered from backend data
+- order panels show the exact next step
+- auth/setup errors are explicit
+- voice or future-channel affordances must not appear unless functional
+
+## Admin Commerce
+
+Admin should feel like a work console:
+
+- catalog management is the source of truth for what AI can sell
+- orders separate service booking work from physical fulfillment work
+- every status change should be visible and auditable
+- avoid decorative hero sections
+
+## Referral Program
+
+Referral should feel like a focused sales tool:
+
+- pick product/service
+- create/share link or QR
+- see attribution
+- see commission state
+- send customers into `/chat`
 
 ## Anti-Patterns
 
-- Do not make the health app look like a web dashboard squeezed onto a phone.
-- Do not use purple-blue gradients as the main identity.
-- Do not rely on gray text on colored backgrounds.
-- Do not overdecorate AI recommendations; they should feel useful, not magical.
+- Do not design around healthcare unless the task explicitly asks for that vertical.
+- Do not use showcase/mockup/concept language on primary routes.
+- Do not invent proof, revenue numbers, or channel availability.
+- Do not hide backend setup/auth failures behind demo data.
+- Do not create separate business logic per channel.

@@ -371,8 +371,7 @@ function toHospitalProduct(row: ProductRow): HospitalProduct {
     updatedAt: row.updated_at,
   };
 }
-
-async function loadTenant(slug = defaultTenantSlug): Promise<TenantRow | null> {
+async function loadTenantBySlug(slug: string): Promise<TenantRow | null> {
   if (!supabaseConfigStatus.isConfigured) {
     return null;
   }
@@ -388,6 +387,41 @@ async function loadTenant(slug = defaultTenantSlug): Promise<TenantRow | null> {
   }
 
   return data as TenantRow | null;
+}
+
+export async function loadPrimaryTenant(slug = defaultTenantSlug): Promise<TenantRow | null> {
+  if (!supabaseConfigStatus.isConfigured) {
+    return null;
+  }
+
+  const configuredTenant = await loadTenantBySlug(slug);
+
+  if (configuredTenant) {
+    return configuredTenant;
+  }
+
+  const { data, error } = await supabase
+    .from('tenants')
+    .select('id,slug,display_name,logo_url')
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    return null;
+  }
+
+  return data as TenantRow | null;
+}
+
+export async function resolvePrimaryTenantSlug(slug = defaultTenantSlug) {
+  const tenant = await loadPrimaryTenant(slug);
+
+  return tenant?.slug ?? slug;
+}
+
+async function loadTenant(slug = defaultTenantSlug): Promise<TenantRow | null> {
+  return loadPrimaryTenant(slug);
 }
 
 async function requireTenant(slug = defaultTenantSlug): Promise<TenantRow> {

@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocalSearchParams } from 'expo-router';
 import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
 import { Pill } from '@/components/MiraUI';
 import { MiraDesign, softShadow } from '@/constants/Design';
 import { useAuthSession } from '@/lib/auth/useAuthSession';
 import { defaultTenantSlug } from '@/lib/marketplace/hospitalProducts';
-import { showcaseDemoCommissions, showcaseDemoReferrers, showcaseDemoTenant } from '@/lib/showcase/demoFixtures';
 import { supabase, supabaseConfigStatus } from '@/lib/supabase';
 import type { CommissionEntryRow, ReferrerRow, ReferrerType, TenantSummary } from '@/lib/types/api';
 
@@ -109,7 +107,6 @@ function commissionSchemeLabel(scheme: CommissionEntryRow['scheme_snapshot']) {
 
 export function ReferrersAdmin({ title = 'ผู้แนะนำและค่าคอมมิชชัน' }: { title?: string }) {
   const auth = useAuthSession();
-  const { tour } = useLocalSearchParams<{ tour?: string }>();
   const { width } = useWindowDimensions();
   const [tenant, setTenant] = useState<TenantContext | null>(null);
   const [referrers, setReferrers] = useState<ReferrerRow[]>([]);
@@ -120,15 +117,12 @@ export function ReferrersAdmin({ title = 'ผู้แนะนำและค�
   const [isSaving, setIsSaving] = useState(false);
   const [busyCommissionId, setBusyCommissionId] = useState<string | null>(null);
   const [selectedCommissionIds, setSelectedCommissionIds] = useState<Set<string>>(() => new Set());
-  const [demoFallbackReason, setDemoFallbackReason] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const isWide = width >= 1080;
   const isCompact = width < 760;
-  const isTourMode = tour === 'admin';
-  const isBaseDemoMode = isTourMode || !auth.session || !supabaseConfigStatus.isConfigured;
-  const isDemoMode = isBaseDemoMode || Boolean(demoFallbackReason);
-  const canEdit = !isDemoMode && Boolean(auth.session) && (tenant?.role === 'tenant_admin' || tenant?.role === 'superadmin');
+  const backendReady = supabaseConfigStatus.isConfigured;
+  const canEdit = backendReady && Boolean(auth.session) && (tenant?.role === 'tenant_admin' || tenant?.role === 'superadmin');
   const canSave =
     canEdit &&
     draft.name.trim().length > 1 &&
@@ -150,17 +144,16 @@ export function ReferrersAdmin({ title = 'ผู้แนะนำและค�
   const activeReferrerCount = referrers.filter((referrer) => referrer.active).length;
   const totalCommission = totals.approved + totals.paid + totals.pending;
 
-  const loadDemoReferrers = useCallback((reason: string | null = null) => {
-    setDemoFallbackReason(reason);
-    setTenant({ ...showcaseDemoTenant, role: 'demo' });
-    setReferrers(showcaseDemoReferrers);
-    setCommissions(showcaseDemoCommissions);
-    setSelectedCommissionIds(new Set());
-  }, []);
-
   const loadData = useCallback(async () => {
-    if (!auth.user) {
-      loadDemoReferrers(null);
+    if (auth.isLoading) {
+      return;
+    }
+
+    if (!backendReady || !auth.user) {
+      setTenant(null);
+      setReferrers([]);
+      setCommissions([]);
+      setSelectedCommissionIds(new Set());
       return;
     }
 
@@ -213,7 +206,6 @@ export function ReferrersAdmin({ title = 'ผู้แนะนำและค�
     }
 
     const nextCommissions = (commissionRows ?? []) as unknown as CommissionWithJoins[];
-    setDemoFallbackReason(null);
     setReferrers((referrerRows ?? []) as unknown as ReferrerRow[]);
     setCommissions(nextCommissions);
     setSelectedCommissionIds((current) => {
@@ -221,25 +213,23 @@ export function ReferrersAdmin({ title = 'ผู้แนะนำและค�
 
       return new Set([...current].filter((id) => visibleIds.has(id)));
     });
-  }, [auth.user, loadDemoReferrers]);
+  }, [auth.isLoading, auth.user, backendReady]);
 
   useEffect(() => {
     let isMounted = true;
 
     async function boot() {
-      if (isBaseDemoMode) {
-        loadDemoReferrers(null);
-        setIsLoading(false);
-        return;
-      }
-
       try {
         setError(null);
         await loadData();
       } catch (loadError) {
         if (isMounted) {
           const reason = loadError instanceof Error ? loadError.message : 'โหลดข้อมูล referral จาก backend ไม่สำเร็จ';
-          loadDemoReferrers(reason);
+          setTenant(null);
+          setReferrers([]);
+          setCommissions([]);
+          setSelectedCommissionIds(new Set());
+          setError(reason);
         }
       } finally {
         if (isMounted) {
@@ -253,7 +243,7 @@ export function ReferrersAdmin({ title = 'ผู้แนะนำและค�
     return () => {
       isMounted = false;
     };
-  }, [auth.session, isBaseDemoMode, loadData, loadDemoReferrers]);
+  }, [auth.session, loadData]);
 
   function editReferrer(referrer: ReferrerRow) {
     setEditingId(referrer.id);
@@ -281,27 +271,20 @@ export function ReferrersAdmin({ title = 'ผู้แนะนำและค�
       setError(null);
       setMessage(null);
 
-      if (isDemoMode) {
-        loadDemoReferrers(demoFallbackReason);
-        setMessage('กำลังแสดงข้อมูลตัวอย่างอยู่');
-        return;
-      }
-
       await loadData();
       setMessage('รีเฟรชข้อมูล referral แล้ว');
     } catch (refreshError) {
       const reason = refreshError instanceof Error ? refreshError.message : 'รีเฟรชข้อมูล referral ไม่สำเร็จ';
-      loadDemoReferrers(reason);
+      setTenant(null);
+      setReferrers([]);
+      setCommissions([]);
+      setSelectedCommissionIds(new Set());
+      setError(reason);
     }
   }
 
   async function saveReferrer() {
     if (!tenant || !canSave || isSaving) {
-      return;
-    }
-
-    if (isDemoMode) {
-      setMessage('โหมดตัวอย่าง — ยังไม่สร้าง referrer จริง');
       return;
     }
 
@@ -338,11 +321,6 @@ export function ReferrersAdmin({ title = 'ผู้แนะนำและค�
 
   async function updateCommissionStatus(entry: CommissionEntryRow, status: CommissionEntryRow['status']) {
     if (!canEdit || busyCommissionId) {
-      return;
-    }
-
-    if (isDemoMode) {
-      setMessage('โหมดตัวอย่าง — ยังไม่เปลี่ยนสถานะ commission จริง');
       return;
     }
 
@@ -397,11 +375,6 @@ export function ReferrersAdmin({ title = 'ผู้แนะนำและค�
       return;
     }
 
-    if (isDemoMode) {
-      setMessage('โหมดตัวอย่าง — ยังไม่เปลี่ยนสถานะ commission จริง');
-      return;
-    }
-
     try {
       setBusyCommissionId('bulk');
       setError(null);
@@ -448,7 +421,7 @@ export function ReferrersAdmin({ title = 'ผู้แนะนำและค�
           <View style={[styles.heroPanel, !isWide ? styles.heroPanelStacked : null]}>
             <View style={styles.heroPanelTop}>
               <Text style={styles.panelMeta}>สถานะพื้นที่ทำงาน</Text>
-              <Pill label={isDemoMode ? 'โหมดตัวอย่าง' : canEdit ? 'แก้ไขได้' : 'อ่านอย่างเดียว'} tone={isDemoMode ? 'amber' : canEdit ? 'mint' : 'blue'} />
+              <Pill label={canEdit ? 'แก้ไขได้' : backendReady ? 'อ่านอย่างเดียว' : 'ยังไม่เชื่อม backend'} tone={canEdit ? 'mint' : backendReady ? 'blue' : 'amber'} />
             </View>
             <Text style={styles.heroPanelTitle}>{activeReferrerCount} สมาชิกที่เปิดใช้งาน</Text>
             <Text style={styles.heroPanelBody}>ยอด commission ทั้งหมด {formatMoney(totalCommission)} จาก {commissions.length} รายการล่าสุด · rate อยู่ที่สินค้า</Text>
@@ -458,7 +431,7 @@ export function ReferrersAdmin({ title = 'ผู้แนะนำและค�
           </View>
         </View>
 
-        {!isDemoMode && !canEdit && tenant ? (
+        {!canEdit && tenant ? (
           <View style={styles.noticeInline}>
             <Text style={styles.noticeTitle}>สิทธิ์อ่านอย่างเดียว</Text>
             <Text style={styles.noticeBody}>เฉพาะ tenant admin เท่านั้นที่แก้ไขสมาชิก หรือสถานะค่าคอมมิชชันได้</Text>
@@ -467,16 +440,8 @@ export function ReferrersAdmin({ title = 'ผู้แนะนำและค�
 
         {error ? <Banner tone="error" text={error} /> : null}
         {message ? <Banner tone="success" text={message} /> : null}
-        {isDemoMode ? (
-          <Banner
-            tone="success"
-            text={
-              demoFallbackReason
-                ? `โหมดตัวอย่าง: ${demoFallbackReason} ปุ่มแก้ไขข้อมูลจริงจะถูกปิดไว้`
-                : 'โหมดตัวอย่าง: เปิดดูสมาชิก ref program และ commission ได้โดยไม่ต้องล็อกอิน ปุ่มแก้ไขข้อมูลจริงจะถูกปิดไว้'
-            }
-          />
-        ) : null}
+        {!backendReady ? <Banner tone="error" text="ยังไม่ได้เชื่อมต่อ backend สำหรับ Referrers Admin" /> : null}
+        {backendReady && !auth.session ? <Banner tone="error" text="กรุณาเข้าสู่ระบบด้วยบัญชี tenant ก่อนจัดการ referrers จริง" /> : null}
 
         <View style={[styles.metrics, isCompact ? styles.metricsCompact : null]}>
           <Metric compact={isCompact} detail="รอตรวจรายการก่อนจ่าย" label="รออนุมัติ" value={formatMoney(totals.pending)} />

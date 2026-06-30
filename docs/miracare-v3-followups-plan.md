@@ -311,3 +311,8 @@ Every PR: `npm run typecheck` + `npm run v2:verify` green, migrations additive o
 ## Appendix A — kickoff prompt for the Codex run
 
 > Read `AGENTS.md` first — it is binding. Then read `docs/miracare-v3-followups-plan.md` end-to-end; it is the plan for this run and the ONLY authorization for the protected-core touches it lists in §0.2. Work phases in the PR order of §9, one PR per phase, branch `codex/<phase-id>-<slug>`. R1 is a production bug — ship it first and keep that PR minimal. Do NOT build anything LINE-related, do NOT touch `transition_order`, do NOT edit prompt content or the platform default (R3 step 2 starts only after the owner confirms the flip). All open questions in this plan are DECIDED — do not re-ask them. Update the DoD checkboxes in `docs/miracare-v3-followups-plan.md` truthfully in each PR. Stop and report per AGENTS.md §3.8 if any gate cannot be made green without violating a rule.
+# SUPERSEDED FOR NEW PRODUCT DIRECTION 2026-06-23
+
+This follow-up plan is historical. New work should prioritize AI Sales/MarTech rebuild tasks from `docs/ai-sales-martech-context.md` and `docs/codex-goals.md`.
+
+---

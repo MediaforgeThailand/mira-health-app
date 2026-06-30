@@ -1,5 +1,10 @@
 # Phase 5 Health Dashboard
 
+Status 2026-06-25: archived. The historical migration remains, but the active
+lab/wearable/health UI, edge functions, helper tests, fixtures, deploy entries,
+and health-safety audit were removed from the current AI Sales / Referral /
+Admin product scope.
+
 ## What Changed
 
 - Added `lab_reports`, `lab_results`, and `wearable_metrics` with tenant/customer RLS, indexes including wearable tenant/day lookup, storage buckets, and Phase 5 lab fact keys.

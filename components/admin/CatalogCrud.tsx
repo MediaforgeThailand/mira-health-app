@@ -1,4 +1,4 @@
-import { Link, useLocalSearchParams } from 'expo-router';
+import { Link } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import type { ComponentProps, ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
@@ -32,7 +32,6 @@ import {
   type ProductCategoryOption,
   type TenantMemberContext,
 } from '@/lib/marketplace/hospitalProducts';
-import { showcaseDemoBranches, showcaseDemoCategories, showcaseDemoProducts, showcaseDemoTenantContext } from '@/lib/showcase/demoFixtures';
 import { supabaseConfigStatus } from '@/lib/supabase';
 
 const emptyDraft: HospitalProductDraft = {
@@ -145,7 +144,6 @@ function stripeFilterLabel(filter: StripeFilter) {
 
 export function CatalogCrud({ title = 'จัดการสินค้าโรงพยาบาล' }: { title?: string }) {
   const auth = useAuthSession();
-  const { tour } = useLocalSearchParams<{ tour?: string }>();
   const { width } = useWindowDimensions();
   const webViewportWidth = typeof window !== 'undefined' ? window.innerWidth : 0;
   const viewportWidth = width > 0 ? width : webViewportWidth;
@@ -174,16 +172,13 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
   const [isBulkSyncing, setIsBulkSyncing] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [busyProductId, setBusyProductId] = useState<string | null>(null);
-  const [demoFallbackReason, setDemoFallbackReason] = useState<string | null>(null);
   const [lastRefreshedAt, setLastRefreshedAt] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const isMobile = viewportWidth > 0 && viewportWidth < catalogMobileBreakpoint;
   const isWide = viewportWidth >= catalogDesktopBreakpoint;
-  const isTourMode = tour === 'admin';
-  const isBaseDemoMode = isTourMode || !auth.session || !supabaseConfigStatus.isConfigured;
-  const isDemoMode = isBaseDemoMode || Boolean(demoFallbackReason);
-  const canEditCatalog = !isDemoMode && Boolean(auth.session) && canWriteTenantCatalog(tenantContext);
+  const backendReady = supabaseConfigStatus.isConfigured;
+  const canEditCatalog = backendReady && Boolean(auth.session) && canWriteTenantCatalog(tenantContext);
   const canSave =
     canEditCatalog &&
     draft.title.trim().length > 1 &&
@@ -265,20 +260,13 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
     ragFilter !== 'all' ||
     stripeFilter !== 'all';
   const disabledActionHint = !canEditCatalog
-    ? isDemoMode
-      ? 'โหมดตัวอย่าง: ปุ่มนี้จะไม่ส่งข้อมูลจริง'
-      : 'สิทธิ์อ่านอย่างเดียว: ต้องเป็น tenant admin เพื่อบันทึก'
+    ? !backendReady
+      ? 'ยังไม่ได้เชื่อมต่อ backend: ปุ่มนี้ยังบันทึกข้อมูลจริงไม่ได้'
+      : !auth.session
+        ? 'กรุณาเข้าสู่ระบบ tenant ก่อนบันทึก'
+        : 'สิทธิ์อ่านอย่างเดียว: ต้องเป็น tenant admin เพื่อบันทึก'
     : null;
   const lastRefreshedText = lastRefreshedAt ? `รีเฟรชล่าสุด ${formatShortDateTime(lastRefreshedAt)}` : 'รอข้อมูลล่าสุด';
-
-  function loadDemoCatalog(reason: string | null = null) {
-    setDemoFallbackReason(reason);
-    setTenantContext(showcaseDemoTenantContext);
-    setProducts(showcaseDemoProducts);
-    setBranches(showcaseDemoBranches);
-    setCategories(showcaseDemoCategories);
-    setLastRefreshedAt(new Date().toISOString());
-  }
 
   useEffect(() => {
     let isMounted = true;
@@ -292,23 +280,34 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
     return () => {
       isMounted = false;
     };
-  }, [auth.user, isBaseDemoMode]);
+  }, [auth.isLoading, auth.session, auth.user, backendReady]);
 
   async function loadCatalog() {
     try {
       setError(null);
 
-      if (isBaseDemoMode || !auth.user) {
-        loadDemoCatalog(null);
+      if (auth.isLoading) {
         return;
       }
 
-      setDemoFallbackReason(null);
+      if (!backendReady || !auth.user) {
+        setTenantContext(null);
+        setProducts([]);
+        setBranches([]);
+        setCategories([]);
+        setLastRefreshedAt(null);
+        return;
+      }
+
       const context = await loadTenantMemberContext();
       setTenantContext(context);
 
       if (!context) {
-        loadDemoCatalog(`บัญชีนี้ยังไม่ได้เชื่อมกับ tenant "${defaultTenantSlug}"`);
+        setProducts([]);
+        setBranches([]);
+        setCategories([]);
+        setLastRefreshedAt(null);
+        setError(`บัญชีนี้ยังไม่ได้เชื่อมกับ tenant "${defaultTenantSlug}"`);
         return;
       }
 
@@ -323,7 +322,12 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
       setLastRefreshedAt(new Date().toISOString());
     } catch (loadError) {
       const reason = loadError instanceof Error ? loadError.message : 'โหลด catalog จาก backend ไม่สำเร็จ';
-      loadDemoCatalog(reason);
+      setTenantContext(null);
+      setProducts([]);
+      setBranches([]);
+      setCategories([]);
+      setLastRefreshedAt(null);
+      setError(reason);
     }
   }
 
@@ -347,13 +351,7 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
     try {
       setError(null);
 
-      if (isDemoMode) {
-        loadDemoCatalog(demoFallbackReason);
-        setMessage('กำลังแสดงข้อมูลตัวอย่างอยู่');
-        return;
-      }
-
-      if (!tenantContext) {
+      if (!backendReady || !auth.user || !tenantContext) {
         await loadCatalog();
         return;
       }
@@ -369,8 +367,7 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
       setLastRefreshedAt(new Date().toISOString());
     } catch (refreshError) {
       const reason = refreshError instanceof Error ? refreshError.message : 'รีเฟรช catalog ไม่สำเร็จ';
-      loadDemoCatalog(reason);
-      setMessage('กำลังแสดงข้อมูลตัวอย่างอยู่');
+      setError(reason);
     }
   }
 
@@ -638,12 +635,12 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
               จัดการสินค้าที่ใช้ใน mobile catalog, chat checkout, RAG answers, Stripe/payment sync และ workflow ของ Referral
             </Text>
             <View style={styles.statusPillRow}>
-              <StatusBadge label={isDemoMode ? 'โหมดตัวอย่าง' : 'Live mode'} tone={isDemoMode ? 'warning' : 'success'} />
+              <StatusBadge label={backendReady ? 'Backend connected' : 'Setup required'} tone={backendReady ? 'success' : 'warning'} />
               <StatusBadge
                 label={tenantContext ? tenantContext.display_name : isLoading ? 'กำลังตรวจ tenant' : 'ยังไม่เชื่อม tenant'}
                 tone={tenantContext ? 'info' : 'muted'}
               />
-              {!canEditCatalog ? <StatusBadge label={isDemoMode ? 'read-only demo' : 'อ่านอย่างเดียว'} tone="muted" /> : null}
+              {!canEditCatalog ? <StatusBadge label="อ่านอย่างเดียว" tone="muted" /> : null}
               <StatusBadge label={lastRefreshedText} tone="muted" />
             </View>
           </View>
@@ -676,25 +673,28 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
           </View>
         </View>
 
-        {isDemoMode ? (
+        {!backendReady ? (
           <View style={styles.noticeCompact}>
             <SymbolView name={{ android: 'info', ios: 'info.circle', web: 'info' }} size={18} tintColor="#7A5A05" />
-            <Text style={styles.noticeCompactText}>
-              {demoFallbackReason
-                ? `โหมดตัวอย่าง: กำลังแสดงข้อมูลตัวอย่าง เพราะ ${demoFallbackReason} ปุ่มบันทึก อัปโหลด และ archive จะถูกปิดไว้`
-                : 'โหมดตัวอย่าง: เปิดดู catalog ได้ทันทีโดยไม่ต้องล็อกอิน ปุ่มบันทึก อัปโหลด และ archive จะถูกปิดไว้'}
-            </Text>
+            <Text style={styles.noticeCompactText}>ยังไม่ได้เชื่อมต่อ backend: หน้านี้จะแสดงข้อมูลสินค้า สาขา และหมวดหมู่จริงหลังตั้งค่า Supabase แล้ว</Text>
           </View>
         ) : null}
 
-        {auth.session && !isDemoMode && !tenantContext && !isLoading ? (
+        {backendReady && !auth.session ? (
+          <View style={styles.notice}>
+            <Text style={styles.noticeTitle}>กรุณาเข้าสู่ระบบ</Text>
+            <Text style={styles.noticeBody}>ต้องเข้าสู่ระบบด้วยบัญชี tenant ก่อนจึงจะจัดการ catalog จริงได้</Text>
+          </View>
+        ) : null}
+
+        {auth.session && !tenantContext && !isLoading ? (
           <View style={styles.notice}>
             <Text style={styles.noticeTitle}>ต้องมีสิทธิ์ใน tenant</Text>
             <Text style={styles.noticeBody}>บัญชีที่อยู่ใน tenant_members เท่านั้นที่จะใช้หน้าแอดมินนี้ได้</Text>
           </View>
         ) : null}
 
-        {tenantContext && !isDemoMode && !canEditCatalog ? (
+        {tenantContext && !canEditCatalog ? (
           <View style={styles.notice}>
             <Text style={styles.noticeTitle}>สิทธิ์อ่านอย่างเดียว</Text>
             <Text style={styles.noticeBody}>เฉพาะ tenant_admin หรือ superadmin เท่านั้นที่สร้าง อัปโหลด archive หรือ restore สินค้าได้</Text>

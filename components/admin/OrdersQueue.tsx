@@ -1,15 +1,13 @@
-import { Link, useLocalSearchParams } from 'expo-router';
+import { Link } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import type { ComponentProps, ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
-import { PdpaActions } from '@/components/admin/PdpaActions';
 import { MiraDesign, softShadow } from '@/constants/Design';
 import { invokeFunction } from '@/lib/api/client';
 import { useAuthSession } from '@/lib/auth/useAuthSession';
 import { defaultTenantSlug } from '@/lib/marketplace/hospitalProducts';
-import { showcaseDemoAdminOrders, showcaseDemoTenant, showcaseDemoTranscript } from '@/lib/showcase/demoFixtures';
 import { supabase, supabaseConfigStatus } from '@/lib/supabase';
 import type { AdminOrderActionRequest, AdminSlipUrlResponse, ChatMessageRow, OrderRow, OrderStatus, TenantSummary } from '@/lib/types/api';
 
@@ -656,21 +654,25 @@ function uniqueBranchNames(orders: OrderQueueRow[]) {
 
 function statusLineForMode({
   authLoading,
-  demoFallbackReason,
-  isDemoMode,
+  backendReady,
+  hasSession,
   tenant,
 }: {
   authLoading: boolean;
-  demoFallbackReason: string | null;
-  isDemoMode: boolean;
+  backendReady: boolean;
+  hasSession: boolean;
   tenant: TenantContext | null;
 }) {
   if (authLoading) {
     return 'กำลังตรวจสิทธิ์';
   }
 
-  if (isDemoMode) {
-    return demoFallbackReason ? 'อ่านจากข้อมูลตัวอย่าง' : 'โหมดตัวอย่าง';
+  if (!backendReady) {
+    return 'ยังไม่เชื่อม backend';
+  }
+
+  if (!hasSession) {
+    return 'ยังไม่ได้เข้าสู่ระบบ';
   }
 
   if (tenant) {
@@ -682,7 +684,6 @@ function statusLineForMode({
 
 export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' }: { title?: string }) {
   const auth = useAuthSession();
-  const { tour } = useLocalSearchParams<{ tour?: string }>();
   const { width } = useWindowDimensions();
   const [tenant, setTenant] = useState<TenantContext | null>(null);
   const [orders, setOrders] = useState<OrderQueueRow[]>([]);
@@ -702,15 +703,13 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [busyAction, setBusyAction] = useState<OrderMutationAction | null>(null);
   const [isSavingNote, setIsSavingNote] = useState(false);
-  const [demoFallbackReason, setDemoFallbackReason] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
   const isDesktop = width >= 1024;
   const isTablet = width >= 768;
-  const isTourMode = tour === 'admin';
-  const isBaseDemoMode = isTourMode || !auth.session || !supabaseConfigStatus.isConfigured;
-  const isDemoMode = isBaseDemoMode || Boolean(demoFallbackReason);
+  const backendReady = supabaseConfigStatus.isConfigured;
+  const actionsDisabled = !backendReady || !auth.session || !tenant;
   const selectedOrder = useMemo(() => orders.find((order) => order.id === selectedId) ?? null, [orders, selectedId]);
 
   const channels = useMemo(() => Array.from(new Set(orders.map((order) => order.channel))).sort(), [orders]);
@@ -806,23 +805,8 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
     };
   }, [auth.user]);
 
-  const loadDemoOrders = useCallback((reason: string | null = null) => {
-    setDemoFallbackReason(reason);
-    setTenant({ ...showcaseDemoTenant, role: 'demo' });
-    setOrders(showcaseDemoAdminOrders);
-    setSignedSlipUrls({});
-    setSelectedId((current) => (showcaseDemoAdminOrders.some((order) => order.id === current) ? current : showcaseDemoAdminOrders[0]?.id ?? null));
-    setLastRefreshedAt(new Date());
-  }, []);
-
   const refreshOrders = useCallback(
     async (tenantId = tenant?.id) => {
-      if (isDemoMode) {
-        loadDemoOrders(demoFallbackReason);
-        setMessage('กำลังแสดงข้อมูลตัวอย่างอยู่');
-        return;
-      }
-
       if (!tenantId) {
         return;
       }
@@ -905,15 +889,24 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
       setOrders(rows);
       setLastRefreshedAt(new Date());
     },
-    [demoFallbackReason, isDemoMode, loadDemoOrders, tenant?.id],
+    [tenant?.id],
   );
 
   useEffect(() => {
     let isMounted = true;
 
     async function boot() {
-      if (isBaseDemoMode) {
-        loadDemoOrders(null);
+      if (auth.isLoading) {
+        return;
+      }
+
+      if (!backendReady || !auth.user) {
+        setTenant(null);
+        setOrders([]);
+        setSignedSlipUrls({});
+        setSelectedId(null);
+        setTranscript([]);
+        setLastRefreshedAt(null);
         setIsLoading(false);
         return;
       }
@@ -927,12 +920,17 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
         }
 
         setTenant(tenantContext);
-        setDemoFallbackReason(null);
         await refreshOrders(tenantContext.id);
       } catch (loadError) {
         if (isMounted) {
           const reason = loadError instanceof Error ? loadError.message : 'โหลดคิวออเดอร์จาก backend ไม่สำเร็จ';
-          loadDemoOrders(reason);
+          setTenant(null);
+          setOrders([]);
+          setSignedSlipUrls({});
+          setSelectedId(null);
+          setTranscript([]);
+          setLastRefreshedAt(null);
+          setError(reason);
         }
       } finally {
         if (isMounted) {
@@ -946,10 +944,10 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
     return () => {
       isMounted = false;
     };
-  }, [auth.session, isBaseDemoMode, loadDemoOrders, loadTenantContext]);
+  }, [auth.isLoading, auth.session, auth.user, backendReady, loadTenantContext, refreshOrders]);
 
   useEffect(() => {
-    if (!tenant || isDemoMode) {
+    if (!tenant || !backendReady || !auth.session) {
       return;
     }
 
@@ -972,7 +970,7 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [isDemoMode, refreshOrders, tenant]);
+  }, [auth.session, backendReady, refreshOrders, tenant]);
 
   useEffect(() => {
     if (orders.length === 0 && selectedId) {
@@ -986,11 +984,6 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
   }, [orders, selectedId]);
 
   useEffect(() => {
-    if (isDemoMode) {
-      setTranscript(showcaseDemoTranscript);
-      return;
-    }
-
     const selectedSessionId = selectedOrder?.session_id;
 
     if (!selectedSessionId) {
@@ -1018,7 +1011,7 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
     return () => {
       isMounted = false;
     };
-  }, [isDemoMode, selectedOrder?.session_id]);
+  }, [selectedOrder?.session_id]);
 
   useEffect(() => {
     if (!selectedOrder) {
@@ -1043,7 +1036,7 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
       setIsRefreshing(true);
       setError(null);
       await refreshOrders();
-      setMessage(isDemoMode ? 'กำลังแสดงข้อมูลตัวอย่างอยู่' : 'รีเฟรชคิวแล้ว');
+      setMessage('รีเฟรชคิวแล้ว');
     } catch (refreshError) {
       setError(refreshError instanceof Error ? refreshError.message : 'รีเฟรชคิวไม่สำเร็จ');
     } finally {
@@ -1053,11 +1046,6 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
 
   async function runAction(action: OrderMutationAction) {
     if (!selectedOrder || busyAction || !canAct(selectedOrder, action)) {
-      return;
-    }
-
-    if (isDemoMode) {
-      setMessage('โหมดตัวอย่าง: ปุ่ม action จะไม่ส่งข้อมูลจริง');
       return;
     }
 
@@ -1092,11 +1080,6 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
       return;
     }
 
-    if (isDemoMode) {
-      setMessage('โหมดตัวอย่าง: ปุ่ม action จะไม่ส่งข้อมูลจริง');
-      return;
-    }
-
     const trimmedNote = nextNote.trim();
 
     if (!trimmedNote) {
@@ -1125,17 +1108,18 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
   const content = (
     <View style={[styles.container, isDesktop ? styles.containerDesktop : null]}>
       <OrdersHeader
-        isDemoMode={isDemoMode}
+        backendReady={backendReady}
         isLoading={isLoading || isRefreshing}
         lastRefreshedAt={lastRefreshedAt}
-        modeDetail={statusLineForMode({ authLoading: auth.isLoading, demoFallbackReason, isDemoMode, tenant })}
+        modeDetail={statusLineForMode({ authLoading: auth.isLoading, backendReady, hasSession: Boolean(auth.session), tenant })}
         onRefresh={() => void handleRefreshOrders()}
         title={title}
       />
 
       {error ? <Banner tone="error" text={error} /> : null}
       {message ? <Banner tone="success" text={message} /> : null}
-      {isDemoMode ? <DemoModeBanner reason={demoFallbackReason} /> : null}
+      {!backendReady ? <Banner tone="error" text="ยังไม่ได้เชื่อมต่อ backend สำหรับคิวคำสั่งซื้อ" /> : null}
+      {backendReady && !auth.session ? <Banner tone="error" text="กรุณาเข้าสู่ระบบด้วยบัญชี tenant ก่อนจัดการคำสั่งซื้อจริง" /> : null}
 
       <OrdersKpiStrip
         activeFilter={statusFilter}
@@ -1201,8 +1185,7 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
               bookingDate={bookingDate}
               bookingTime={bookingTime}
               busyAction={busyAction}
-              canErase={!isDemoMode && (tenant?.role === 'tenant_admin' || tenant?.role === 'superadmin')}
-              isDemoMode={isDemoMode}
+              actionsDisabled={actionsDisabled}
               isSavingNote={isSavingNote}
               note={note}
               onAction={(action) => void runAction(action)}
@@ -1238,14 +1221,14 @@ export function OrdersQueue({ title = 'คิวคำสั่งซื้อ' 
 }
 
 function OrdersHeader({
-  isDemoMode,
+  backendReady,
   isLoading,
   lastRefreshedAt,
   modeDetail,
   onRefresh,
   title,
 }: {
-  isDemoMode: boolean;
+  backendReady: boolean;
   isLoading: boolean;
   lastRefreshedAt: Date | null;
   modeDetail: string;
@@ -1282,8 +1265,8 @@ function OrdersHeader({
         </View>
       </View>
       <View style={styles.statusPillRow}>
-        <StatusBadge label={isDemoMode ? 'โหมดตัวอย่าง' : 'โหมดใช้งานจริง'} tone={isDemoMode ? 'amber' : 'success'} />
-        <StatusBadge label={modeDetail} tone={isDemoMode ? 'blue' : 'success'} />
+        <StatusBadge label={backendReady ? 'โหมดใช้งานจริง' : 'ยังไม่เชื่อม backend'} tone={backendReady ? 'success' : 'amber'} />
+        <StatusBadge label={modeDetail} tone={backendReady ? 'success' : 'blue'} />
         <StatusBadge label={`รีเฟรชล่าสุด ${formatShortTime(lastRefreshedAt)}`} tone="muted" />
       </View>
     </View>
@@ -1488,22 +1471,6 @@ function Banner({ text, tone }: { text: string; tone: 'error' | 'success' }) {
   );
 }
 
-function DemoModeBanner({ reason }: { reason: string | null }) {
-  return (
-    <View style={styles.demoBanner}>
-      <SymbolView name={{ android: 'visibility', ios: 'eye', web: 'visibility' }} size={18} tintColor={MiraDesign.color.primaryDeep} />
-      <View style={styles.demoBannerCopy}>
-        <Text style={styles.demoBannerTitle}>โหมดตัวอย่าง</Text>
-        <Text style={styles.demoBannerText}>
-          {reason
-            ? `${reason} · ปุ่ม action จะไม่ส่งข้อมูลจริง`
-            : 'เปิดดูคิวออเดอร์ได้โดยไม่ต้องล็อกอิน · ปุ่ม action จะไม่ส่งข้อมูลจริง'}
-        </Text>
-      </View>
-    </View>
-  );
-}
-
 function OrderRowCard({ onSelect, order, selected }: { onSelect: () => void; order: OrderQueueRow; selected: boolean }) {
   const product = fromJoin(order.products);
   const referrer = fromJoin(order.referrers);
@@ -1574,11 +1541,10 @@ function OrderRowCard({ onSelect, order, selected }: { onSelect: () => void; ord
 }
 
 function OrderDetail({
+  actionsDisabled,
   bookingDate,
   bookingTime,
   busyAction,
-  canErase,
-  isDemoMode,
   isSavingNote,
   note,
   onAction,
@@ -1592,11 +1558,10 @@ function OrderDetail({
   transcript,
   useInternalScroll,
 }: {
+  actionsDisabled: boolean;
   bookingDate: string;
   bookingTime: string;
   busyAction: OrderMutationAction | null;
-  canErase: boolean;
-  isDemoMode: boolean;
   isSavingNote: boolean;
   note: string;
   onAction: (action: OrderMutationAction) => void;
@@ -1701,21 +1666,20 @@ function OrderDetail({
       </SectionCard>
 
       <SectionCard title="งานของทีม">
-        {isDemoMode ? <Text style={styles.demoActionNotice}>โหมดตัวอย่าง: ปุ่ม action จะไม่ส่งข้อมูลจริง</Text> : null}
         <View style={styles.formBlock}>
           <Text style={styles.formLabel}>นัดหมาย</Text>
           <View style={styles.dateTimeRow}>
-            <BookingDatePicker disabled={isDemoMode} onChange={onBookingDateChange} value={bookingDate} />
-            <BookingTimePicker disabled={isDemoMode} onChange={onBookingTimeChange} value={bookingTime} />
+            <BookingDatePicker disabled={actionsDisabled} onChange={onBookingDateChange} value={bookingDate} />
+            <BookingTimePicker disabled={actionsDisabled} onChange={onBookingTimeChange} value={bookingTime} />
           </View>
           <TextInput
             accessibilityLabel="โน้ตภายใน"
-            editable={!isDemoMode}
+            editable={!actionsDisabled}
             multiline
             onChangeText={onNoteChange}
             placeholder="โน้ตภายใน"
             placeholderTextColor={MiraDesign.color.inkSoft}
-            style={[styles.input, styles.noteInput, isDemoMode ? styles.disabledInput : null]}
+            style={[styles.input, styles.noteInput, actionsDisabled ? styles.disabledInput : null]}
             value={note}
           />
           <View style={styles.notePresetRow}>
@@ -1723,31 +1687,31 @@ function OrderDetail({
               <Pressable
                 accessibilityRole="button"
                 key={preset}
-                disabled={isSavingNote || isDemoMode}
+                disabled={isSavingNote || actionsDisabled}
                 onPress={() => {
                   onNoteChange(preset);
                   onSaveNote(preset);
                 }}
-                style={[styles.notePresetButton, isSavingNote || isDemoMode ? styles.disabled : null]}
+                style={[styles.notePresetButton, isSavingNote || actionsDisabled ? styles.disabled : null]}
               >
                 <Text style={styles.notePresetText}>{preset}</Text>
               </Pressable>
             ))}
             <Pressable
               accessibilityRole="button"
-              disabled={isSavingNote || isDemoMode}
+              disabled={isSavingNote || actionsDisabled}
               onPress={() => onSaveNote()}
-              style={[styles.noteSaveButton, isSavingNote || isDemoMode ? styles.disabled : null]}
+              style={[styles.noteSaveButton, isSavingNote || actionsDisabled ? styles.disabled : null]}
             >
               <Text style={styles.noteSaveText}>{isSavingNote ? 'กำลังบันทึก' : 'บันทึกโน้ต'}</Text>
             </Pressable>
           </View>
         </View>
         <View style={styles.actions}>
-          <ActionButton action="confirm" busyAction={busyAction} disabled={isDemoMode || !canAct(order, 'confirm')} onAction={onAction} />
-          <ActionButton action="book" busyAction={busyAction} disabled={isDemoMode || !canAct(order, 'book') || !bookingDate || !bookingTime} onAction={onAction} />
-          <ActionButton action="done" busyAction={busyAction} disabled={isDemoMode || !canAct(order, 'done')} onAction={onAction} />
-          <ActionButton action="cancel" busyAction={busyAction} disabled={isDemoMode || !canAct(order, 'cancel')} danger onAction={onAction} />
+          <ActionButton action="confirm" busyAction={busyAction} disabled={actionsDisabled || !canAct(order, 'confirm')} onAction={onAction} />
+          <ActionButton action="book" busyAction={busyAction} disabled={actionsDisabled || !canAct(order, 'book') || !bookingDate || !bookingTime} onAction={onAction} />
+          <ActionButton action="done" busyAction={busyAction} disabled={actionsDisabled || !canAct(order, 'done')} onAction={onAction} />
+          <ActionButton action="cancel" busyAction={busyAction} disabled={actionsDisabled || !canAct(order, 'cancel')} danger onAction={onAction} />
         </View>
       </SectionCard>
 
@@ -1763,7 +1727,6 @@ function OrderDetail({
           <Meta label="นัดหมาย" value={formatDateTime(order.booking_at)} />
           <Meta label="Stripe session" value={order.stripe_checkout_session_id ? order.stripe_checkout_session_id.slice(-12) : '-'} />
         </View>
-        <PdpaActions canErase={canErase} customerId={order.customer_id ?? null} />
       </SectionCard>
     </View>
   );
@@ -1789,7 +1752,7 @@ function OrderDetail({
             action={primaryAction}
             busyAction={busyAction}
             compact
-            disabled={isDemoMode || !canAct(order, primaryAction) || (primaryAction === 'book' && (!bookingDate || !bookingTime))}
+            disabled={actionsDisabled || !canAct(order, primaryAction) || (primaryAction === 'book' && (!bookingDate || !bookingTime))}
             onAction={onAction}
           />
         ) : (
@@ -2315,30 +2278,6 @@ const styles = StyleSheet.create({
   },
   successBannerText: {
     color: '#1E7C63',
-  },
-  demoBanner: {
-    alignItems: 'flex-start',
-    backgroundColor: '#FBFDFE',
-    borderColor: MiraDesign.color.line,
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 8,
-    padding: 8,
-  },
-  demoBannerCopy: {
-    flex: 1,
-    gap: 2,
-  },
-  demoBannerTitle: {
-    color: MiraDesign.color.ink,
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  demoBannerText: {
-    color: MiraDesign.color.inkSoft,
-    fontSize: 12,
-    lineHeight: 17,
   },
   kpiScroll: {
     marginHorizontal: -16,
@@ -2997,17 +2936,6 @@ const styles = StyleSheet.create({
     color: MiraDesign.color.ink,
     fontSize: 13,
     lineHeight: 19,
-  },
-  demoActionNotice: {
-    backgroundColor: '#FBFDFE',
-    borderColor: MiraDesign.color.line,
-    borderRadius: 8,
-    borderWidth: 1,
-    color: MiraDesign.color.primaryDeep,
-    fontSize: 12,
-    fontWeight: '800',
-    lineHeight: 18,
-    padding: 10,
   },
   formBlock: {
     gap: 9,
