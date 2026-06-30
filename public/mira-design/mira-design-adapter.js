@@ -390,6 +390,20 @@
         text,
       };
     }
+    if (role === "me") {
+      return {
+        bubbleStyle: "align-self:flex-end; max-width:76%; padding:10px 13px; border-radius:13px 13px 4px 13px; background:#2563EB; color:#fff; font-size:13.5px; line-height:1.45;",
+        role,
+        text,
+      };
+    }
+    if (role === "mira") {
+      return {
+        bubbleStyle: "align-self:flex-start; max-width:76%; padding:10px 13px; border-radius:4px 13px 13px 13px; background:#fff; border:1px solid #E9EEF6; color:#0E2143; font-size:13.5px; line-height:1.45;",
+        role,
+        text,
+      };
+    }
     return {
       bubbleStyle: "align-self:flex-end; max-width:76%; padding:10px 13px; border-radius:13px 13px 4px 13px; background:#2563EB; color:#fff; font-size:13.5px; line-height:1.45;",
       role,
@@ -1315,7 +1329,7 @@
       const popupRefCode = this.state.qrRef || "";
       const popupRefLink = popupRefCode ? `${window.location.origin}/r/${encodeURIComponent(popupRefCode)}` : "";
       const chatMessages = this.state.chatMessages || [
-        messageBubble("ai", "เชื่อมต่อ AI backend แล้ว พิมพ์ข้อความเพื่อถาม Mira ได้เลย"),
+        messageBubble("mira", "เชื่อมต่อ AI backend แล้ว พิมพ์ข้อความเพื่อถาม Mira ได้เลย"),
       ];
       const chatCards = this.state.chatCards || [];
       const catalogRows = (this._products || [])
@@ -1377,7 +1391,7 @@
             this.sendChat && this.sendChat();
           }
         },
-        replayChat: () => this.setState({ chatCards: [], chatInput: "", chatMessages: [messageBubble("ai", "เริ่มบทสนทนาใหม่แล้ว พิมพ์ข้อความเพื่อให้ AI ตอบจาก backend จริง")], chatSessionId: null }),
+        replayChat: () => this.setState({ chatCards: [], chatInput: "", chatMessages: [messageBubble("mira", "เริ่มบทสนทนาใหม่แล้ว พิมพ์ข้อความเพื่อให้ AI ตอบจาก backend จริง")], chatSessionId: null }),
         sendChat: this.sendChat,
         takeOver: async () => {
           const conversation = selectedConversation(this);
@@ -1476,7 +1490,7 @@
         chatCards: [],
         chatInput: "",
         chatLoading: true,
-        chatMessages: [...currentMessages, messageBubble("user", text)],
+        chatMessages: [...currentMessages, messageBubble("me", text)],
       });
       try {
         const config = logic.__miraBackendConfig || window.MIRA_BACKEND_CONFIG;
@@ -1485,7 +1499,6 @@
           channel: "app",
           client_msg_id: crypto.randomUUID(),
           message: text,
-          ref_code: "",
           session_id: logic.state.chatSessionId || null,
           tenant_slug: config.tenantSlug || "demo-hospital",
         }, { allowAnon: true });
@@ -1493,14 +1506,14 @@
         logic.setState((state) => ({
           chatCards: mapChatCards(response && response.cards, response && response.products, logic),
           chatLoading: false,
-          chatMessages: [...(state.chatMessages || []), messageBubble("ai", answer)],
+          chatMessages: [...(state.chatMessages || []), messageBubble("mira", answer)],
           chatSessionId: response && response.session_id ? response.session_id : state.chatSessionId,
         }));
       } catch (error) {
         noteError("AI chat failed", error);
         logic.setState((state) => ({
           chatLoading: false,
-          chatMessages: [...(state.chatMessages || []), messageBubble("ai", `AI backend error: ${error.message || error}`)],
+          chatMessages: [...(state.chatMessages || []), messageBubble("mira", `AI backend error: ${error.message || error}`)],
         }));
       }
     };
