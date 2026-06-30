@@ -189,7 +189,7 @@ Status 2026-06-11: referrer tables, server-generated six-character Crockford `re
 
 **Phase 5 — Health Dashboard.** Lab photo pipeline + visualization + facts cross-link; Apple export ingestion + dashboard. DoD: sample lab photo renders correct visualized panel; facts appear in chat personalization.
 
-Status 2026-06-11: lab/wearable schema, service-role internal ingest functions, dashboard refactors, lab safety sanitizer, lab normalization table, trusted lab confirmation writes, Apple Health zip `export.xml` streaming, fixture-backed lab/wearable parser tests, and the manual lab-ingest sample-image checklist exist. Legal disclaimer sign-off remains pending.
+Status 2026-06-25: archived from the active product scope. Historical schema remains as migration history, but lab/wearable/health UI, runtime functions, helper tests, deploy entries, and health-safety verification were removed. Active product work now stays on AI Chat Sales Agent, Referral Program, and Admin / Back Office.
 
 **Phase 6 — LINE OA surface.** Webhook, Flex cards, QR image, session mapping. DoD: regression suite passes over LINE channel too.
 
@@ -232,8 +232,7 @@ Verify the draft implements THIS plan — catching silent scope drift, contract 
 
 **F. Dashboard correctness (P2)**
 - [✅ 2026-06-11] Lab extraction confidence-gated with user confirmation UI; summaries stored once. Confidence gate, editable review panel, trusted confirmation write, and shared lab fact insertion now exist; live sample proof remains tracked separately.
-- [✅ 2026-06-11] No diagnosis language (wording review against §8.1 safety rule). Evidence: `sanitizeLabSummary`, `_shared/__tests__/lab_test.ts`, `npm run v2:health-safety-audit`.
-- [✅ 2026-06-11] Wearable aggregates match a hand-checked sample export. Evidence: `_shared/__tests__/wearable_test.ts`, `_shared/__tests__/fixtures/apple_health_export.ts`.
+- [archived 2026-06-25] Lab/wearable/health dashboard checks are no longer active product gates.
 
 **G. Plan hygiene (P2)**
 - [✅ 2026-06-11] `docs/v2-gap-analysis.md` exists and matches reality; this file's DoD checkboxes updated truthfully; migrations additive; typecheck, schema audit, and Deno edge entrypoint check are green. Evidence: `docs/v2-gap-analysis.md`, `docs/changes/*`, `npm run typecheck`, `npm run v2:schema-audit`, `npm run v2:deno-check`.
@@ -245,8 +244,12 @@ Verify the draft implements THIS plan — catching silent scope drift, contract 
 
 ## 11. Risks & open questions (owner to resolve — Codex must NOT guess)
 
-1. **Medical liability wording** for lab summaries — `LAB_SUMMARY_DISCLAIMER_TH` is the v2 default, but final tenant/legal sign-off is required before the first client launch.
-2. **LINE OA**: tenant LINE sandbox channel credentials and test account are needed before the sandbox regression in `docs/line-setup.md` can run.
+1. **LINE OA**: tenant LINE sandbox channel credentials and test account are needed before the sandbox regression in `docs/line-setup.md` can run.
 
 ## 12. Out of scope for v2 (do not build)
 Self-serve tenant signup/billing, PSP integration, automated commission payouts, multi-level referral, Android Health Connect, real-time wearable streaming, model fine-tuning, multi-language (Thai only).
+# SUPERSEDED FOR NEW PRODUCT DIRECTION 2026-06-23
+
+This healthcare/MiraCare plan is historical evidence. New product work should validate Mira as an AI Sales and MarTech system, not a medical-first app. See `AGENTS.md` and `docs/ai-sales-martech-context.md`.
+
+---

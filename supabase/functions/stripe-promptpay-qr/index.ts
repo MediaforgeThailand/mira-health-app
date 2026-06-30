@@ -286,7 +286,7 @@ Deno.serve(async (req) => {
 
     const product = assertOrderCanUseStripeQr(order);
     const baseUrl = paymentReturnBaseUrl(body.return_url_base);
-    const returnUrl = `${baseUrl}/prototype?payment=stripe_success&orderId=${encodeURIComponent(order.id)}`;
+    const returnUrl = `${baseUrl}/chat?payment=stripe_success&orderId=${encodeURIComponent(order.id)}`;
     const existingPaymentIntentId = order.stripe_payment_intent_id;
     const intentResult = existingPaymentIntentId
       ? await retrieveStripePaymentIntent(existingPaymentIntentId)

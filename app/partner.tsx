@@ -14,7 +14,6 @@ import {
   loadActiveHospitalProducts,
   type HospitalProduct,
 } from '@/lib/marketplace/hospitalProducts';
-import { showcaseDemoCommissions, showcaseDemoProducts, showcaseDemoReferrers, showcaseDemoTenant } from '@/lib/showcase/demoFixtures';
 import { supabase, supabaseConfigStatus } from '@/lib/supabase';
 import type {
   CommissionEntryRow,
@@ -114,7 +113,7 @@ export default function PartnerScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const isDemoMode = !auth.session || !supabaseConfigStatus.isConfigured;
+  const backendReady = supabaseConfigStatus.isConfigured;
   const isCompact = width < 720;
   const buyerAgeNumber = Number(buyerAge.trim());
   const hasValidBuyerAge = Number.isInteger(buyerAgeNumber) && buyerAgeNumber >= 1 && buyerAgeNumber <= 120;
@@ -122,6 +121,9 @@ export default function PartnerScreen() {
   const requiresBranchChoice = branchChoices.length > 1;
   const canCreateOrder = Boolean(
     selectedProduct &&
+      backendReady &&
+      auth.session &&
+      referrer &&
       buyerName.trim().length > 1 &&
       /^0[689]\d{8}$/.test(buyerPhone.trim()) &&
       hasValidBuyerAge &&
@@ -192,11 +194,15 @@ export default function PartnerScreen() {
     let isMounted = true;
 
     async function boot() {
-      if (isDemoMode) {
-        setTenant({ display_name: showcaseDemoTenant.display_name, id: showcaseDemoTenant.id });
-        setReferrer(showcaseDemoReferrers[0] ?? null);
-        setProducts(showcaseDemoProducts);
-        setCommissions(showcaseDemoCommissions as unknown as CommissionWithOrder[]);
+      if (auth.isLoading) {
+        return;
+      }
+
+      if (!backendReady || !auth.user) {
+        setTenant(null);
+        setReferrer(null);
+        setProducts([]);
+        setCommissions([]);
         setIsLoading(false);
         return;
       }
@@ -220,7 +226,7 @@ export default function PartnerScreen() {
     return () => {
       isMounted = false;
     };
-  }, [auth.session, isDemoMode, loadPartnerData]);
+  }, [auth.isLoading, auth.session, auth.user, backendReady, loadPartnerData]);
 
   async function handleSignOut() {
     try {
@@ -239,7 +245,7 @@ export default function PartnerScreen() {
     setBranchChoices(localBranches);
     setSelectedBranchId(localBranches.length > 1 ? localBranches[0]?.id ?? '' : '');
 
-    if (!selectedProduct || isDemoMode || !referrer) {
+    if (!selectedProduct || !backendReady || !referrer) {
       setIsLoadingBranches(false);
       return () => {
         isMounted = false;
@@ -277,7 +283,7 @@ export default function PartnerScreen() {
     return () => {
       isMounted = false;
     };
-  }, [isDemoMode, referrer, selectedProduct]);
+  }, [backendReady, referrer, selectedProduct]);
 
   async function createOrder() {
     if (!selectedProduct || !canCreateOrder) {
@@ -291,26 +297,6 @@ export default function PartnerScreen() {
         setError('กรุณาเลือกสาขาก่อนสร้าง QR');
       }
 
-      return;
-    }
-
-    if (isDemoMode) {
-      setActiveOrder({
-        amount_baht: selectedProduct.priceAmount,
-        booking_at: null,
-        branch_name: selectedBranch?.name ?? branchChoices[0]?.name ?? null,
-        id: `demo-partner-order-${Date.now()}`,
-        missing_fields: [],
-        payment_due_at: null,
-        payment_provider: 'promptpay',
-        preferred_date: preferredDate.trim() || null,
-        preferred_date_end: preferredDate.trim() || null,
-        preferred_time_window: null,
-        product_name: selectedProduct.title,
-        step: 'qr',
-        status: 'awaiting_payment',
-      });
-      setMessage(`โหมดตัวอย่าง — สร้างออเดอร์ให้ ${buyerName.trim()} แล้ว`);
       return;
     }
 
@@ -338,12 +324,6 @@ export default function PartnerScreen() {
   }
 
   async function markPaymentDone(orderId: string) {
-    if (isDemoMode && activeOrder) {
-      setActiveOrder({ ...activeOrder, step: 'tracking', status: 'submitted' });
-      setMessage('โหมดตัวอย่าง — ส่งสถานะชำระเงินแล้วให้แอดมินตรวจสอบ');
-      return;
-    }
-
     try {
       setIsSubmitting(true);
       setError(null);
@@ -378,7 +358,7 @@ export default function PartnerScreen() {
           <View style={[styles.shareBox, isCompact ? styles.shareBoxCompact : null]}>
             <Text style={styles.shareLabel}>ลิงก์แชร์</Text>
             <Text selectable style={styles.shareValue}>
-              /r/{referrer?.ref_code ?? 'CODE'}
+              {referrer ? `/r/${referrer.ref_code}` : '-'}
             </Text>
             {auth.session ? (
               <Pressable onPress={() => void handleSignOut()} style={styles.portalAuthButton}>
@@ -396,7 +376,8 @@ export default function PartnerScreen() {
 
         {error ? <Banner tone="error" text={error} /> : null}
         {message ? <Banner tone="success" text={message} /> : null}
-        {isDemoMode ? <Banner tone="success" text="โหมดตัวอย่าง: เปิด workspace ได้โดยไม่ต้องล็อกอิน และปุ่มออเดอร์จะไม่ส่งข้อมูลจริง" /> : null}
+        {!backendReady ? <Banner tone="error" text="ยังไม่ได้เชื่อมต่อ backend สำหรับ Referral Program" /> : null}
+        {backendReady && !auth.session ? <Banner tone="error" text="กรุณาเข้าสู่ระบบ Referral ก่อนใช้งาน workspace จริง" /> : null}
 
         {!referrer && !isLoading ? (
           <View style={styles.noticeInline}>

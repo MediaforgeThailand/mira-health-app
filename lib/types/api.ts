@@ -364,41 +364,6 @@ export type ReferralSelfProvisionResponse = {
   referrer_id: string;
 };
 
-export type LabIngestRequest = {
-  collected_date?: string;
-  customer_id: string;
-  storage_path: string;
-};
-
-export type LabIngestResponse = {
-  report: LabReportRow;
-  results: LabResultRow[];
-};
-
-export type LabConfirmRequest = {
-  confirmations: {
-    test_code: string;
-    unit: string | null;
-    value: number;
-  }[];
-  report_id: string;
-};
-
-export type LabConfirmResponse = {
-  report: LabReportRow;
-  results: LabResultRow[];
-};
-
-export type WearableIngestRequest = {
-  customer_id: string;
-  storage_path: string;
-};
-
-export type WearableIngestResponse = {
-  inserted: number;
-  metrics: WearableMetricRow[];
-};
-
 export type OrderRow = {
   admin_note: string | null;
   amount_baht: number;
@@ -458,51 +423,6 @@ export type CommissionEntryRow = {
   referrer_id: string;
   scheme_snapshot: ReferrerRow['commission_scheme'];
   status: 'approved' | 'paid' | 'pending' | 'void';
-  tenant_id: string;
-};
-
-export type LabReportRow = {
-  ai_summary_th: string | null;
-  collected_date: string | null;
-  created_at: string;
-  customer_id: string;
-  id: string;
-  status: 'failed' | 'needs_confirmation' | 'processing' | 'ready';
-  storage_path: string;
-  tenant_id: string;
-};
-
-export type LabResultRow = {
-  confidence: number;
-  confirmed: boolean;
-  id: string;
-  ref_high: number | null;
-  ref_low: number | null;
-  report_id: string;
-  test_code: string;
-  test_name_raw: string;
-  unit: string | null;
-  value: number | null;
-};
-
-export type WearableMetricRow = {
-  customer_id: string;
-  day: string;
-  id: string;
-  metric: 'active_energy_kcal' | 'avg_hr' | 'resting_hr' | 'sleep_minutes' | 'steps';
-  source: 'apple_export' | 'healthkit' | 'manual';
-  tenant_id: string;
-  value: number;
-};
-
-export type WearableImportRow = {
-  customer_id: string;
-  file_path: string | null;
-  filename: string | null;
-  id: string;
-  imported_at: string;
-  metric_count: number;
-  source: 'apple_export' | 'healthkit' | 'manual';
   tenant_id: string;
 };
 
@@ -566,7 +486,7 @@ export type UserFactRow = {
   customer_id: string;
   id: string;
   key: string;
-  source: 'chat_extraction' | 'lab_import' | 'referrer_form' | 'user_confirmation' | 'user_form' | 'wearable';
+  source: 'chat_extraction' | 'referrer_form' | 'user_confirmation' | 'user_form';
   source_ref: string | null;
   status: 'active' | 'candidate' | 'retracted' | 'superseded';
   superseded_by: string | null;

@@ -1,53 +1,100 @@
-# MiraCare — Rules for ALL AI agents working in this repository
+# Mila AI Project Instructions
 
-This file is LAW for every AI agent (Codex, Claude, Cursor, Copilot, or any other tool) and every human contributor using one. Read it BEFORE writing any code. If a task conflicts with this file, the task is wrong — stop and ask the owner.
+This file gives permanent project instructions for Codex and every AI agent working in this repository. Read it before writing code. If a task conflicts with this file, stop and ask the owner.
 
-Only the **owner** (taksin / MediaForge) may change this file, `docs/miracare-codex-handoff.md`, or any section marked DECIDED in the plan documents.
+Mila AI has only 3 core product modules:
 
-## 0. The one-paragraph context you must have
+1. AI Chat Sales Agent
+2. Referral Program
+3. Admin Channel / Back Office
 
-MiraCare is a white-label hospital health platform (Thai market): an AI sales/consult chat, in-chat commerce (PromptPay QR), an admin panel, a referral program, and a health dashboard, all on one multi-tenant Supabase backend. The AI conversation behavior is governed by a published OpenAI prompt that has been behavior-tested turn-by-turn. Most of the "core" below exists to protect two things: **the tested conversation contract** and **the integrity of money/health data**.
+## Core Product Scope
 
-## 1. Where the truth lives (read in this order)
+### AI Chat Sales Agent
 
-1. `AGENTS.md` (this file) — hard rules.
-2. `docs/miracare-codex-handoff.md` — the AI model contract (PRIME DIRECTIVE).
-3. The plan for your task: `docs/miracare-v3-chat-commerce-plan.md`, `docs/miracare-showcase-frontend-plan.md`, `docs/miracare-v2-product-plan.md`, `docs/codex-goals.md`.
-4. `docs/v3-audit-report-2026-06-12.md` and other audit reports — known follow-ups; do not silently re-fix or contradict them.
+The AI Chat Sales Agent handles customer conversations, product recommendations, product Q&A, checkout/payment, order creation, and service booking or lead handoff.
 
-If your task is not described by any plan document, treat it as out-of-scope for the core: build it WITHOUT touching anything in §2, or stop and ask.
+The chat system should be channel-independent. LINE OA, website chat, Facebook, Instagram, or other channels should plug into the same AI sales/chat engine instead of forking separate business logic.
 
-## 2. PROTECTED CORE — never change without an owner-approved plan section
+### Referral Program
 
-| Area | Files | Rule |
+The Referral Program handles referral links, QR codes, attribution tracking, commission calculation, referral dashboards, and direct purchase flows where a referrer can order on behalf of another person.
+
+Referral is a separate webapp from the chat UI, but it must use the same product catalog, order backend, referral attribution, and commission rules.
+
+### Admin Channel / Back Office
+
+The Admin Channel handles product management, stock, orders, payments, fulfillment, leads, bookings, sales/admin assignment, and data used by AI Chat and Referral Program.
+
+Admin is the source of truth for sellable products, services, stock, booking/lead handling, and operational order state.
+
+## Strict Rules
+
+- Do not rebuild the system from scratch.
+- Do not rewrite major architecture unless explicitly requested.
+- Do not delete files without checking usage.
+- Do not remove business logic just because UI looks messy.
+- Prefer incremental changes.
+- Preserve existing bug fixes and working logic.
+- If uncertain, classify the file or feature as REVIEW instead of deleting it.
+- Do not touch auth, payment, orders, products, stock, booking, leads, referral attribution, commission, database migrations, webhooks, middleware, environment config, or shared utilities unless the task explicitly requires it.
+- Always inspect existing patterns before adding new code.
+- Always use the package manager and scripts already present in the repository.
+- Run build/lint/test/typecheck when available.
+- Report exact files changed and exact validation commands run.
+
+## Cleanup Policy
+
+When cleaning the codebase:
+
+- Audit first.
+- Classify items as KEEP, REVIEW, REMOVE CANDIDATE, or DO NOT TOUCH.
+- Remove only low-risk REMOVE CANDIDATE items after import/reference checks.
+- Never remove REVIEW or DO NOT TOUCH items without explicit approval.
+- Keep the 3 core modules working after every cleanup step.
+
+## Manual Test Flows That Must Not Break
+
+1. AI Chat product purchase flow
+2. AI Chat service booking or lead handoff flow
+3. Referral link/QR attribution flow
+4. Referral direct purchase flow
+5. Commission calculation flow
+6. Admin product management flow
+7. Admin stock management flow
+8. Admin order management flow
+9. Admin lead/booking management flow
+
+## Repository-Specific Protected Areas
+
+These existing implementation areas are protected because they support the 3 core modules. Touch them only when the user's task explicitly requires it, and keep changes small and verified.
+
+| Area | Files / Concepts | Rule |
 |---|---|---|
-| Model contract | `supabase/functions/_shared/openai.ts` (`callMiraPrompt`) | Prompt referenced by ID only; variables exactly `brand_name`, `user_nickname`, `personal_context`, `recent_chat`, `product_catalog`; `store:false` always; version override ONLY via `MIRA_PROMPT_VERSION` env. Never inline prompt text, never add system prompts on top, never change the model/tools. |
-| Prompt content | OpenAI Platform `pmpt_6a29c7e353b88196a6e648b24c54849e0f6204e24d65c021` | Owner-only. Agents NEVER edit prompt content or flip the default version. If the prompt seems wrong, report — do not work around it by post-processing model text. |
-| Marker protocol | `supabase/functions/_shared/marker.ts` | `[[products: ≤4 ids]]`, `[[categories]]`, `[[order_status]]`, one marker max, final line, always stripped from visible text. Changing syntax/semantics = new prompt version + owner approval + regression suite. |
-| Card suppression | `orchestrate.ts` purchase-flow guard | Product/category cards are suppressed while an order is in `selecting_branch`/`collecting_info`/`awaiting_payment`. Keep it; it is deliberate UX enforcement, not a bug. |
-| Order state machine | `supabase/functions/_shared/orders.ts`, `transition_order` RPC | `transition_order` is the ONLY way to change `orders.status`. Never `update orders set status` directly anywhere (code, scripts, admin). Statuses are fixed: `selecting_branch → collecting_info → awaiting_payment → submitted → confirmed → booked → done / cancelled`. New statuses/transitions = plan change + migration + tests. |
-| Money | `promptpay.ts`, `commissions.ts`, order amount fields | Customer payment = PromptPay QR + staff confirmation. Stripe stays behind a default-off flag. Amounts come only from `products.price_baht` at order creation; commissions only from `commission_scheme_snapshot`. No price math from model output, ever. |
-| Tenancy & RLS | all migrations, `_shared/db.ts` | Every business table carries `tenant_id` + RLS. New tables must ship RLS in the same migration. Service-role keys exist only inside edge functions. |
-| Migrations | `supabase/migrations/*` | Additive only. NEVER edit or delete an existing migration file. New file, new timestamp, idempotent (`if not exists` / `drop policy if exists` + recreate). |
-| Conversation purity | `chat-orchestrator` reply path | The backend NEVER scripts conversational replies, intake questions, or sales lines. Thai text in the reply path is allowed only as templated **system notices** in `templates.ts` and DB-derived context lines built in `orders.ts`/`context.ts`. If you find yourself writing a Thai sentence the "assistant says", you are breaking the architecture. |
-| Facts & PDPA | `facts.ts`, `fact-extractor`, `consents` | `user_facts` is append-only with supersede; facts are extracted from USER messages only, never from assistant text; writes are consent-gated. Health images/slips live in private buckets with signed URLs. |
-| Medical safety | `lab.ts`, `templates.ts` disclaimer | No diagnosis language anywhere; lab summaries pass `sanitizeLabSummary`; emergency behavior (1669/ER, no products) is prompt-governed — never intercept it in code. |
+| AI model contract | `supabase/functions/_shared/openai.ts`, prompt variables, prompt version env | Do not inline prompt text, add hidden system prompts, change model/tool behavior, or flip prompt versions without explicit approval. |
+| Chat marker protocol | `supabase/functions/_shared/marker.ts` | Preserve product/category/order-status marker parsing unless a task explicitly asks for a new protocol and tests. |
+| Chat orchestration | `chat-orchestrator`, shared chat types, channel adapters | Keep backend chat behavior shared across channels. Do not script sales replies in code when the AI model should answer. |
+| Product catalog | product tables, admin catalog routes, catalog APIs | The catalog is the source of truth for what AI and Referral can sell. Do not create a second catalog source. |
+| Order state machine | order helpers, `transition_order`, admin order actions | Do not update `orders.status` directly. Use the existing state transition path. |
+| Payment and money | PromptPay, Stripe, order amount fields, commission snapshots | Do not calculate price or commission from AI text or UI-only values. Use backend/catalog/order data. |
+| Referral attribution | referral bind/order functions, referrer records, commission entries | Preserve first-touch attribution and commission calculation behavior unless explicitly changing referral policy. |
+| Database and tenancy | migrations, RLS, tenant-aware business tables | New database changes must be additive and include security/RLS considerations in the same change. |
+| Shared infrastructure | API clients, middleware, environment config, shared utilities | Treat these as shared by all 3 modules. Do not clean them up as "unused" without a full reference check. |
 
-## 3. Standing engineering rules
+## Validation Guidance
 
-1. **Scope discipline.** One PR per plan phase. Do not "improve" protected-core files opportunistically while doing unrelated work (no drive-by refactors of `_shared/*`).
-2. **Gates stay green.** `npm run typecheck` and `npm run v2:verify` must pass on every PR. Never weaken, skip, or delete an audit script/assertion to make a build pass — fix the cause or stop and report. Test heuristics may only be adjusted with evidence the model output is correct (see `docs/v3-audit-report-2026-06-12.md` for precedent).
-3. **Truthful bookkeeping.** Update DoD checkboxes (✅/❌ + date) in the plan you executed, in the same PR. Never mark items done that need external/live verification you could not run.
-4. **DECIDED is final.** Sections titled "DECIDED by owner" answer their questions permanently. Do not re-ask, do not implement a different option.
-5. **Live environment is owner territory.** Agents do not deploy edge functions, apply migrations to the linked project, change Supabase secrets, or touch CI repo secrets unless the task explicitly grants it. (Owner note: Windows deploys require a UTF-8 console — `chcp 65001` + `[Console]::OutputEncoding=UTF8` — or Thai/emoji literals ship corrupted.)
-6. **Thai-first UX.** Customer- and presenter-facing strings are Thai. Use `MiraDesign` tokens (`constants/Design.ts`); add tokens instead of inlining hex values.
-7. **Compatibility.** `chat_messages`, `ChatOrchestratorResponse`, and the action schema are consumed by app + PWA + LINE + scripts. Shape changes must be additive (deprecate, don't repurpose), mirrored in `lib/types/api.ts` (CI enforces the mirror), and covered by tests.
-8. **When blocked, stop.** If a rule here blocks your task, or two documents contradict each other, stop and report options to the owner. A wrong guess in the core costs more than a paused task.
+Use only scripts already present in `package.json` or project config. If a command is missing, report that it is not available instead of inventing a substitute.
 
-## 4. Quick self-check before you open a PR
+Typical validation commands in this repository include:
 
-- [ ] Did I touch any file in §2? → Is that change explicitly described in a plan section? If not, revert it.
-- [ ] Any new Thai sentence in the reply path that the model should have said instead? → Remove it.
-- [ ] Any direct `orders.status` write? → Use `transition_order`.
-- [ ] New table/column without RLS or outside a new migration file? → Fix it.
-- [ ] `npm run v2:verify` green? DoD checkboxes updated truthfully?
+- `npm run typecheck`
+- `npm run v2:verify`
+- `npm run build`
+
+Run narrower tests/audits when the task scope is small, and run the broader verification gate when touching shared behavior or any protected area.
+
+## Documentation And Product Positioning
+
+Mila AI should be described as an AI Sales and MarTech system centered on the 3 core modules above. Legacy healthcare or showcase surfaces may exist as historical proof, but they must not drive new product decisions unless the owner explicitly asks for that vertical.
+
+Primary product work should prefer real operational screens over showcase/mockup pages. If a route cannot connect to real data yet, show a clear setup/auth/empty state instead of inventing fake operational data.

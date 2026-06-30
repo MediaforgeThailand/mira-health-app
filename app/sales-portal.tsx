@@ -28,7 +28,6 @@ import {
   type HospitalProduct,
 } from '@/lib/marketplace/hospitalProducts';
 import { createReferralAppLink, createReferralShareLink, formatPercent } from '@/lib/marketplace/referralMock';
-import { showcaseDemoCommissions, showcaseDemoProducts, showcaseDemoReferrers, showcaseDemoTenant } from '@/lib/showcase/demoFixtures';
 import { supabase, supabaseConfigStatus } from '@/lib/supabase';
 import type {
   CommissionEntryRow,
@@ -296,7 +295,7 @@ export default function SalesPortalScreen() {
   const [isProvisioning, setIsProvisioning] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const isDemoMode = !auth.session || !supabaseConfigStatus.isConfigured;
+  const backendReady = supabaseConfigStatus.isConfigured;
   const filteredProducts = useMemo(() => products.filter((product) => productMatches(product, query)), [products, query]);
   const selectedProduct = products.find((product) => product.id === selectedProductId) ?? products[0] ?? null;
   const buyerAgeNumber = Number(buyerAge.trim());
@@ -306,7 +305,7 @@ export default function SalesPortalScreen() {
   const referralLink = referrer ? createReferralShareLink(referrer.ref_code) : null;
   const appLink = referrer ? createReferralAppLink(referrer.ref_code) : null;
   const isCompact = width < 720;
-  const canSelfProvision = Boolean(auth.session && !isDemoMode && tenant && memberRole && !referrer && !isProvisioning);
+  const canSelfProvision = Boolean(auth.session && backendReady && tenant && memberRole && !referrer && !isProvisioning);
   const canCreateOrder = Boolean(
     selectedProduct &&
       referrer &&
@@ -396,12 +395,12 @@ export default function SalesPortalScreen() {
         return;
       }
 
-      if (isDemoMode) {
-        setTenant({ display_name: showcaseDemoTenant.display_name, id: showcaseDemoTenant.id });
+      if (!backendReady || !auth.user) {
+        setTenant(null);
         setMemberRole(null);
-        setReferrer(showcaseDemoReferrers[0] ?? null);
-        setProducts(showcaseDemoProducts);
-        setCommissions(showcaseDemoCommissions as unknown as CommissionWithOrder[]);
+        setReferrer(null);
+        setProducts([]);
+        setCommissions([]);
         setIsLoading(false);
         return;
       }
@@ -425,7 +424,7 @@ export default function SalesPortalScreen() {
     return () => {
       isMounted = false;
     };
-  }, [auth.isLoading, auth.session, isDemoMode, loadSalesPortalData]);
+  }, [auth.isLoading, auth.session, auth.user, backendReady, loadSalesPortalData]);
 
   useEffect(() => {
     if (!selectedProductId && products.length > 0) {
@@ -440,7 +439,7 @@ export default function SalesPortalScreen() {
     setBranchChoices(localBranches);
     setSelectedBranchId(localBranches.length > 1 ? localBranches[0]?.id ?? '' : '');
 
-    if (!selectedProduct || isDemoMode || !referrer) {
+    if (!selectedProduct || !backendReady || !referrer) {
       setIsLoadingBranches(false);
       return () => {
         isMounted = false;
@@ -476,7 +475,7 @@ export default function SalesPortalScreen() {
     return () => {
       isMounted = false;
     };
-  }, [isDemoMode, referrer, selectedProduct]);
+  }, [backendReady, referrer, selectedProduct]);
 
   async function createOrder() {
     if (!selectedProduct || !canCreateOrder) {
@@ -490,29 +489,6 @@ export default function SalesPortalScreen() {
         setError('กรุณาเลือกสาขาก่อนสร้าง QR');
       }
 
-      return;
-    }
-
-    if (isDemoMode) {
-      const orderId = `demo-sales-order-${Date.now()}`;
-
-      setActiveOrder({
-        amount_baht: selectedProduct.priceAmount,
-        booking_at: null,
-        branch_name: selectedBranch?.name ?? branchChoices[0]?.name ?? null,
-        id: orderId,
-        missing_fields: [],
-        payment_due_at: null,
-        payment_provider: 'promptpay',
-        preferred_date: preferredDate.trim() || null,
-        preferred_date_end: preferredDate.trim() || null,
-        preferred_time_window: null,
-        product_name: selectedProduct.title,
-        qr_payload: `demo-promptpay:${orderId}:${selectedProduct.priceAmount}`,
-        step: 'qr',
-        status: 'awaiting_payment',
-      });
-      setMessage(`โหมดตัวอย่าง: สร้างออเดอร์ให้ ${buyerName.trim()} แล้ว`);
       return;
     }
 
@@ -540,12 +516,6 @@ export default function SalesPortalScreen() {
   }
 
   async function markPaymentDone(orderId: string) {
-    if (isDemoMode && activeOrder) {
-      setActiveOrder({ ...activeOrder, step: 'tracking', status: 'submitted' });
-      setMessage('โหมดตัวอย่าง: ส่งสถานะชำระเงินแล้วให้แอดมินตรวจสอบ');
-      return;
-    }
-
     try {
       setIsSubmitting(true);
       setError(null);
@@ -623,7 +593,8 @@ export default function SalesPortalScreen() {
 
       {error ? <Banner tone="error" text={error} /> : null}
       {message ? <Banner tone="success" text={message} /> : null}
-      {isDemoMode ? <Banner tone="success" text="โหมดตัวอย่าง: เปิดดู flow ได้โดยไม่ต้องล็อกอิน และออเดอร์จะไม่ส่งข้อมูลจริง" /> : null}
+      {!backendReady ? <Banner tone="error" text="ยังไม่ได้เชื่อมต่อ backend สำหรับ Referral Program" /> : null}
+      {backendReady && !auth.session ? <Banner tone="error" text="กรุณาเข้าสู่ระบบ Referral ก่อนใช้งาน Sales Portal จริง" /> : null}
 
       {activeTab === 'products' ? (
         <ProductsPanel

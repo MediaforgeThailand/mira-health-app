@@ -86,23 +86,3 @@ Deno.test('fact-extractor rejects anon key calls before internal work', async ()
     message_id: testUuid,
   });
 });
-
-Deno.test('lab-ingest rejects anon key calls before internal work', async () => {
-  (globalThis as TestGlobal).__MIRACARE_SUPPRESS_SERVE__ = true;
-  const { handleLabIngest } = await import('../../lab-ingest/index.ts');
-
-  await expectAnonRejected('lab-ingest', handleLabIngest, {
-    customer_id: testUuid,
-    storage_path: 'labs/demo/report.jpg',
-  });
-});
-
-Deno.test('wearable-ingest rejects anon key calls before internal work', async () => {
-  (globalThis as TestGlobal).__MIRACARE_SUPPRESS_SERVE__ = true;
-  const { handleWearableIngest } = await import('../../wearable-ingest/index.ts');
-
-  await expectAnonRejected('wearable-ingest', handleWearableIngest, {
-    customer_id: testUuid,
-    storage_path: 'wearables/demo/export.zip',
-  });
-});

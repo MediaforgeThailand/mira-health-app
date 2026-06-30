@@ -4,26 +4,23 @@ import path from 'node:path';
 const repoRoot = process.cwd();
 
 const productionFiles = [
-  'app/(tabs)/health.tsx',
   'app/(tabs)/more.tsx',
   'app/_layout.tsx',
   'app/admin/branches.tsx',
   'app/admin/catalog.tsx',
+  'app/admin/conversations.tsx',
+  'app/admin/dashboard.tsx',
   'app/admin/orders.tsx',
   'app/admin/referrers.tsx',
-  'app/ai-body-overview.tsx',
-  'app/body-overview.tsx',
+  'app/chat.tsx',
   'app/checkout.tsx',
-  'app/health-check-results.tsx',
   'app/order-status.tsx',
   'app/orders.tsx',
   'app/package-detail.tsx',
   'app/partner.tsx',
   'app/prototype.tsx',
   'app/r/[ref_code].tsx',
-  'app/user-profile.tsx',
-  'app/wearable-health.tsx',
-  'components/HealthInsightScreens.tsx',
+  'app/sales-portal.tsx',
   'components/admin/CatalogCrud.tsx',
   'components/admin/OrdersQueue.tsx',
   'components/admin/ReferrersAdmin.tsx',
@@ -40,8 +37,6 @@ const productionFiles = [
   'lib/ai/miraChat.ts',
   'lib/api/client.ts',
   'lib/auth/useAuthSession.ts',
-  'lib/health/labConfirm.ts',
-  'lib/health/v2HealthDashboard.ts',
   'lib/marketplace/hospitalProducts.ts',
   'lib/referrals/attribution.ts',
   'lib/referrals/bind.ts',
@@ -58,6 +53,36 @@ const forbidden = [
   'healthMetrics',
 ];
 
+const realOnlyPrimaryFiles = [
+  'app/admin/branches.tsx',
+  'app/admin/dashboard.tsx',
+  'app/checkout.tsx',
+  'app/package-detail.tsx',
+  'app/partner.tsx',
+  'app/sales-portal.tsx',
+  'components/admin/CatalogCrud.tsx',
+  'components/admin/ConversationsConsole.tsx',
+  'components/admin/OrdersQueue.tsx',
+  'components/admin/ReferrersAdmin.tsx',
+];
+
+const realOnlyForbidden = [
+  'showcaseDemo',
+  'showcase/demoFixtures',
+  'isDemoMode',
+  'isBaseDemoMode',
+  'demoFallback',
+  'loadDemo',
+  'demo-hospital',
+  'demo-',
+  'demo:',
+  'MockupRibbon',
+  'SHOWCASE_MOCKUP_RIBBON',
+  'mockup',
+  'โหมดตัวอย่าง',
+  'ข้อมูลตัวอย่าง',
+];
+
 const removedRouteFiles = [
   'app/(tabs)/chatbot.tsx',
   'app/(tabs)/agent.tsx',
@@ -67,6 +92,28 @@ const removedRouteFiles = [
   'app/hospital-portal.tsx',
   'app/hospital-products.tsx',
   'app/modal.tsx',
+];
+const archivedHealthDashboardFiles = [
+  'app/(tabs)/health.tsx',
+  'app/ai-body-overview.tsx',
+  'app/body-overview.tsx',
+  'app/health-check-results.tsx',
+  'app/health/lab-upload.tsx',
+  'app/user-profile.tsx',
+  'app/wearable-health.tsx',
+  'components/HealthInsightScreens.tsx',
+  'components/HealthVisuals.tsx',
+  'components/showcase/healthVisualAssets.ts',
+  'lib/health/healthDataVault.ts',
+  'lib/health/healthFactExtractor.ts',
+  'lib/health/labConfirm.ts',
+  'lib/health/v2HealthDashboard.ts',
+];
+const archivedMockDemoFiles = [
+  'app/showcase/admin/orders.tsx',
+  'app/showcase/line-preview.tsx',
+  'components/showcase/MockupRibbon.tsx',
+  'lib/showcase/demoFixtures.ts',
 ];
 const presentationalChatComponents = [
   'components/chat/BranchOptionRow.tsx',
@@ -145,8 +192,42 @@ for (const relativePath of productionFiles) {
     }
   }
 
-  if (relativePath !== 'app/prototype.tsx' && source.includes('PrototypeChatPanel')) {
+  if (!['app/chat.tsx', 'app/prototype.tsx'].includes(relativePath) && source.includes('PrototypeChatPanel')) {
     violations.push(`${relativePath}: production route imports PrototypeChatPanel`);
+  }
+}
+
+for (const relativePath of realOnlyPrimaryFiles) {
+  const source = fileSources.get(relativePath) ?? '';
+
+  for (const term of realOnlyForbidden) {
+    if (source.includes(term)) {
+      violations.push(`${relativePath}: primary commerce/referral route must not contain demo/mock term "${term}"`);
+    }
+  }
+}
+
+for (const relativePath of archivedHealthDashboardFiles) {
+  const filePath = path.join(repoRoot, relativePath);
+  const exists = await fs
+    .access(filePath)
+    .then(() => true)
+    .catch(() => false);
+
+  if (exists) {
+    violations.push(`${relativePath}: archived health dashboard file must stay removed`);
+  }
+}
+
+for (const relativePath of archivedMockDemoFiles) {
+  const filePath = path.join(repoRoot, relativePath);
+  const exists = await fs
+    .access(filePath)
+    .then(() => true)
+    .catch(() => false);
+
+  if (exists) {
+    violations.push(`${relativePath}: archived mock/demo file must stay removed`);
   }
 }
 
@@ -216,7 +297,7 @@ const requiredSnippets = [
   },
   {
     relativePath: 'lib/auth/useAuthSession.ts',
-    snippet: 'await bindStoredReferralToCustomer(options.tenantSlug ?? defaultTenantSlug);',
+    snippet: 'await bindStoredReferralToCustomer(tenantSlug);',
     message: 'customer login/signup must bind a stored referral code immediately after account claim',
   },
   {
@@ -305,56 +386,6 @@ const requiredSnippets = [
     message: 'product images must resolve a public product-images URL',
   },
   {
-    relativePath: 'app/health-check-results.tsx',
-    snippet: 'HealthInsightScreen screen="results"',
-    message: 'health results route must render the live v2 health dashboard screen',
-  },
-  {
-    relativePath: 'app/body-overview.tsx',
-    snippet: 'HealthInsightScreen screen="overview"',
-    message: 'body overview route must render the live v2 health dashboard screen',
-  },
-  {
-    relativePath: 'app/wearable-health.tsx',
-    snippet: 'HealthInsightScreen screen="wearable"',
-    message: 'wearable route must render the live v2 health dashboard screen',
-  },
-  {
-    relativePath: 'components/HealthInsightScreens.tsx',
-    snippet: 'loadHealthDashboardData',
-    message: 'health dashboard screens must use the live v2 dashboard loader',
-  },
-  {
-    relativePath: 'lib/health/v2HealthDashboard.ts',
-    snippet: ".from('lab_reports')",
-    message: 'health dashboard loader must read lab reports from Supabase',
-  },
-  {
-    relativePath: 'lib/health/v2HealthDashboard.ts',
-    snippet: ".from('wearable_metrics')",
-    message: 'health dashboard loader must read wearable metrics from Supabase',
-  },
-  {
-    relativePath: 'lib/health/v2HealthDashboard.ts',
-    snippet: ".from('user_facts')",
-    message: 'health dashboard loader must read user facts from Supabase',
-  },
-  {
-    relativePath: 'lib/health/labConfirm.ts',
-    snippet: "invokeFunction<LabConfirmRequest, LabConfirmResponse>('lab-confirm'",
-    message: 'lab confirmation client must call the trusted lab-confirm edge function',
-  },
-  {
-    relativePath: 'components/HealthInsightScreens.tsx',
-    snippet: 'confirmLabResults',
-    message: 'health results screen must wire low-confidence lab confirmation to the trusted endpoint',
-  },
-  {
-    relativePath: 'components/HealthInsightScreens.tsx',
-    snippet: 'LabConfirmationCard',
-    message: 'health results screen must expose editable low-confidence lab confirmation rows',
-  },
-  {
     relativePath: 'components/admin/ReferrersAdmin.tsx',
     snippet: 'updateSelectedCommissionStatus',
     message: 'referrer admin must expose bulk commission status actions',
@@ -439,9 +470,14 @@ if (saveProductStart < 0 || saveProductPayloadEnd < 0) {
 }
 
 const prototypeRoute = await fs.readFile(path.join(repoRoot, 'app/prototype.tsx'), 'utf8').catch(() => '');
+const chatRoute = await fs.readFile(path.join(repoRoot, 'app/chat.tsx'), 'utf8').catch(() => '');
 
-if (!prototypeRoute.includes('PrototypeChatPanel')) {
-  violations.push('app/prototype.tsx: prototype route no longer owns PrototypeChatPanel usage');
+if (!chatRoute.includes('PrototypeChatPanel')) {
+  violations.push('app/chat.tsx: primary chat route must own PrototypeChatPanel usage');
+}
+
+if (!prototypeRoute.includes('Redirect') || !prototypeRoute.includes('/chat')) {
+  violations.push('app/prototype.tsx: legacy prototype route must redirect to /chat');
 }
 
 const forbiddenChatComponentTerms = ['supabase', '.from(', 'invokeFunction', 'fetch(', 'useQuery'];
@@ -489,5 +525,5 @@ if (violations.length > 0) {
 }
 
 console.log(
-  `v2-client-audit: PASS (${productionFiles.length} production files scanned, ${removedRouteFiles.length} removed routes checked, ${clientFiles.length} client files secret-scanned)`,
+  `v2-client-audit: PASS (${productionFiles.length} production files scanned, ${removedRouteFiles.length} removed routes checked, ${archivedHealthDashboardFiles.length} archived health files checked, ${archivedMockDemoFiles.length} archived mock/demo files checked, ${clientFiles.length} client files secret-scanned)`,
 );

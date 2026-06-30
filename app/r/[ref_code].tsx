@@ -1,4 +1,4 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -62,7 +62,7 @@ export default function ReferralLandingScreen() {
           pathname: '/login',
           params: {
             mode: 'chat',
-            redirect: '/prototype',
+            redirect: '/chat',
             reason: 'referral',
           },
         });
@@ -73,7 +73,7 @@ export default function ReferralLandingScreen() {
         await bindStoredReferralToCustomer();
 
         if (isMounted) {
-          router.replace('/prototype');
+          router.replace('/chat' as Href);
         }
       } catch (error) {
         if (isMounted) {

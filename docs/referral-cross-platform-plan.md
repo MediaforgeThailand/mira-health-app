@@ -164,7 +164,7 @@ commission creation on admin confirm, `referrer-order`. LINE simply feeds the ex
 - Load the signed-in referrer from `referrers` (by `tenant_id` + `auth_user_id`); call
   `referrer-order` (`create_order` → `payment_done`) exactly like `app/partner.tsx` (reuse its
   helpers, don't duplicate). Replace fixture commission dashboard with real
-  `commission_entries` reads (keep a not-signed-in demo fallback like `partner.tsx`).
+  `commission_entries` reads. Do not add a not-signed-in fixture fallback; show login/setup state instead.
 - Show ONE share link/QR = `https://<web-host>/r/<realRefCode>` (real 6-char DB code).
 - Retire `referralMock.ts` code generation (reduce to pure formatting helpers or delete).
   Decide `staff-referral.tsx`: keep redirect to `/sales-portal`.
@@ -199,8 +199,7 @@ commission creation on admin confirm, `referrer-order`. LINE simply feeds the ex
 1. Canonical web host for `/r/<code>` + LIFF endpoint (§3.1).
 2. LIFF app + `LINE_LIFF_ID__<slug>` provisioning (§3.2).
 3. Apple Team ID / Android signing fingerprint for Universal/App Links (§3.3).
-4. `sales-portal` demo fallback when not signed in: keep (like `partner.tsx`) — assumed YES
-   unless owner says otherwise.
+4. `sales-portal` fallback when not signed in: do not show fixture data. Show login/setup state only.
 
 ---
 
