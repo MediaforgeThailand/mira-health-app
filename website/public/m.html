@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{if(!(window.matchMedia&&window.matchMedia('(max-width:760px)').matches)){location.replace('/'+(location.hash||''));}}catch(e){}})();</script>
+<title>Mira — Enterprise AI Sales Platform</title>
+<meta name="description" content="Mira คือ AI Sales Chat + Referral Engine ที่ทีมเราออกแบบ ติดตั้ง และเชื่อมกับข้อมูลจริงขององค์กร — เปลี่ยนแชทให้เป็นระบบขาย 24 ชั่วโมงที่วัดผลได้">
+<meta name="theme-color" content="#0b1b3a">
+<link rel="icon" href="/favicon.png" type="image/png">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:linear-gradient(180deg,#e8f1ff,#d7e6fb);font-family:'Anuphan',system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#0b1b3a}
+::selection{background:#bcd5ff;color:#0b1b3a}
+@keyframes dot{0%,60%,100%{transform:translateY(0);opacity:.35}30%{transform:translateY(-5px);opacity:1}}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@keyframes tapRing{0%{opacity:.55;transform:translate(-50%,-50%) scale(.4)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.9)}}
+@keyframes blob{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(14px,-10px) scale(1.1)}}
+@keyframes riseUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+<div style="width:100%;max-width:430px;margin:0 auto;background:#fff;min-height:100vh;position:relative;overflow:hidden;box-shadow:0 0 60px -18px rgba(20,50,120,.28)">
+
+  <!-- HEADER -->
+  <div style="position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:11px 16px;background:rgba(255,255,255,.86);backdrop-filter:saturate(160%) blur(12px);-webkit-backdrop-filter:saturate(160%) blur(12px);border-bottom:1px solid #eef2f9">
+    <span style="display:inline-flex;align-items:center;background:#0b1b3a;border-radius:10px;padding:7px 11px;box-shadow:0 8px 20px -10px rgba(11,27,58,.55)"><img src="assets/logo-mira-white.webp" alt="Mira AI" style="height:18px;width:auto;display:block"></span>
+    <a href="#m-cta" style="text-decoration:none;background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff;font-weight:700;font-size:13px;padding:9px 16px;border-radius:999px;box-shadow:0 10px 22px -10px rgba(37,99,235,.6)">นัด Demo</a>
+  </div>
+
+  <!-- HERO -->
+  <section data-rev style="position:relative;padding:24px 20px 30px;text-align:center">
+    <div style="position:absolute;top:30px;left:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,.28),transparent 70%);animation:blob 9s ease-in-out infinite;pointer-events:none"></div>
+    <div style="position:absolute;top:120px;right:-30px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.2),transparent 70%);animation:blob 11s ease-in-out infinite reverse;pointer-events:none"></div>
+    <div style="position:relative">
+      <div style="display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:999px;background:#eef4ff;color:#2563eb;font-weight:700;font-size:12px;margin-bottom:14px"><span style="width:7px;height:7px;border-radius:50%;background:#22c55e"></span>พร้อมขาย 24 ชม.</div>
+      <h1 style="font-size:30px;line-height:1.1;font-weight:700;letter-spacing:-.02em;margin:0 0 10px">คุยจบ ปิดการขายจบ<br><span style="background:linear-gradient(135deg,#2563eb,#38bdf8);-webkit-background-clip:text;background-clip:text;color:transparent">ในแชทเดียว</span></h1>
+      <p style="font-size:15px;color:#51607d;margin:0 auto 22px;max-width:290px;line-height:1.5">ตอบลูกค้า แนะนำสินค้า และส่ง QR จ่ายเงิน จบในแชทเดียว</p>
+      <div style="display:flex;justify-content:center;margin-bottom:24px">
+        <div data-herophone style="width:248px;background:#0b1b3a;border-radius:30px;padding:7px;box-shadow:0 32px 56px -22px rgba(20,50,120,.55);animation:floaty 5.5s ease-in-out infinite">
+          <div data-hscreen style="position:relative;background:#fff;border-radius:24px;overflow:hidden;display:flex;flex-direction:column;height:422px">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 15px 5px;font-size:10.5px;font-weight:700;color:#0b1b3a"><span>9:41</span><span style="width:17px;height:9px;border:1.4px solid #0b1b3a;border-radius:2.5px"></span></div>
+            <div style="display:flex;align-items:center;gap:8px;padding:4px 13px 10px;border-bottom:1px solid #f0f4fb">
+              <span style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">M</span>
+              <div style="text-align:left"><div style="font-weight:700;font-size:12.5px">Mira</div><div style="font-size:9.5px;color:#22c55e">● ออนไลน์</div></div>
+            </div>
+            <div style="flex:1;padding:11px;background:linear-gradient(180deg,#f5f9ff,#fff);display:flex;flex-direction:column;overflow:hidden">
+              <div data-hmsg style="overflow:hidden;max-height:0;opacity:0;transform:translateY(6px);transition:max-height .45s cubic-bezier(.2,.8,.2,1),opacity .35s ease,transform .4s ease;text-align:left"><div style="display:inline-block;max-width:86%;background:#fff;border:1px solid #eef2f9;color:#1e3a8a;padding:8px 10px;border-radius:12px 12px 12px 4px;font-size:11.5px;line-height:1.35;margin-bottom:8px">สวัสดีค่ะ 👋 รับอะไรดีคะ</div></div>
+              <div data-hmsg style="overflow:hidden;max-height:0;opacity:0;transform:translateY(6px);transition:max-height .45s cubic-bezier(.2,.8,.2,1),opacity .35s ease,transform .4s ease;text-align:right"><div style="display:inline-block;max-width:78%;background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff;padding:8px 10px;border-radius:12px 12px 4px 12px;font-size:11.5px;line-height:1.35;margin-bottom:8px">อยากได้ครีมกันแดดค่ะ</div></div>
+              <div data-htyping style="overflow:hidden;max-height:0;opacity:0;transition:max-height .3s ease,opacity .25s ease;text-align:left"><div style="display:inline-block;background:#fff;border:1px solid #eef2f9;padding:9px 11px;border-radius:12px 12px 12px 4px;margin-bottom:8px"><span style="display:inline-flex;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:#bcd0f5;animation:dot 1.2s infinite"></span><span style="width:6px;height:6px;border-radius:50%;background:#bcd0f5;animation:dot 1.2s infinite .2s"></span><span style="width:6px;height:6px;border-radius:50%;background:#bcd0f5;animation:dot 1.2s infinite .4s"></span></span></div></div>
+              <div data-hmsg style="overflow:hidden;max-height:0;opacity:0;transform:translateY(6px);transition:max-height .5s cubic-bezier(.2,.8,.2,1),opacity .35s ease,transform .4s ease;text-align:left">
+                <div data-hprod style="background:#fff;border:1px solid #eef2f9;border-radius:13px;overflow:hidden;box-shadow:0 6px 14px -8px rgba(20,50,120,.4);margin-bottom:8px;transition:box-shadow .25s,border-color .25s;max-width:96%">
+                  <div style="height:74px;background:linear-gradient(135deg,#cffafe,#7dd3fc);display:flex;align-items:center;justify-content:center;font-size:30px">☀️</div>
+                  <div style="padding:9px 10px">
+                    <div style="font-size:11.5px;font-weight:600;color:#0b1b3a">Sunscreen SPF50</div>
+                    <div style="font-size:10.5px;color:#2563eb;font-weight:700;margin:2px 0 8px">฿790 · ขายดี</div>
+                    <div data-hbtn style="text-align:center;font-size:11px;font-weight:700;color:#fff;background:linear-gradient(135deg,#2563eb,#38bdf8);border-radius:9px;padding:7px 0;transition:filter .2s">สั่งซื้อเลย</div>
+                  </div>
+                </div>
+              </div>
+              <div data-hmsg style="overflow:hidden;max-height:0;opacity:0;transform:translateY(6px);transition:max-height .45s cubic-bezier(.2,.8,.2,1),opacity .35s ease,transform .4s ease;text-align:right"><div style="display:inline-block;max-width:74%;background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff;padding:8px 10px;border-radius:12px 12px 4px 12px;font-size:11.5px;margin-bottom:8px">สั่งเลยค่ะ ✅</div></div>
+              <div data-hmsg style="overflow:hidden;max-height:0;opacity:0;transform:translateY(6px);transition:max-height .45s cubic-bezier(.2,.8,.2,1),opacity .35s ease,transform .4s ease;text-align:center"><div style="display:inline-flex;align-items:center;gap:6px;background:#ecfdf3;border:1px solid #bbf7d0;color:#15803d;padding:7px 12px;border-radius:10px;font-size:11px;font-weight:700;margin-bottom:4px"><span style="width:16px;height:16px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px">✓</span>ปิดการขายสำเร็จ 🎉</div></div>
+            </div>
+            <div data-hcursor style="position:absolute;left:50%;top:82%;width:28px;height:32px;opacity:0;z-index:20;pointer-events:none;transition:left .6s cubic-bezier(.4,.1,.2,1),top .6s cubic-bezier(.4,.1,.2,1),opacity .3s ease,transform .15s ease;filter:drop-shadow(0 3px 5px rgba(0,0,0,.35))">
+              <span data-hripple style="position:absolute;left:50%;top:36%;width:30px;height:30px;border-radius:50%;background:rgba(37,99,235,.4);opacity:0;transform:translate(-50%,-50%)"></span>
+              <svg viewBox="0 0 28 28" width="28" height="28" style="position:relative"><path fill="#1b2a4a" stroke="#fff" stroke-width="1.3" d="M11 13.5V5.6c0-1 .8-1.8 1.8-1.8s1.8.8 1.8 1.8v6.4h1.1c.2-1 .9-1.7 1.9-1.7 1 0 1.7.7 1.8 1.6.3-.9 1-1.4 1.9-1.4 1 0 1.8.7 1.9 1.7.3-.6.9-1 1.6-1 1 0 1.9.8 1.9 1.9v4.7c0 3.4-2.4 6.8-6.6 6.8h-2.2c-2.1 0-3.4-.6-4.8-2.1l-4.2-4.6c-.7-.8-.6-2 .2-2.6.7-.6 1.8-.5 2.5.2l1.5 1.6z"></path></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <a href="#m-cta" style="display:block;text-decoration:none;background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff;font-weight:700;font-size:16px;padding:15px;border-radius:14px;box-shadow:0 16px 30px -12px rgba(37,99,235,.6)">นัด Demo →</a>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section data-rev style="padding:2px 16px 28px;display:grid;grid-template-columns:repeat(3,1fr);gap:9px">
+    <div style="background:#f5f9ff;border:1px solid #e8f0fd;border-radius:16px;padding:15px 6px;text-align:center"><div data-stat data-to="24" data-suf="/7" style="font-family:'Space Grotesk';font-weight:700;font-size:21px;color:#2563eb">24/7</div><div style="font-size:10px;color:#64748b;margin-top:3px;font-weight:600">ไม่มีวันหยุด</div></div>
+    <div style="background:#f5f9ff;border:1px solid #e8f0fd;border-radius:16px;padding:15px 6px;text-align:center"><div data-stat data-pre="&lt;" data-to="3" data-suf=" วิ" style="font-family:'Space Grotesk';font-weight:700;font-size:21px;color:#2563eb">&lt;3 วิ</div><div style="font-size:10px;color:#64748b;margin-top:3px;font-weight:600">ตอบไว</div></div>
+    <div style="background:#f5f9ff;border:1px solid #e8f0fd;border-radius:16px;padding:15px 6px;text-align:center"><div data-stat data-pre="+" data-to="40" data-suf="%" style="font-family:'Space Grotesk';font-weight:700;font-size:21px;color:#16a34a">+40%</div><div style="font-size:10px;color:#64748b;margin-top:3px;font-weight:600">ยอดขาย</div></div>
+  </section>
+
+  <!-- TRUST -->
+  <section data-rev style="padding:2px 20px 24px;text-align:center">
+    <div style="font-size:11px;letter-spacing:.05em;color:#9aa8c2;font-weight:700;margin-bottom:12px">เหมาะกับทุกธุรกิจที่ขายผ่านแชท</div>
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:7px">
+      <span style="font-size:11.5px;font-weight:600;padding:6px 12px;border-radius:999px;background:#eef4ff;color:#2563eb">ความงาม</span>
+      <span style="font-size:11.5px;font-weight:600;padding:6px 12px;border-radius:999px;background:#eef4ff;color:#2563eb">คอร์สออนไลน์</span>
+      <span style="font-size:11.5px;font-weight:600;padding:6px 12px;border-radius:999px;background:#eef4ff;color:#2563eb">อาหารเสริม</span>
+      <span style="font-size:11.5px;font-weight:600;padding:6px 12px;border-radius:999px;background:#eef4ff;color:#2563eb">แฟชั่น</span>
+      <span style="font-size:11.5px;font-weight:600;padding:6px 12px;border-radius:999px;background:#eef4ff;color:#2563eb">ร้านอาหาร</span>
+      <span style="font-size:11.5px;font-weight:600;padding:6px 12px;border-radius:999px;background:#eef4ff;color:#2563eb">บริการ</span>
+    </div>
+  </section>
+
+  <!-- FEATURES INTRO -->
+  <section data-rev style="padding:28px 20px 6px;text-align:center">
+    <div style="display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:999px;background:#eef4ff;color:#2563eb;font-weight:700;font-size:12px;margin-bottom:12px">3 ระบบ ทำงานร่วมกัน</div>
+    <h2 style="font-size:24px;font-weight:700;letter-spacing:-.01em;margin:0;line-height:1.2">ครบทั้งระบบ<br>ปิดการขายจริง</h2>
+  </section>
+
+  <!-- CHANNELS -->
+  <section data-rev style="padding:32px 20px;text-align:center;background:#fbfdff;border-top:1px solid #eef2f9;border-bottom:1px solid #eef2f9">
+    <h2 style="font-size:23px;font-weight:700;letter-spacing:-.01em;margin:0 0 16px">อยู่ทุกที่ที่ลูกค้าอยู่</h2>
+    <div style="display:flex;justify-content:center;gap:8px;margin-bottom:20px">
+      <span data-chchip style="font-size:12px;font-weight:700;padding:7px 14px;border-radius:999px;background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff;transition:background .35s ease,color .35s ease">เว็บไซต์</span>
+      <span data-chchip style="font-size:12px;font-weight:700;padding:7px 14px;border-radius:999px;background:#eef4ff;color:#2563eb;transition:background .35s ease,color .35s ease">LINE OA</span>
+      <span data-chchip style="font-size:12px;font-weight:700;padding:7px 14px;border-radius:999px;background:#eef4ff;color:#2563eb;transition:background .35s ease,color .35s ease">แอป Mira</span>
+    </div>
+    <div style="display:flex;justify-content:center">
+      <div data-chphone style="width:232px;background:#0b1b3a;border-radius:28px;padding:7px;box-shadow:0 26px 50px -22px rgba(20,50,120,.5)">
+        <div style="background:#fff;border-radius:22px;overflow:hidden;display:flex;flex-direction:column;height:328px">
+          <div data-chhead style="display:flex;align-items:center;gap:8px;padding:11px 13px;background:linear-gradient(135deg,#2563eb,#38bdf8);transition:background .45s ease">
+            <span style="width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.22);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px">M</span>
+            <div style="color:#fff;text-align:left;flex:1"><div style="font-weight:700;font-size:12px">Mira</div><div data-chbadge style="font-size:9.5px;opacity:.9">เว็บไซต์</div></div>
+          </div>
+          <div style="flex:1;padding:13px;background:linear-gradient(180deg,#f7faff,#fff);display:flex;flex-direction:column;gap:9px">
+            <div style="align-self:flex-start;max-width:82%;background:#eef4ff;color:#1e3a8a;padding:8px 11px;border-radius:12px 12px 12px 4px;font-size:11.5px;line-height:1.35">สวัสดีค่ะ 👋 รับอะไรดีคะ</div>
+            <div data-chuser style="align-self:flex-end;max-width:74%;background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff;padding:8px 11px;border-radius:12px 12px 4px 12px;font-size:11.5px;transition:background .45s ease">สนใจสินค้าค่ะ</div>
+            <div style="align-self:flex-start;max-width:84%;background:#eef4ff;color:#1e3a8a;padding:8px 11px;border-radius:12px 12px 12px 4px;font-size:11.5px;line-height:1.35">ได้เลยค่ะ แนะนำรุ่นขายดีให้นะคะ ✨</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-top:1px solid #f0f4fb"><div style="flex:1;height:24px;background:#f1f5fb;border-radius:12px"></div><span data-chsend style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#38bdf8);flex:none;transition:background .45s ease"></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REFERRAL -->
+  <section data-rev style="padding:32px 18px 36px;text-align:center">
+    <h2 style="font-size:23px;font-weight:700;letter-spacing:-.01em;margin:0 0 6px">แนะนำ แล้วได้ส่วนแบ่ง</h2>
+    <p style="font-size:13px;color:#64748b;margin:0 0 24px">ระบบติดตามและจ่าย commission อัตโนมัติ</p>
+    <div data-refflow style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px">
+      <div style="flex:none;width:72px;display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div data-rlabel style="font-size:10px;font-weight:700;color:#94a3b8;text-align:center;line-height:1.2;height:24px;display:flex;align-items:center;justify-content:center;transition:color .35s ease">ลูกค้า</div>
+        <div data-rcard style="width:46px;height:46px;border-radius:13px;background:#f3f7fe;border:1.5px solid #e3ecfb;display:flex;align-items:center;justify-content:center;color:#9bb0d4;transition:background .4s ease,border-color .4s ease,color .4s ease,box-shadow .4s ease,transform .4s ease"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"></circle><path d="M5.5 19c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6"></path></svg></div>
+      </div>
+      <div style="flex:1;min-width:8px;align-self:flex-start;padding-top:52px"><div style="position:relative;height:3px;border-radius:3px;background:#e6edf9"><div data-rfill style="position:absolute;left:0;top:0;height:100%;width:0%;border-radius:3px;background:linear-gradient(90deg,#2563eb,#38bdf8);transition:width .6s cubic-bezier(.5,.1,.3,1)"></div></div></div>
+      <div style="flex:none;width:72px;display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div data-rlabel style="font-size:10px;font-weight:700;color:#94a3b8;text-align:center;line-height:1.2;height:24px;display:flex;align-items:center;justify-content:center;transition:color .35s ease">ตอบแชท</div>
+        <div data-rcard style="width:46px;height:46px;border-radius:13px;background:#f3f7fe;border:1.5px solid #e3ecfb;display:flex;align-items:center;justify-content:center;color:#9bb0d4;transition:background .4s ease,border-color .4s ease,color .4s ease,box-shadow .4s ease,transform .4s ease"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H8.5L4 19V5.5z"></path><circle cx="9" cy="10.5" r=".7" fill="currentColor" stroke="none"></circle><circle cx="12" cy="10.5" r=".7" fill="currentColor" stroke="none"></circle><circle cx="15" cy="10.5" r=".7" fill="currentColor" stroke="none"></circle></svg></div>
+      </div>
+      <div style="flex:1;min-width:8px;align-self:flex-start;padding-top:52px"><div style="position:relative;height:3px;border-radius:3px;background:#e6edf9"><div data-rfill style="position:absolute;left:0;top:0;height:100%;width:0%;border-radius:3px;background:linear-gradient(90deg,#2563eb,#38bdf8);transition:width .6s cubic-bezier(.5,.1,.3,1)"></div></div></div>
+      <div style="flex:none;width:72px;display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div data-rlabel style="font-size:10px;font-weight:700;color:#94a3b8;text-align:center;line-height:1.2;height:24px;display:flex;align-items:center;justify-content:center;transition:color .35s ease">ปิดการขาย</div>
+        <div data-rcard style="width:46px;height:46px;border-radius:13px;background:#f3f7fe;border:1.5px solid #e3ecfb;display:flex;align-items:center;justify-content:center;color:#9bb0d4;transition:background .4s ease,border-color .4s ease,color .4s ease,box-shadow .4s ease,transform .4s ease"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 8h11l-1 11h-9l-1-11z"></path><path d="M9.2 8a2.8 2.8 0 0 1 5.6 0"></path><path d="M9.4 13.6l1.9 1.9 3.3-3.7"></path></svg></div>
+      </div>
+      <div style="flex:1;min-width:8px;align-self:flex-start;padding-top:52px"><div style="position:relative;height:3px;border-radius:3px;background:#e6edf9"><div data-rfill style="position:absolute;left:0;top:0;height:100%;width:0%;border-radius:3px;background:linear-gradient(90deg,#2563eb,#38bdf8);transition:width .6s cubic-bezier(.5,.1,.3,1)"></div></div></div>
+      <div style="flex:none;width:72px;display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div data-rlabel style="font-size:10px;font-weight:700;color:#94a3b8;text-align:center;line-height:1.2;height:24px;display:flex;align-items:center;justify-content:center;transition:color .35s ease">Commission</div>
+        <div data-rcard style="width:46px;height:46px;border-radius:13px;background:#f3f7fe;border:1.5px solid #e3ecfb;display:flex;align-items:center;justify-content:center;color:#9bb0d4;transition:background .4s ease,border-color .4s ease,color .4s ease,box-shadow .4s ease,transform .4s ease"><span style="font-family:'Space Grotesk';font-weight:700;font-size:19px;line-height:1">฿</span></div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:center">
+      <div data-reftoast style="width:252px;background:#fff;border:1px solid #eef2f9;border-radius:14px;padding:11px 13px;display:flex;gap:10px;align-items:center;box-shadow:0 16px 32px -14px rgba(20,50,120,.45);opacity:0;transform:translateY(14px) scale(.96);transition:opacity .45s ease,transform .55s cubic-bezier(.34,1.56,.64,1)">
+        <span style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;font-family:'Space Grotesk';flex:none">฿</span>
+        <div style="flex:1;text-align:left"><div style="font-size:11px;font-weight:700;color:#0b1b3a">เงินเข้าแล้ว · Mira Pay</div><div style="font-size:12.5px;font-weight:700;color:#16a34a">+฿<span data-reftoastamt>0</span> commission</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADMIN -->
+  <section data-rev style="padding:32px 20px;text-align:center;background:#fbfdff;border-top:1px solid #eef2f9;border-bottom:1px solid #eef2f9">
+    <h2 style="font-size:23px;font-weight:700;letter-spacing:-.01em;margin:0 0 6px">จัดการจบ หลังบ้านที่เดียว</h2>
+    <p style="font-size:13px;color:#64748b;margin:0 0 22px">เพิ่มสินค้า · ดูยอดขาย · สลับ AI ↔ คน</p>
+    <div data-admincard style="background:#fff;border:1px solid #eaf0fb;border-radius:18px;box-shadow:0 22px 46px -26px rgba(20,50,120,.42);padding:18px;text-align:left;max-width:332px;margin:0 auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;color:#0b1b3a">ภาพรวมยอดขาย</div>
+        <span style="font-size:10px;font-weight:700;color:#16a34a;background:#ecfdf3;border:1px solid #bbf7d0;border-radius:999px;padding:3px 9px">● เรียลไทม์</span>
+      </div>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:7px;height:92px;margin-bottom:14px">
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div data-adminbar data-h="38" style="height:0;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#7dd3fc,#bcd2f5);transition:height .8s cubic-bezier(.3,.8,.3,1)"></div></div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div data-adminbar data-h="54" style="height:0;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#7dd3fc,#bcd2f5);transition:height .8s cubic-bezier(.3,.8,.3,1)"></div></div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div data-adminbar data-h="46" style="height:0;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#7dd3fc,#bcd2f5);transition:height .8s cubic-bezier(.3,.8,.3,1)"></div></div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div data-adminbar data-h="66" style="height:0;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#38bdf8,#2563eb);transition:height .8s cubic-bezier(.3,.8,.3,1)"></div></div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div data-adminbar data-h="58" style="height:0;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#7dd3fc,#bcd2f5);transition:height .8s cubic-bezier(.3,.8,.3,1)"></div></div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div data-adminbar data-h="80" style="height:0;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#38bdf8,#2563eb);transition:height .8s cubic-bezier(.3,.8,.3,1)"></div></div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div data-adminbar data-h="72" style="height:0;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#38bdf8,#2563eb);transition:height .8s cubic-bezier(.3,.8,.3,1)"></div></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #f0f4fb;padding-top:12px">
+        <div><div style="font-size:10px;color:#94a3b8;font-weight:600">ยอดวันนี้</div><div style="font-family:'Space Grotesk';font-weight:700;font-size:18px;color:#16a34a">฿<span data-adminamt>0</span></div></div>
+        <div style="display:flex;align-items:center;gap:2px;background:#eef4ff;border-radius:999px;padding:3px;font-size:10px;font-weight:700">
+          <span data-admintog style="padding:4px 11px;border-radius:999px;background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff;transition:background .3s ease,color .3s ease">AI</span>
+          <span data-admintog style="padding:4px 11px;border-radius:999px;background:transparent;color:#2563eb;transition:background .3s ease,color .3s ease">คน</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- USE CASES -->
+  <section data-rev style="padding:32px 20px 30px;text-align:center">
+    <h2 style="font-size:23px;font-weight:700;letter-spacing:-.01em;margin:0 0 18px">ใครใช้ Mira ได้บ้าง</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:left">
+      <div style="position:relative;border-radius:16px;overflow:hidden;aspect-ratio:4/3;box-shadow:0 14px 30px -22px rgba(20,50,120,.35)"><img src="assets/usecases/clinic.jpg" alt="ความงาม & คลินิก" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(8,18,46,.85),rgba(8,18,46,.2) 50%,rgba(8,18,46,0) 72%)"></div><div style="position:absolute;left:0;right:0;bottom:0;padding:11px 12px;color:#fff;font-size:13px;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.45)">ความงาม &amp; คลินิก</div></div>
+      <div style="position:relative;border-radius:16px;overflow:hidden;aspect-ratio:4/3;box-shadow:0 14px 30px -22px rgba(20,50,120,.35)"><img src="assets/usecases/online-class.jpg" alt="คอร์สออนไลน์" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(8,18,46,.85),rgba(8,18,46,.2) 50%,rgba(8,18,46,0) 72%)"></div><div style="position:absolute;left:0;right:0;bottom:0;padding:11px 12px;color:#fff;font-size:13px;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.45)">คอร์สออนไลน์</div></div>
+      <div style="position:relative;border-radius:16px;overflow:hidden;aspect-ratio:4/3;box-shadow:0 14px 30px -22px rgba(20,50,120,.35)"><img src="assets/usecases/supplements.jpg" alt="อาหารเสริม" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(8,18,46,.85),rgba(8,18,46,.2) 50%,rgba(8,18,46,0) 72%)"></div><div style="position:absolute;left:0;right:0;bottom:0;padding:11px 12px;color:#fff;font-size:13px;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.45)">อาหารเสริม</div></div>
+      <div style="position:relative;border-radius:16px;overflow:hidden;aspect-ratio:4/3;box-shadow:0 14px 30px -22px rgba(20,50,120,.35)"><img src="assets/usecases/fashion.jpg" alt="แฟชั่น & ไลฟ์สไตล์" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(8,18,46,.85),rgba(8,18,46,.2) 50%,rgba(8,18,46,0) 72%)"></div><div style="position:absolute;left:0;right:0;bottom:0;padding:11px 12px;color:#fff;font-size:13px;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.45)">แฟชั่น &amp; ไลฟ์สไตล์</div></div>
+      <div style="position:relative;border-radius:16px;overflow:hidden;aspect-ratio:4/3;box-shadow:0 14px 30px -22px rgba(20,50,120,.35)"><img src="assets/usecases/restaurant.jpg" alt="ร้านอาหาร & จองคิว" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(8,18,46,.85),rgba(8,18,46,.2) 50%,rgba(8,18,46,0) 72%)"></div><div style="position:absolute;left:0;right:0;bottom:0;padding:11px 12px;color:#fff;font-size:13px;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.45)">ร้านอาหาร &amp; จองคิว</div></div>
+      <div style="position:relative;border-radius:16px;overflow:hidden;aspect-ratio:4/3;box-shadow:0 14px 30px -22px rgba(20,50,120,.35)"><img src="assets/usecases/appointment.jpg" alt="บริการ & นัดหมาย" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(8,18,46,.85),rgba(8,18,46,.2) 50%,rgba(8,18,46,0) 72%)"></div><div style="position:absolute;left:0;right:0;bottom:0;padding:11px 12px;color:#fff;font-size:13px;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.45)">บริการ &amp; นัดหมาย</div></div>
+    </div>
+  </section>
+
+  <!-- DEMO FORM -->
+  <section id="m-cta" data-rev style="margin:8px 14px 16px;border-radius:26px;background:linear-gradient(160deg,#0b1b3a,#15265c);position:relative;overflow:hidden">
+    <div style="position:absolute;top:-30px;right:-30px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,.32),transparent 70%);animation:blob 10s ease-in-out infinite;pointer-events:none"></div>
+    <div style="position:relative;padding:30px 22px">
+      <div style="text-align:center;margin-bottom:18px">
+        <img src="assets/logo-mira-white.webp" alt="Mira AI" style="height:22px;margin-bottom:14px">
+        <h2 style="color:#fff;font-size:24px;font-weight:700;margin:0 0 6px;line-height:1.2">นัด Demo</h2>
+        <p style="color:#cdd9f5;font-size:13px;margin:0">ทีมงานติดต่อกลับภายใน 24 ชม.</p>
+      </div>
+      <div style="background:#fff;border-radius:18px;padding:18px;box-shadow:0 26px 52px -20px rgba(8,20,60,.6)">
+        <div data-formfields style="display:flex;flex-direction:column;gap:10px">
+          <input placeholder="ชื่อ-นามสกุล" style="border:1px solid #e3eafa;border-radius:11px;padding:12px 14px;font-size:14px;font-family:inherit;outline:none;width:100%">
+          <input placeholder="เบอร์โทร / LINE ID" style="border:1px solid #e3eafa;border-radius:11px;padding:12px 14px;font-size:14px;font-family:inherit;outline:none;width:100%">
+          <input type="email" placeholder="อีเมล" style="border:1px solid #e3eafa;border-radius:11px;padding:12px 14px;font-size:14px;font-family:inherit;outline:none;width:100%">
+          <input placeholder="ชื่อธุรกิจ" style="border:1px solid #e3eafa;border-radius:11px;padding:12px 14px;font-size:14px;font-family:inherit;outline:none;width:100%">
+          <button data-formbtn style="border:none;background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff;padding:14px;border-radius:11px;font-weight:700;font-size:15px;font-family:inherit;cursor:pointer;width:100%;box-shadow:0 14px 30px -12px rgba(37,99,235,.6)">นัด Demo</button>
+          <div style="text-align:center;font-size:11px;color:#9aa8c2">เก็บข้อมูลของคุณเป็นความลับ ไม่มีสแปม</div>
+        </div>
+        <div data-formthanks style="display:none;text-align:center;padding:20px 8px">
+          <span style="display:inline-flex;width:46px;height:46px;border-radius:50%;background:#ecfdf3;border:1px solid #bbf7d0;color:#16a34a;align-items:center;justify-content:center;font-size:22px">✓</span>
+          <div style="font-weight:700;font-size:16px;color:#0b1b3a;margin-top:12px">ขอบคุณค่ะ 🎉</div>
+          <div style="font-size:13px;color:#64748b;margin-top:4px">ทีมงานจะติดต่อกลับโดยเร็วที่สุด</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div style="text-align:center;padding:14px 16px 24px;color:#9aa8c4;font-size:11px">© 2026 Mira AI · MediaForge</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:430,&quot;height&quot;:932}}">
+class Component extends DCLogic {
+  componentDidMount(){
+    this._hero();
+    this._channels();
+    this._referral();
+    this._stats();
+    this._adminMini();
+    this._form();
+  }
+  _adminMini(){
+    const root=document.querySelector('[data-admincard]');
+    if(!root || root.__a) return;
+    const bars=root.querySelectorAll('[data-adminbar]');
+    const amt=root.querySelector('[data-adminamt]');
+    const togs=root.querySelectorAll('[data-admintog]');
+    const run=()=>{
+      if(root.__a) return; root.__a=1;
+      bars.forEach((b,i)=>{ setTimeout(()=>{ b.style.height=b.getAttribute('data-h')+'%'; }, i*90); });
+      const to=86400, t0=Date.now(), d=1300;
+      const id=setInterval(()=>{ let p=Math.min(1,(Date.now()-t0)/d); p=1-Math.pow(1-p,3); if(amt)amt.textContent=Math.round(to*p).toLocaleString('en-US'); if(p>=1)clearInterval(id); },40);
+      let on=0;
+      setInterval(()=>{ on^=1; togs.forEach((t,k)=>{ const a=(k===on); t.style.background=a?'linear-gradient(135deg,#2563eb,#38bdf8)':'transparent'; t.style.color=a?'#fff':'#2563eb'; }); },2000);
+    };
+    const io=new IntersectionObserver((es)=>{ es.forEach(e=>{ if(e.isIntersecting){ run(); io.disconnect(); } }); },{threshold:0});
+    io.observe(root);
+    setTimeout(run,1800);
+  }
+  _form(){
+    const btn=document.querySelector('[data-formbtn]');
+    if(!btn || btn.__f) return; btn.__f=1;
+    const fields=document.querySelector('[data-formfields]'), thanks=document.querySelector('[data-formthanks]');
+    const ins=fields?fields.querySelectorAll('input'):[];
+    const v=i=>(ins[i]&&ins[i].value?ins[i].value.trim():'');
+    const KEY='d46bfb35-733a-4c27-8242-c24c68a6653f';
+    const RCPT='taksin.taeprasert@gmail.com';
+    const done=()=>{ if(fields)fields.style.display='none'; if(thanks)thanks.style.display='block'; };
+    const mailto=d=>{ const body='ชื่อ: '+d.name+'\nเบอร์/LINE: '+d.contact+'\nอีเมล: '+d.email+'\nธุรกิจ: '+d.company; window.location.href='mailto:'+RCPT+'?subject='+encodeURIComponent('Mira — ขอนัด Demo')+'&body='+encodeURIComponent(body); done(); };
+    btn.addEventListener('click',e=>{
+      e.preventDefault();
+      const d={ name:v(0), contact:v(1), email:v(2), company:v(3) };
+      if(!d.name || (!d.contact && !d.email)){ var lb=btn.textContent; btn.textContent='กรอกชื่อ + เบอร์/อีเมล'; setTimeout(()=>{btn.textContent=lb;},1800); return; }
+      const label=btn.textContent; btn.disabled=true; btn.textContent='กำลังส่ง…';
+      fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({access_key:KEY,subject:'Mira — ขอนัด Demo (มือถือ)',from_name:'Mira Landing (mobile)',replyto:d.email||'','ชื่อ-นามสกุล':d.name,'เบอร์/LINE':d.contact,'อีเมล':d.email,'ชื่อธุรกิจ':d.company})})
+        .then(r=>r.json().then(o=>({ok:r.ok,o:o})))
+        .then(res=>{ if(!res.ok||!res.o.success) throw new Error((res.o&&res.o.message)||'fail'); done(); })
+        .catch(err=>{ console.error('[form]',err); mailto(d); })
+        .then(()=>{ btn.disabled=false; btn.textContent=label; });
+    });
+  }
+  _reveal(){
+    const els=document.querySelectorAll('[data-rev]');
+    const reveal=el=>{ el.style.opacity='1'; el.style.transform='none'; };
+    const io=new IntersectionObserver((es)=>{ es.forEach(e=>{ if(e.isIntersecting){ reveal(e.target); io.unobserve(e.target); } }); },{threshold:0, rootMargin:'0px 0px -8% 0px'});
+    els.forEach(el=>io.observe(el));
+    setTimeout(()=>{ els.forEach(el=>{ if(getComputedStyle(el).opacity==='0') reveal(el); }); },1400);
+  }
+  _count(el){
+    const to=parseFloat(el.getAttribute('data-to')), pre=el.getAttribute('data-pre')||'', suf=el.getAttribute('data-suf')||'';
+    const t0=Date.now(), d=1200;
+    const id=setInterval(()=>{ let p=Math.min(1,(Date.now()-t0)/d); p=1-Math.pow(1-p,3); el.textContent=pre+Math.round(to*p)+suf; if(p>=1)clearInterval(id); },40);
+  }
+  _stats(){
+    document.querySelectorAll('[data-stat]').forEach(el=>{
+      const io=new IntersectionObserver((es)=>{ es.forEach(e=>{ if(e.isIntersecting && !el.__c){ el.__c=1; this._count(el); io.disconnect(); } }); },{threshold:0});
+      io.observe(el);
+      setTimeout(()=>{ if(!el.__c){ el.__c=1; this._count(el); } },1600);
+    });
+  }
+  _hero(){
+    const root=document.querySelector('[data-herophone]');
+    if(!root || root.__h) return; root.__h=1;
+    const screen=root.querySelector('[data-hscreen]');
+    const W=root.querySelectorAll('[data-hmsg]');
+    const typing=root.querySelector('[data-htyping]');
+    const btn=root.querySelector('[data-hbtn]'), prod=root.querySelector('[data-hprod]');
+    const cursor=root.querySelector('[data-hcursor]'), ripple=root.querySelector('[data-hripple]');
+    const T=[]; const at=(t,f)=>T.push(setTimeout(f,t));
+    const show=(w,mh)=>{ w.style.maxHeight=mh||'120px'; w.style.opacity='1'; w.style.transform='none'; };
+    const hide=w=>{ w.style.maxHeight='0'; w.style.opacity='0'; w.style.transform='translateY(6px)'; };
+    const move=el=>{ const rr=screen.getBoundingClientRect(), br=el.getBoundingClientRect(); if(!rr.width)return; cursor.style.left=(((br.left+br.width/2)-rr.left)/rr.width*100)+'%'; cursor.style.top=(((br.top+br.height*0.55)-rr.top)/rr.height*100)+'%'; };
+    const tap=()=>{ cursor.style.transform='scale(.82)'; ripple.style.animation='none'; void ripple.offsetWidth; ripple.style.opacity='1'; ripple.style.animation='tapRing .7s ease-out'; setTimeout(()=>{ cursor.style.transform='none'; ripple.style.opacity='0'; },260); };
+    const cycle=()=>{
+      T.forEach(clearTimeout); T.length=0;
+      W.forEach(hide); hide(typing);
+      cursor.style.opacity='0'; cursor.style.transform='none'; cursor.style.left='50%'; cursor.style.top='82%';
+      if(btn)btn.style.filter='none';
+      if(prod){ prod.style.boxShadow='0 6px 14px -8px rgba(20,50,120,.4)'; prod.style.borderColor='#eef2f9'; }
+      at(600,()=>show(W[0]));
+      at(1500,()=>show(W[1]));
+      at(2300,()=>{ typing.style.maxHeight='42px'; typing.style.opacity='1'; });
+      at(3300,()=>{ typing.style.maxHeight='0'; typing.style.opacity='0'; show(W[2],'210px'); });
+      at(4100,()=>{ cursor.style.opacity='1'; move(btn); });
+      at(4950,()=>{ tap(); if(btn)btn.style.filter='brightness(.9)'; if(prod){ prod.style.boxShadow='0 12px 24px -8px rgba(37,99,235,.45)'; prod.style.borderColor='#2563eb'; } });
+      at(5350,()=>{ cursor.style.opacity='0'; });
+      at(5750,()=>show(W[3]));
+      at(6650,()=>show(W[4]));
+      at(10200,cycle);
+    };
+    cycle();
+  }
+  _channels(){
+    const phone=document.querySelector('[data-chphone]');
+    if(!phone || phone.__c) return; phone.__c=1;
+    const head=document.querySelector('[data-chhead]'), badge=document.querySelector('[data-chbadge]'), user=document.querySelector('[data-chuser]'), send=document.querySelector('[data-chsend]');
+    const chips=document.querySelectorAll('[data-chchip]');
+    const themes=[
+      {name:'เว็บไซต์', g:'linear-gradient(135deg,#2563eb,#38bdf8)'},
+      {name:'LINE OA', g:'linear-gradient(135deg,#06c755,#22c55e)'},
+      {name:'แอป Mira', g:'linear-gradient(135deg,#7c3aed,#a855f7)'}
+    ];
+    const set=k=>{
+      const t=themes[k];
+      head.style.background=t.g; user.style.background=t.g; send.style.background=t.g; badge.textContent=t.name;
+      chips.forEach((c,n)=>{ if(n===k){ c.style.background=t.g; c.style.color='#fff'; } else { c.style.background='#eef4ff'; c.style.color='#2563eb'; } });
+    };
+    let i=0; set(0);
+    this._chTimer=setInterval(()=>{ i=(i+1)%3; set(i); },2600);
+  }
+  _referral(){
+    const root=document.querySelector('[data-refflow]');
+    if(!root || root.__r) return; root.__r=1;
+    const cards=root.querySelectorAll('[data-rcard]'), labels=root.querySelectorAll('[data-rlabel]'), fills=root.querySelectorAll('[data-rfill]');
+    const toast=document.querySelector('[data-reftoast]'), amt=document.querySelector('[data-reftoastamt]');
+    const T=[]; const at=(t,f)=>T.push(setTimeout(f,t));
+    const setCard=(c,st)=>{
+      if(st==='active'){ c.style.background='linear-gradient(135deg,#2563eb,#38bdf8)'; c.style.borderColor='#2563eb'; c.style.color='#fff'; c.style.transform='scale(1.1)'; c.style.boxShadow='0 10px 20px -8px rgba(37,99,235,.5)'; }
+      else if(st==='done'){ c.style.background='#eaf2ff'; c.style.borderColor='#bcd2f5'; c.style.color='#2563eb'; c.style.transform='scale(1)'; c.style.boxShadow='none'; }
+      else { c.style.background='#f3f7fe'; c.style.borderColor='#e3ecfb'; c.style.color='#9bb0d4'; c.style.transform='scale(1)'; c.style.boxShadow='none'; }
+    };
+    const apply=i=>{
+      cards.forEach((c,k)=>setCard(c,k<i?'done':k===i?'active':'pending'));
+      labels.forEach((l,k)=>l.style.color=k===i?'#0b1b3a':(k<i?'#2563eb':'#94a3b8'));
+      fills.forEach((f,k)=>f.style.width=i>k?'100%':'0%');
+    };
+    const tickAmt=()=>{ const t0=Date.now(),d=1100; const id=setInterval(()=>{ let p=Math.min(1,(Date.now()-t0)/d); p=1-Math.pow(1-p,3); if(amt)amt.textContent=Math.round(258*p); if(p>=1)clearInterval(id); },40); };
+    const cycle=()=>{
+      T.forEach(clearTimeout); T.length=0;
+      if(toast){ toast.style.opacity='0'; toast.style.transform='translateY(14px) scale(.96)'; }
+      if(amt)amt.textContent='0';
+      fills.forEach(f=>{ f.style.transition='none'; f.style.width='0%'; }); void root.offsetWidth; fills.forEach(f=>{ f.style.transition='width .6s cubic-bezier(.5,.1,.3,1)'; });
+      apply(0);
+      at(1400,()=>apply(1));
+      at(2800,()=>apply(2));
+      at(4200,()=>apply(3));
+      at(5200,()=>{ if(toast){ toast.style.opacity='1'; toast.style.transform='none'; } tickAmt(); });
+      at(8600,cycle);
+    };
+    cycle();
+  }
+}
+</script>
+</body>
+</html>

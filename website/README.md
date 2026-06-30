@@ -1,10 +1,8 @@
 # Mira Marketing Website
 
-Standalone Astro marketing site for `mira.mediaforge.co`. This project is isolated from the Expo app and root package, but is now assembled together with the Expo showcase into a single deployment (see the root `scripts/build-site.mjs`): the live Mira system shell is served at `/` and the Expo app is mounted under `/showcase`.
+Standalone Astro marketing site for `mira.mediaforge.co`. This project is isolated from the Expo app and root package, but is now assembled together with the Expo showcase into a single deployment (see the root `scripts/build-site.mjs`): the landing page is served at `/` and the Expo showcase app is mounted under `/showcase`.
 
-The Mira landing page lives at `/` (`src/pages/index.astro`) and frames the live Expo system shell from `/showcase/`; `/landingpage` is kept as a permanent redirect to `/` for backward compatibility.
-
-The Mediaforge Marketing Team landing page lives at `/marketing-team` (`src/pages/marketing-team.astro`). It is a motion-first Astro page using the shared font/base CSS, GSAP reveal helpers from `src/scripts/motion.ts`, and source notes in the root `docs/source-audit.md`.
+The landing page lives at `/` (`src/pages/index.astro`); `/landingpage` is kept as a permanent redirect to `/` for backward compatibility.
 
 ## Development
 
@@ -14,8 +12,6 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:4321/marketing-team` for the Mediaforge Marketing Team page.
-
 ## Build and preview
 
 ```powershell
@@ -23,8 +19,6 @@ cd website
 npm run build
 npm run preview
 ```
-
-After preview starts, open `/marketing-team` on the preview URL to check the static build route.
 
 ## Motion assets
 
