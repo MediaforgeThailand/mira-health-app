@@ -6,7 +6,10 @@ import { useAuthSession } from '@/lib/auth/useAuthSession';
 import { defaultTenantSlug } from '@/lib/marketplace/hospitalProducts';
 import { supabaseConfigStatus } from '@/lib/supabase';
 
-const designSrc = '/showcase/mira-design/mira-core-system.dc';
+// Cache-buster: the domain sits behind a 4h browser-cache CDN rule, so bump
+// this version whenever mira-design/* changes or visitors keep the stale copy.
+const designVersion = '20260705';
+const designSrc = `/showcase/mira-design/mira-core-system.dc?v=${designVersion}`;
 
 type MiraBackendConfig = {
   accessToken: string;
