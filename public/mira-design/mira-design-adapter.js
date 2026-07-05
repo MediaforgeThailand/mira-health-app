@@ -147,6 +147,13 @@
             : response.statusText;
       throw new Error(`${name}: ${detail}`);
     }
+    // Edge functions wrap success responses in {ok: true, data: ...} (see
+    // supabase/functions/_shared/http.ts). Call sites read fields directly
+    // (response.text, response.session_id), so unwrap here; bare-object
+    // responses from older functions pass through unchanged.
+    if (payload && typeof payload === "object" && payload.ok === true && "data" in payload) {
+      return payload.data;
+    }
     return payload;
   }
 
@@ -1362,9 +1369,21 @@
       const refLink = refCode ? `${window.location.origin}/r/${encodeURIComponent(refCode)}` : "";
       const popupRefCode = this.state.qrRef || "";
       const popupRefLink = popupRefCode ? `${window.location.origin}/r/${encodeURIComponent(popupRefCode)}` : "";
-      const chatMessages = this.state.chatMessages || [
-        messageBubble("mira", "เชื่อมต่อ AI backend แล้ว พิมพ์ข้อความเพื่อถาม Mira ได้เลย"),
-      ];
+      const chatMessages = this.state.chatMessages || [chatPersonaGreeting(this)];
+      const activePersonaSlug = chatTenantSlug(this);
+      const chatPersonas = CHAT_PERSONAS.map((persona) => {
+        const active = persona.slug === activePersonaSlug;
+        return {
+          chipStyle: [
+            "flex:1; padding:7px 10px; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; transition:all .15s ease;",
+            active
+              ? "border:1px solid #2563EB; background:#2563EB; color:#fff;"
+              : "border:1px solid #E4ECF8; background:#fff; color:#5A6B86;",
+          ].join(" "),
+          label: persona.label,
+          select: () => selectChatPersona(this, persona.slug),
+        };
+      });
       const chatCards = this.state.chatCards || [];
       const catalogRows = (this._products || [])
         .filter((product) => product.status === "active")
@@ -1408,6 +1427,7 @@
         chatLiveCards: chatCards,
         chatLiveLoading: Boolean(this.state.chatLoading),
         chatLiveMessages: chatMessages,
+        chatPersonas,
         chatPay: () => noteMissing("Payment upload/checkout needs the real order panel UI contract in this supplied chat screen."),
         csCards: false,
         csGreet: false,
@@ -1425,7 +1445,7 @@
             this.sendChat && this.sendChat();
           }
         },
-        replayChat: () => this.setState({ chatCards: [], chatInput: "", chatMessages: [messageBubble("mira", "เริ่มบทสนทนาใหม่แล้ว พิมพ์ข้อความเพื่อให้ AI ตอบจาก backend จริง")], chatSessionId: null }),
+        replayChat: () => this.setState({ chatCards: [], chatInput: "", chatLoading: false, chatMessages: [chatPersonaGreeting(this)], chatSessionId: null }),
         sendChat: this.sendChat,
         takeOver: async () => {
           const conversation = selectedConversation(this);
@@ -1483,11 +1503,31 @@
   }
 
   function mapChatCards(cards, products, logic) {
-    const fromCards = Array.isArray(cards)
-      ? cards.flatMap((card) => Array.isArray(card.products) ? card.products : Array.isArray(card.items) ? card.items : [])
-      : [];
+    const cardList = Array.isArray(cards) ? cards : [];
+    // Category browse card ([[categories]] marker / browse_categories action):
+    // render each category as a tappable card that asks the backend for the
+    // products in that category (browse_category action).
+    const categoryEntries = cardList
+      .filter((card) => card && card.type === "category_grid" && Array.isArray(card.categories))
+      .flatMap((card) => card.categories)
+      .slice(0, 6)
+      .map((cat) => ({
+        cta: "ดูรายการในหมวดนี้",
+        description: cat.product_count != null ? `${cat.product_count} รายการ` : "",
+        openCheckout: () => {
+          if (logic && logic.sendChatAction) {
+            logic.sendChatAction({ category: cat.key, type: "browse_category" }, `ขอดูหมวด ${cat.label_th || cat.key}`);
+          } else {
+            noteMissing("Category browse needs the backend adapter to be ready.");
+          }
+        },
+        price: "",
+        title: `${cat.icon || "▦"} ${cat.label_th || cat.key}`,
+      }));
+    if (categoryEntries.length) return categoryEntries;
+    const fromCards = cardList.flatMap((card) => Array.isArray(card.products) ? card.products : Array.isArray(card.items) ? card.items : []);
     const source = fromCards.length ? fromCards : products || [];
-    return source.slice(0, 3).map((item) => {
+    return source.slice(0, 6).map((item) => {
       const product = productCheckoutPayload({
         _catalogKey: item.catalog_key || item.catalogKey || "",
         branches: item.branches || [],
@@ -1500,6 +1540,7 @@
         type: item.category === "product" || item.type === "product" ? "product" : "service",
       });
       return {
+        cta: "เลือกรายการนี้",
         description: compact(product.sub || item.category, ""),
         openCheckout: () => {
           if (logic && logic.openBackendCheckout) {
@@ -1514,42 +1555,101 @@
     });
   }
 
+  // Playground personas: the same chat engine serves any tenant, so the picker
+  // just swaps the tenant_slug (and starts a fresh session) per brand.
+  const CHAT_PERSONAS = [
+    {
+      greeting: "สวัสดีค่ะ 👋 Mira ผู้ช่วยขายของโรงพยาบาลค่ะ สนใจแพ็กเกจตรวจสุขภาพหรือวัคซีน พิมพ์ถามได้เลยค่ะ",
+      label: "🏥 โรงพยาบาล",
+      slug: "demo-hospital",
+    },
+    {
+      greeting: "สวัสดีค่ะ 👋 Mira ผู้ช่วยขายน้ำโปรตีนใส ClearPro ค่ะ สนใจรสไหนหรืออยากได้แบบแพ็ก สอบถามได้เลยค่ะ",
+      label: "🥤 น้ำโปรตีนใส",
+      slug: "demo-protein",
+    },
+  ];
+
+  function chatTenantSlug(logic) {
+    if (logic.state && logic.state.chatTenantSlug) return logic.state.chatTenantSlug;
+    const config = logic.__miraBackendConfig || window.MIRA_BACKEND_CONFIG || {};
+    return config.tenantSlug || "demo-hospital";
+  }
+
+  function chatPersonaGreeting(logic) {
+    const persona = CHAT_PERSONAS.find((entry) => entry.slug === chatTenantSlug(logic));
+    return messageBubble("mira", persona ? persona.greeting : "เชื่อมต่อ AI backend แล้ว พิมพ์ข้อความเพื่อถาม Mira ได้เลย");
+  }
+
+  function selectChatPersona(logic, slug) {
+    if (chatTenantSlug(logic) === slug) return;
+    const persona = CHAT_PERSONAS.find((entry) => entry.slug === slug);
+    logic.setState({
+      chatCards: [],
+      chatInput: "",
+      chatLoading: false,
+      chatMessages: [messageBubble("mira", persona ? persona.greeting : "เริ่มบทสนทนาใหม่แล้ว พิมพ์ข้อความเพื่อให้ AI ตอบจาก backend จริง")],
+      chatSessionId: null,
+      chatTenantSlug: slug,
+    });
+  }
+
   function patchChat(logic) {
     if (logic.__miraChatPatched) return;
-    logic.sendChat = async () => {
-      const text = compact(logic.state.chatInput, "");
-      if (!text || logic.state.chatLoading) return;
+    const deliverChatTurn = async (payload, echoLabel) => {
+      if (logic.state.chatLoading) return;
+      const personaAtSend = chatTenantSlug(logic);
       const currentMessages = logic.state.chatMessages || [];
       logic.setState({
         chatCards: [],
         chatInput: "",
         chatLoading: true,
-        chatMessages: [...currentMessages, messageBubble("me", text)],
+        chatMessages: echoLabel ? [...currentMessages, messageBubble("me", echoLabel)] : currentMessages,
       });
       try {
         const config = await ensureDemoAuth(logic);
         const response = await invokeFunction(config, "chat-orchestrator", {
-          action: null,
-          channel: "app",
           client_msg_id: crypto.randomUUID(),
-          message: text,
+          channel: "app",
           session_id: logic.state.chatSessionId || null,
-          tenant_slug: config.tenantSlug || "demo-hospital",
+          tenant_slug: personaAtSend,
+          ...payload,
         }, { allowAnon: true });
-        const answer = compact(response && response.text, "AI backend returned an empty response.");
-        logic.setState((state) => ({
-          chatCards: mapChatCards(response && response.cards, response && response.products, logic),
-          chatLoading: false,
-          chatMessages: [...(state.chatMessages || []), messageBubble("mira", answer)],
-          chatSessionId: response && response.session_id ? response.session_id : state.chatSessionId,
-        }));
+        logic.setState((state) => {
+          // The presenter switched persona while this turn was in flight: the
+          // reply belongs to the previous brand's session, so drop it.
+          if (chatTenantSlug(logic) !== personaAtSend) return {};
+          const answer = compact(response && response.text, "");
+          return {
+            chatCards: mapChatCards(response && response.cards, response && response.products, logic),
+            chatLoading: false,
+            chatMessages: answer
+              ? [...(state.chatMessages || []), messageBubble("mira", answer)]
+              : (state.chatMessages || []),
+            chatSessionId: response && response.session_id ? response.session_id : state.chatSessionId,
+          };
+        });
       } catch (error) {
         noteError("AI chat failed", error);
-        logic.setState((state) => ({
-          chatLoading: false,
-          chatMessages: [...(state.chatMessages || []), messageBubble("mira", `AI backend error: ${error.message || error}`)],
-        }));
+        logic.setState((state) => {
+          if (chatTenantSlug(logic) !== personaAtSend) return {};
+          return {
+            chatLoading: false,
+            chatMessages: [...(state.chatMessages || []), messageBubble("mira", `AI backend error: ${error.message || error}`)],
+          };
+        });
       }
+    };
+    logic.sendChat = async () => {
+      const text = compact(logic.state.chatInput, "");
+      if (!text) return;
+      await deliverChatTurn({ action: null, message: text }, text);
+    };
+    logic.sendChatAction = async (action, echoLabel) => {
+      if (!action) return;
+      // orchestrateChat rejects most actions without a message, so mirror the
+      // RN app (PrototypeChatPanel) and send the echo label as the message.
+      await deliverChatTurn({ action, message: echoLabel || "" }, echoLabel || "");
     };
     logic.__miraChatPatched = true;
   }

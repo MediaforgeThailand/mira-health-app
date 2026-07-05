@@ -1085,6 +1085,12 @@
             <div style="flex:1;"><div style="font-size:14.5px; font-weight:700; color:#0E2143;">Mira ผู้ช่วยขาย</div><div style="font-size:11.5px; color:#10B981;">● ออนไลน์ · ตอบทันที</div></div>
             <button onClick="{{ replayChat }}" style="display:inline-flex; align-items:center; gap:5px; padding:6px 11px; border:1px solid #E4ECF8; background:#fff; color:#2563EB; border-radius:9px; font-size:11.5px; font-weight:600; cursor:pointer;">↻ เล่นใหม่</button>
           </div>
+          <!-- persona picker: choose which brand AI to talk to -->
+          <div style="display:flex; gap:8px; padding:9px 14px 3px; flex:none;">
+            <sc-for list="{{ chatPersonas }}" as="p" hint-placeholder-count="2">
+              <button onClick="{{ p.select }}" style="{{ p.chipStyle }}">{{ p.label }}</button>
+            </sc-for>
+          </div>
           <!-- messages -->
           <div class="noscroll" ref="{{ chatScrollRef }}" style="flex:1; overflow-y:auto; padding:16px 16px 12px; display:flex; flex-direction:column; gap:10px;">
             <sc-for list="{{ chatLiveMessages }}" as="msg" hint-placeholder-count="2">
@@ -1100,7 +1106,7 @@
                         <div style="min-width:0;"><div style="font-size:13.5px; font-weight:700; color:#0E2143;">{{ card.title }}</div><div style="font-size:11px; color:#8595B0; margin-top:2px; line-height:1.4;">{{ card.description }}</div></div>
                         <span style="font-family:'Sora',sans-serif; font-size:16px; font-weight:700; color:#2563EB; white-space:nowrap;">{{ card.price }}</span>
                       </div>
-                      <button onClick="{{ card.openCheckout }}" style="width:100%; margin-top:9px; padding:9px; border:1px solid #2563EB; border-radius:10px; background:#fff; color:#2563EB; font-size:12.5px; font-weight:700; cursor:pointer;">???????????????</button>
+                      <button onClick="{{ card.openCheckout }}" style="width:100%; margin-top:9px; padding:9px; border:1px solid #2563EB; border-radius:10px; background:#fff; color:#2563EB; font-size:12.5px; font-weight:700; cursor:pointer;">{{ card.cta }}</button>
                     </div>
                   </div>
                 </sc-for>
@@ -1174,8 +1180,8 @@
           </div>
           <!-- input -->
           <div style="flex:none; display:flex; gap:9px; padding:11px 14px 16px; border-top:1px solid #E8EFF8; background:#fff;">
-            <input value="{{ chatInputVal }}" onInput="{{ onChatInput }}" onKeyDown="{{ onChatKey }}" placeholder="????????????..." style="flex:1; min-width:0; padding:10px 14px; background:#F2F6FC; border:none; outline:none; border-radius:20px; font-size:13px; color:#0E2143;" />
-            <button onClick="{{ sendChat }}" style="width:38px; height:38px; border:none; border-radius:50%; background:#2563EB; display:flex; align-items:center; justify-content:center; color:#fff; cursor:pointer;">?</button>
+            <input value="{{ chatInputVal }}" onInput="{{ onChatInput }}" onKeyDown="{{ onChatKey }}" placeholder="พิมพ์ข้อความ…" style="flex:1; min-width:0; padding:10px 14px; background:#F2F6FC; border:none; outline:none; border-radius:20px; font-size:13px; color:#0E2143;" />
+            <button onClick="{{ sendChat }}" style="width:38px; height:38px; border:none; border-radius:50%; background:#2563EB; display:flex; align-items:center; justify-content:center; color:#fff; cursor:pointer;">➤</button>
           </div>
 
           <!-- ===== CHECKOUT / ORDER / PAYMENT SHEET ===== -->
@@ -1658,7 +1664,7 @@ class Component extends DCLogic {
 
   state = {
     module: 'admin', adminView: 'dashboard', dataState: 'loading',
-    loggedIn: false, role: 'admin', accountName: '?????????',
+    loggedIn: false, role: 'admin', accountName: 'ทีมแอดมิน',
     showLogin: true, loginRole: 'admin', loginEmail: '', loginPwd: '', loginError: '',
     refTab: 'home', chatStage: 0, copied: false,
     selectedOrderId: null, selectedStep: null,

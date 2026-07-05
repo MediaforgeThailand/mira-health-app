@@ -1271,15 +1271,26 @@ async function completeChatTurn({
     productRows,
     tenantId: tenant.id,
   });
+  // The model may emit only a marker line ("[[categories]]" with no lead-in);
+  // after stripping, parsed.text is empty and clients would render an empty
+  // assistant bubble. Substitute a short lead-in that matches the marker.
+  const assistantText = parsed.text || (
+    effectiveMarker.type === 'categories'
+      ? 'เลือกหมวดที่สนใจได้เลยค่ะ'
+      : effectiveMarker.type === 'products'
+        ? 'แนะนำรายการนี้ได้เลยค่ะ'
+        : effectiveMarker.type === 'order_status'
+          ? 'สถานะคิวล่าสุดค่ะ'
+          : 'ขออภัยค่ะ รบกวนพิมพ์อีกครั้งนะคะ');
   const assistantMessage = await persistAssistantMessage({
     catalogKeys: resolvedKeys,
     cards,
     responseId: promptResult.responseId,
     sessionId: session.id,
-    text: parsed.text,
+    text: assistantText,
   });
 
-  await updateSessionAfterAssistant(session.id, tenant.id, parsed.text);
+  await updateSessionAfterAssistant(session.id, tenant.id, assistantText);
 
   void invokeInternalFunction('fact-extractor', { message_id: userPersist.row.id }).catch((error) => {
     console.warn('fact_extractor_invoke_failed', error instanceof Error ? error.message : error);
