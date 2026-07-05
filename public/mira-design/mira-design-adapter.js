@@ -334,6 +334,22 @@
     };
   }
 
+  // A product is "product" (physical goods → shipping) vs "service" (appointment).
+  // Prefer the authoritative requires_appointment flag; fall back to a physical-goods
+  // category allow-list for backend chat cards (ChatProduct carries only `category`).
+  const PRODUCT_CATEGORY_SET = new Set([
+    "product", "protein", "bundle", "supplement", "drink", "snack", "goods", "merch", "retail", "pack",
+  ]);
+  function resolveProductType(source) {
+    if (!source) return "service";
+    if (source.type === "product" || source.type === "service") return source.type;
+    if (typeof source.requires_appointment === "boolean") {
+      return source.requires_appointment ? "service" : "product";
+    }
+    const category = String(source.category || "").trim().toLowerCase();
+    return PRODUCT_CATEGORY_SET.has(category) ? "product" : "service";
+  }
+
   function mapProduct(row, branchMap) {
     const branchInfo = branchMap.get(row.id) || { ids: [], names: [] };
     return {
@@ -342,7 +358,7 @@
       _catalogKey: row.catalog_key || "",
       _branchIds: branchInfo.ids,
       title: compact(row.name, "สินค้า/บริการ"),
-      type: row.category === "product" ? "product" : "service",
+      type: resolveProductType(row),
       price: Number(row.price_baht || 0).toLocaleString("th-TH"),
       oldPrice: "",
       category: row.category || "general",
@@ -704,7 +720,7 @@
       price: String(product.price || "").startsWith("฿") ? product.price : baht(priceNumber),
       sub: compact(product.desc || product.description || product.sub, ""),
       title: compact(product.title || product.name, "สินค้า/บริการ"),
-      type: product.type || (product.category === "product" ? "product" : "service"),
+      type: resolveProductType(product),
     };
   }
 
@@ -778,13 +794,13 @@
         coForm: {
           addr: "",
           age: "",
+          delivery: "flash",
           branch: (checkoutProduct.branches && checkoutProduct.branches[0]) || "",
           date: "",
           name: "",
           note: "",
           phone: "",
           qty: 1,
-          shipNote: "",
           time: "เช้า (09:00-12:00)",
         },
         coLoading: false,
@@ -1541,7 +1557,7 @@
         name: item.name,
         price: item.price_baht != null ? baht(item.price_baht) : item.price || "",
         title: item.title,
-        type: item.category === "product" || item.type === "product" ? "product" : "service",
+        type: resolveProductType(item),
       });
       return {
         cta: "เลือกรายการนี้",

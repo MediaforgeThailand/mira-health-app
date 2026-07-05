@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js?v=20260705a"></script>
-<script src="./mira-design-adapter.js?v=20260705a"></script>
+<script src="./support.js?v=20260705b"></script>
+<script src="./mira-design-adapter.js?v=20260705b"></script>
 </head>
 <body>
 <x-dc>
@@ -1222,12 +1222,18 @@
                 <!-- FORM -->
                 <sc-if value="{{ coStepForm }}" hint-placeholder-val="{{ false }}">
                   <div style="font-size:11.5px; font-weight:700; color:#A6B2C9; letter-spacing:.3px; margin-bottom:9px;">ข้อมูลผู้ติดต่อ</div>
-                  <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">ชื่อ–นามสกุล</label>
+                  <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">{{ coNameLabel }}</label>
                   <input value="{{ coName }}" onChange="{{ onCoName }}" placeholder="เช่น ธนกร ใจดี" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; margin-bottom:12px; outline:none;">
+                  <sc-if value="{{ coIsService }}" hint-placeholder-val="{{ true }}">
                   <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:10px; margin-bottom:12px;">
                     <div><label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">เบอร์โทร</label><input value="{{ coPhone }}" onChange="{{ onCoPhone }}" placeholder="08x-xxx-xxxx" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; outline:none;"></div>
                     <div><label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">อายุ</label><input value="{{ coAge }}" onChange="{{ onCoAge }}" placeholder="36" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; outline:none;"></div>
                   </div>
+                  </sc-if>
+                  <sc-if value="{{ coIsProduct }}" hint-placeholder-val="{{ false }}">
+                  <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">เบอร์โทร</label>
+                  <input value="{{ coPhone }}" onChange="{{ onCoPhone }}" placeholder="08x-xxx-xxxx" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; margin-bottom:12px; outline:none;">
+                  </sc-if>
 
                   <sc-if value="{{ coIsService }}" hint-placeholder-val="{{ true }}">
                     <div style="font-size:11.5px; font-weight:700; color:#A6B2C9; letter-spacing:.3px; margin:6px 0 9px;">นัดหมายบริการ</div>
@@ -1259,12 +1265,18 @@
                     </div>
                     <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">ที่อยู่จัดส่ง</label>
                     <textarea value="{{ coAddr }}" onChange="{{ onCoAddr }}" rows="2" placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด รหัสไปรษณีย์" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13px; margin-bottom:12px; outline:none; resize:vertical; font-family:inherit;"></textarea>
-                    <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:5px;">หมายเหตุการจัดส่ง</label>
-                    <input value="{{ coShipNote }}" onChange="{{ onCoShipNote }}" placeholder="เช่น ฝากไว้ที่นิติฯ" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; margin-bottom:4px; outline:none;">
+                    <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin-bottom:6px;">วิธีจัดส่ง</label>
+                    <div style="display:flex; gap:8px; margin-bottom:6px;">
+                      <button onClick="{{ setCoInstant }}" style="{{ coTabInstant }}">{{ coInstantLabel }}</button>
+                      <button onClick="{{ setCoFlash }}" style="{{ coTabFlash }}">{{ coFlashLabel }}</button>
+                    </div>
+                    <div style="font-size:11px; color:#8595B0; margin-bottom:2px;">{{ coDeliveryHint }}</div>
                   </sc-if>
 
+                  <sc-if value="{{ coIsService }}" hint-placeholder-val="{{ true }}">
                   <label style="display:block; font-size:12px; font-weight:600; color:#5A6B86; margin:8px 0 5px;">หมายเหตุถึงทีมงาน (ถ้ามี)</label>
                   <input value="{{ coNote }}" onChange="{{ onCoNote }}" placeholder="เช่น แพ้ยา / มีโรคประจำตัว" style="width:100%; padding:11px 12px; border:1px solid #E4ECF8; border-radius:10px; font-size:13.5px; outline:none;">
+                  </sc-if>
                 </sc-if>
 
                 <!-- SUMMARY -->
@@ -1282,6 +1294,7 @@
                       <sc-if value="{{ coIsProduct }}" hint-placeholder-val="{{ false }}">
                         <div style="display:flex; justify-content:space-between; gap:12px;"><span style="color:#8595B0;">จำนวน</span><span style="font-weight:600; color:#0E2143;">{{ coSumQty }} ชุด</span></div>
                         <div style="display:flex; justify-content:space-between; gap:12px;"><span style="color:#8595B0;">ที่อยู่จัดส่ง</span><span style="font-weight:600; color:#0E2143; text-align:right; max-width:60%;">{{ coSumAddr }}</span></div>
+                        <div style="display:flex; justify-content:space-between; gap:12px;"><span style="color:#8595B0;">วิธีจัดส่ง</span><span style="font-weight:600; color:#0E2143; text-align:right; max-width:60%;">{{ coDeliverySumLabel }}</span></div>
                       </sc-if>
                     </div>
                   </div>
@@ -1291,6 +1304,7 @@
                   </div>
                   <div style="background:#fff; border:1px solid #E8EFF8; border-radius:13px; padding:15px;">
                     <sc-if value="{{ coQtyMulti }}" hint-placeholder-val="{{ false }}"><div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:8px;"><span style="color:#8595B0;">ราคา/หน่วย</span><span style="color:#42506b;">{{ coQtyMultiText }}</span></div></sc-if>
+                    <sc-if value="{{ coIsProduct }}" hint-placeholder-val="{{ false }}"><div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:8px;"><span style="color:#8595B0;">ค่าจัดส่ง</span><span style="color:#42506b;">{{ coShipFeeText }}</span></div></sc-if>
                     <div style="display:flex; justify-content:space-between; align-items:baseline; padding-top:3px;"><span style="font-size:13px; font-weight:700; color:#0E2143;">ยอดที่ต้องชำระ</span><span style="font-family:'Sora',sans-serif; font-size:23px; font-weight:700; color:#2563EB;">{{ coTotalText }}</span></div>
                   </div>
                 </sc-if>
@@ -2057,7 +2071,7 @@ class Component extends DCLogic {
   chatPay = () => this.setState({ chatStage: 7 });
   // ===== AI Chat checkout / order / payment =====
   _chatProducts = {};
-  openCheckout = (key) => { const p = this._chatProducts[key]; if(!p) return; this.setState({ coOpen:true, coStep:'detail', coProduct:p, coForm:{ name:'', phone:'', age:'', note:'', branch:(p.branches&&p.branches[0])||'', date:'', time:'เช้า (09:00–12:00)', qty:1, addr:'', shipNote:'' }, coPay:'promptpay', coLoading:false, coError:'', coStatus:'', coOrderId:'' }); };
+  openCheckout = (key) => { const p = this._chatProducts[key]; if(!p) return; this.setState({ coOpen:true, coStep:'detail', coProduct:p, coForm:{ name:'', phone:'', age:'', note:'', branch:(p.branches&&p.branches[0])||'', date:'', time:'เช้า (09:00–12:00)', qty:1, addr:'', delivery:'flash' }, coPay:'promptpay', coLoading:false, coError:'', coStatus:'', coOrderId:'' }); };
   closeCheckout = () => this.setState({ coOpen:false });
   _setCo = (k,v) => this.setState((s)=>({ coForm:Object.assign({}, s.coForm, {[k]:v}), coError:'' }));
   coGoForm = () => this.setState({ coStep:'form', coError:'' });
@@ -2139,7 +2153,9 @@ class Component extends DCLogic {
     const _co = s.coForm||{}; const _cp = s.coProduct||{}; const _coP = _cp.type==='product';
     const _coStepIdx = ({detail:0,form:1,summary:2,pay:3,status:3})[s.coStep||'detail'];
     const _coBar = (on)=>'flex:1; height:3px; border-radius:2px; background:'+(on?'#2563EB':'#E4ECF8')+';';
-    const _coUnit = this._num(_cp.price); const _coQty = _coP?(_co.qty||1):1; const _coTotal = _coUnit*_coQty;
+    const _coUnit = this._num(_cp.price); const _coQty = _coP?(_co.qty||1):1;
+    const _coInstantFee = 80; const _coDelivery = _coP?(_co.delivery||'flash'):''; const _coShipFee = _coDelivery==='instant'?_coInstantFee:0;
+    const _coTotal = _coUnit*_coQty + _coShipFee;
     const _coStatusRaw = [ {l:'เก็บข้อมูลครบ',st:'done'}, {l:'ชำระเงินสำเร็จ',st:'done'}, {l:'ยืนยันออเดอร์แล้ว',st:'current'}, {l:(_coP?'กำลังจัดส่ง':'จองคิว / นัดหมาย'),st:'todo'}, {l:'เสร็จสิ้น',st:'todo'} ];
     // ===== Referral direct purchase precompute =====
     const _rcP = s.rcProduct||{}; const _rf = s.rcForm||{}; const _rcProd = _rcP.type==='product';
@@ -2320,6 +2336,14 @@ class Component extends DCLogic {
       coOpen:!!s.coOpen,
       coStepDetail:(s.coStep||'detail')==='detail', coStepForm:s.coStep==='form', coStepSummary:s.coStep==='summary', coStepPay:s.coStep==='pay', coStepStatus:s.coStep==='status',
       coIsProduct:_coP, coIsService:!_coP,
+      coNameLabel:_coP?'ชื่อผู้รับ':'ชื่อ–นามสกุล',
+      coDelivery:_coDelivery,
+      setCoInstant:()=>this._setCo('delivery','instant'), setCoFlash:()=>this._setCo('delivery','flash'),
+      coTabInstant:this._coTab(_coDelivery==='instant'), coTabFlash:this._coTab(_coDelivery==='flash'),
+      coInstantLabel:'ส่งทันที · +'+this._baht(_coInstantFee), coFlashLabel:'Flash Express · ฟรี',
+      coDeliveryHint:(_coDelivery==='instant'?'ส่งด่วนภายในวันในเขตกรุงเทพฯ และปริมณฑล':'จัดส่งผ่าน Flash Express ทั่วประเทศ ถึงใน 1–2 วัน'),
+      coDeliverySumLabel:(_coDelivery==='instant'?'ส่งทันที (ด่วนในเขต กทม.)':'Flash Express (ทั่วประเทศ)'),
+      coShipFeeText:(_coShipFee?('+'+this._baht(_coShipFee)):'ฟรี'),
       coTitle:_cp.title||'', coSub:_cp.sub||'', coPrice:_cp.price||'', coOldPrice:_cp.oldPrice||'', coHasOld:!!_cp.oldPrice,
       coTypeLabel:_coP?'สินค้า':'บริการ', coProductIcon:_coP?'▦':'＋', coIncludes:_cp.includes||[],
       coHeaderTitle:({detail:_cp.title||'รายละเอียด',form:'กรอกข้อมูล',summary:'สรุปออเดอร์',pay:'ชำระเงิน',status:'สถานะออเดอร์'})[s.coStep||'detail'],
@@ -2335,9 +2359,8 @@ class Component extends DCLogic {
       coTime:_co.time||'', onCoTime:(e)=>this._setCo('time',e.target.value),
       coQtyText:String(_coQty), coDecQty:()=>this.setState((st)=>({coForm:Object.assign({},st.coForm,{qty:Math.max(1,((st.coForm||{}).qty||1)-1)})})), coIncQty:()=>this.setState((st)=>({coForm:Object.assign({},st.coForm,{qty:((st.coForm||{}).qty||1)+1})})),
       coAddr:_co.addr||'', onCoAddr:(e)=>this._setCo('addr',e.target.value),
-      coShipNote:_co.shipNote||'', onCoShipNote:(e)=>this._setCo('shipNote',e.target.value),
       coSumName:_co.name||'—', coSumPhone:_co.phone||'—', coSumAge:_co.age?(_co.age+' ปี'):'—', coHasAge:!!_co.age, coHasNote:!!_co.note, coSumNote:_co.note||'',
-      coSumBranch:_co.branch||'—', coSumDate:((_co.date||'รอเลือกวัน')+' · '+(_co.time||'')), coSumAddr:_co.addr||'—', coSumQty:String(_coQty), coHasShipNote:!!_co.shipNote, coSumShipNote:_co.shipNote||'',
+      coSumBranch:_co.branch||'—', coSumDate:((_co.date||'รอเลือกวัน')+' · '+(_co.time||'')), coSumAddr:_co.addr||'—', coSumQty:String(_coQty),
       coRefCode:'-', coUnitText:_cp.price||'', coTotalText:this._baht(_coTotal), coQtyMulti:_coP&&_coQty>1, coQtyMultiText:(_cp.price||'')+' × '+_coQty,
       coPayPromptpay:(s.coPay||'promptpay')==='promptpay', coPayCard:s.coPay==='card', coPaySlip:s.coPay==='slip',
       setCoPP:()=>this.setCoPay('promptpay'), setCoCard:()=>this.setCoPay('card'), setCoSlip:()=>this.setCoPay('slip'),
