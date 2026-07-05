@@ -238,6 +238,33 @@
     return parseResponse(response);
   }
 
+  // Playable public demo: the customer AI-chat needs a real Supabase USER JWT
+  // (chat-orchestrator validates it via /auth/v1/user; the anon/publishable key
+  // is rejected as "Invalid Supabase JWT"). When the design is opened without a
+  // logged-in session (accessToken), silently sign in a sandbox demo customer so
+  // the chat just works. A real presenter login still takes precedence.
+  const DEMO_CHAT_EMAIL = "demo-play@demo.mediaforge.co";
+  const DEMO_CHAT_PASSWORD = "MiraDemoPlay-2026";
+  async function ensureDemoAuth(logic) {
+    let config = mergeStoredSession(logic.__miraBackendConfig || window.MIRA_BACKEND_CONFIG || {});
+    if (!config.accessToken && config.supabaseUrl && config.supabaseAnonKey) {
+      try {
+        const session = await passwordLogin(config, DEMO_CHAT_EMAIL, DEMO_CHAT_PASSWORD);
+        config = {
+          ...config,
+          accessToken: session.access_token,
+          userEmail: (session.user && session.user.email) || config.userEmail || "",
+          userId: (session.user && session.user.id) || config.userId || "",
+        };
+      } catch (error) {
+        // Leave config unchanged; sendChat surfaces the backend error as before.
+      }
+    }
+    logic.__miraBackendConfig = config;
+    window.MIRA_BACKEND_CONFIG = config;
+    return config;
+  }
+
   function orderDisplayId(row) {
     const raw = String(row.id || "");
     if (raw.startsWith("#")) return raw;
@@ -1493,7 +1520,7 @@
         chatMessages: [...currentMessages, messageBubble("me", text)],
       });
       try {
-        const config = logic.__miraBackendConfig || window.MIRA_BACKEND_CONFIG;
+        const config = await ensureDemoAuth(logic);
         const response = await invokeFunction(config, "chat-orchestrator", {
           action: null,
           channel: "app",
