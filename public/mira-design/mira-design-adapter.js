@@ -836,8 +836,15 @@
 
     logic.submitLogin = async () => {
       const state = logic.state || {};
-      const email = compact(state.loginEmail, "");
-      const password = compact(state.loginPwd, "");
+      let email = compact(state.loginEmail, "");
+      let password = compact(state.loginPwd, "");
+      // AI Chat (customer) is a public playable demo: let the presenter enter the
+      // chat in one click by falling back to the sandbox demo customer when no
+      // credentials are typed. Admin/Referral still require real credentials.
+      if (state.loginRole === "customer" && (!email || !password)) {
+        email = DEMO_CHAT_EMAIL;
+        password = DEMO_CHAT_PASSWORD;
+      }
       if (!email || !password) {
         logic.setState({ loginError: "กรุณากรอกอีเมลและรหัสผ่านให้ครบ" });
         return;
