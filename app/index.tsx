@@ -8,7 +8,7 @@ import { supabaseConfigStatus } from '@/lib/supabase';
 
 // Cache-buster: the domain sits behind a 4h browser-cache CDN rule, so bump
 // this version whenever mira-design/* changes or visitors keep the stale copy.
-const designVersion = '20260705';
+const designVersion = '20260705a';
 const designSrc = `/showcase/mira-design/mira-core-system.dc?v=${designVersion}`;
 
 type MiraBackendConfig = {

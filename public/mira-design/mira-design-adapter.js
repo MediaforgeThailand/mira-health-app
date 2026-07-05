@@ -1369,7 +1369,11 @@
       const refLink = refCode ? `${window.location.origin}/r/${encodeURIComponent(refCode)}` : "";
       const popupRefCode = this.state.qrRef || "";
       const popupRefLink = popupRefCode ? `${window.location.origin}/r/${encodeURIComponent(popupRefCode)}` : "";
-      const chatMessages = this.state.chatMessages || [chatPersonaGreeting(this)];
+      // The design's own playChat resets chatMessages to [] (empty but truthy),
+      // so check length too — an empty thread always shows the persona greeting.
+      const chatMessages = this.state.chatMessages && this.state.chatMessages.length
+        ? this.state.chatMessages
+        : [chatPersonaGreeting(this)];
       const activePersonaSlug = chatTenantSlug(this);
       const chatPersonas = CHAT_PERSONAS.map((persona) => {
         const active = persona.slug === activePersonaSlug;
