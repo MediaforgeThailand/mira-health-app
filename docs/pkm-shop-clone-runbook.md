@@ -27,12 +27,56 @@ mechanism:
 | Function **secrets** (OpenAI/Stripe/LINE/prompt id) | manual — Step E | never dumped; you re-set them |
 | Auth + project settings (redirect URLs, providers, SMTP, rate limits) | manual — Step F | platform config, not Postgres |
 
+## Cross-account clone (source and target owned by different Supabase accounts)
+
+The source `mira-health` lives in the `mediaforge2026` account; the target project
+will live in a **different user's** account. Supabase has no "clone project to
+another organization" button — and this toolkit does not need one, because every
+step is driven by **per-project credentials**, not by account login:
+
+- The database dump connects with `SOURCE_DB_URL` (a connection string that embeds
+  its own password) and needs **no** Supabase access token, so it works against
+  `mira-health` regardless of which account owns it.
+- The restore and storage upload use the **target** project's `TARGET_DB_URL` and
+  `TARGET_SERVICE_ROLE_KEY`.
+- The edge-function deploy is the only step that reads `SUPABASE_ACCESS_TOKEN`, and
+  that token must belong to the **target** account.
+
+Two ways to bridge the account boundary:
+
+- **Option A — get invited into the target org (simplest, least credential sharing).**
+  The other user invites `mediaforge2026` into their Supabase organization
+  (Organization → Team → Invite member; Developer/Admin/Owner). You then create the
+  new project there and run the whole clone yourself — you already hold the source
+  credentials, and your own access token now reaches the target, so no source
+  `service_role` ever leaves your hands.
+- **Option B — exchange credentials.** The other user creates the empty target
+  project and gives you its `TARGET_DB_URL`, `TARGET_SERVICE_ROLE_KEY`, `TARGET_REF`,
+  and a target access token; you supply the source `SOURCE_DB_URL` /
+  `SOURCE_SERVICE_ROLE_KEY`. Fill both into `.env.clone` and run the scripts. If you
+  would rather not share the source `service_role`, run only the dump + storage
+  **download** half yourself, then hand the dump files and downloaded objects to the
+  target operator to restore/upload.
+
+Cross-account caveats:
+
+- **Secrets are not copied.** In Step E set the target's own `OPENAI_API_KEY`, Stripe,
+  and LINE secrets — either the same values (if the new owner should reuse them) or
+  the new owner's own keys.
+- **Auth users carry over, sessions do not.** Password hashes come across in the data
+  dump so users can sign in again, but the target project signs JWTs with a different
+  secret, so existing tokens/sessions are invalidated — expected.
+- **The two projects are fully independent afterwards** — separate URLs, keys,
+  billing, and data. Changes in one never touch the other.
+
 ## Prerequisites
 
 - **Supabase CLI** — `npm i -g supabase` or use `npx --yes supabase`.
 - **PostgreSQL client** (`psql`, `pg_dump`) — e.g. `apt-get install postgresql-client` / `brew install libpq`.
 - **Node 18+** (this repo already uses it) for the storage helper.
-- A **Supabase access token** — <https://supabase.com/dashboard/account/tokens>.
+- A **Supabase access token for the _target_ account** —
+  <https://supabase.com/dashboard/account/tokens>. Used only to deploy edge
+  functions into the target; the source dump needs only its connection string.
 - For each project you need the **direct DB connection URI** (port 5432, not the
   pooler) from *Project Settings → Database → Connection string → URI*, and the
   **`service_role` key** from *Project Settings → API*.
@@ -58,8 +102,9 @@ Then `source .env.clone` before running the scripts.
 
 ## Step A — Create the new Supabase project
 
-Create it in the **same Supabase account/organization that owns the source**, so
-you are not fighting cross-account permissions. Dashboard → *New project*, or CLI:
+Create it in the **target user's account/organization** (see *Cross-account clone*
+above for how to bridge the boundary). Dashboard → *New project*, or CLI run with
+the **target** account's `SUPABASE_ACCESS_TOKEN`:
 
 ```bash
 supabase projects create "PKM-Shop" \
