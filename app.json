@@ -37,8 +37,7 @@
       "expo-secure-store"
     ],
     "experiments": {
-      "typedRoutes": true,
-      "baseUrl": "/showcase"
+      "typedRoutes": true
     }
   }
 }
