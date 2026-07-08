@@ -38,6 +38,9 @@ expo-*.log
 .env.*
 !.env.example
 
+# supabase clone toolkit output (DB dumps contain full data — never commit)
+.supabase-clone/
+
 # typescript
 *.tsbuildinfo
 
