@@ -40,6 +40,7 @@ expo-*.log
 
 # supabase clone toolkit output (DB dumps contain full data — never commit)
 .supabase-clone/
+clone-schema.diff
 
 # typescript
 *.tsbuildinfo
