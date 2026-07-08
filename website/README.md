@@ -1,6 +1,6 @@
 # Mira Marketing Website
 
-Standalone Astro marketing site for `mira.mediaforge.co`. This project is isolated from the Expo app and root package, but is now assembled together with the Expo showcase into a single deployment (see the root `scripts/build-site.mjs`): the landing page is served at `/` and the Expo showcase app is mounted under `/showcase`.
+Standalone Astro marketing site for `mira.mediaforge.co`. This project is isolated from the Expo app and root package and deploys as its own Vercel project (Root Directory `website/`). The Expo app is now a separate "demo" Vercel deployment built from the repo root (`npm run build` -> `expo export`), so the landing page and the demo no longer share a single build.
 
 The landing page lives at `/` (`src/pages/index.astro`); `/landingpage` is kept as a permanent redirect to `/` for backward compatibility.
 
