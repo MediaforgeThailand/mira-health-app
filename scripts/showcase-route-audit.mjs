@@ -10,7 +10,7 @@ const args = new Set(process.argv.slice(2));
 const mockupRibbonMarker = 'SHOWCASE_MOCKUP_RIBBON';
 
 const EXCLUDED_ROUTES = new Map([
-  ['/', 'showcase home is the module picker, not a module row'],
+  ['/', 'showcase home renders the Mira Core System design bundle (app/index.tsx)'],
   ['/+html', 'expo-router document shell'],
   ['/+not-found', 'demo safety net'],
   ['/tour/[module]', 'module tour shell generated from registry'],
