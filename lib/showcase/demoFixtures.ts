@@ -74,7 +74,7 @@ export const showcaseDemoProducts: HospitalProduct[] = [
     hospitalName: 'MiraCare Demo Hospital',
     id: 'demo-product-basic-plus',
     includes: ['CBC', 'FBS', 'Lipid profile', 'Liver function', 'Kidney function'],
-    imageUrl: null,
+    imageUrl: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=70',
     priceAmount: 2990,
     ragEmbeddingStatus: 'embedded',
     ragStatus: 'published',
@@ -97,7 +97,7 @@ export const showcaseDemoProducts: HospitalProduct[] = [
     hospitalName: 'MiraCare Demo Hospital',
     id: 'demo-product-flu',
     includes: ['Doctor screening', 'Influenza vaccine'],
-    imageUrl: null,
+    imageUrl: 'https://images.unsplash.com/photo-1612277795421-9bc7706a4a34?auto=format&fit=crop&w=800&q=70',
     priceAmount: 890,
     ragEmbeddingStatus: 'embedded',
     ragStatus: 'published',
@@ -109,6 +109,75 @@ export const showcaseDemoProducts: HospitalProduct[] = [
     title: 'วัคซีนไข้หวัดใหญ่',
   },
 ];
+
+// Beauty-clinic demo set — lets sales show the same back office speaking a
+// different vertical's language via /admin/catalog?tour=admin&vertical=beauty_clinic.
+export const showcaseBeautyDemoCategories: ProductCategoryOption[] = [
+  { active: true, icon: '✨', imageUrl: null, key: 'facial', labelTh: 'ทรีตเมนต์ผิวหน้า', sort: 1 },
+  { active: true, icon: '🔆', imageUrl: null, key: 'laser', labelTh: 'เลเซอร์/ผิวพรรณ', sort: 2 },
+  { active: true, icon: '💉', imageUrl: null, key: 'injection', labelTh: 'ฉีด/ฟิลเลอร์', sort: 3 },
+];
+
+export const showcaseBeautyDemoProducts: HospitalProduct[] = [
+  {
+    branchIds: ['demo-branch-asoke', 'demo-branch-siam'],
+    branches: showcaseDemoBranches,
+    catalogKey: 'facial-hydra-glow',
+    category: 'facial',
+    commissionRate: 0.05,
+    createdAt: '2026-06-01T09:00:00.000Z',
+    description: 'คอร์สทรีตเมนต์ผิวหน้า Hydra Glow เติมความชุ่มชื้นและฟื้นฟูผิวหมองคล้ำ พร้อมประเมินสภาพผิวก่อนทำ',
+    hospitalAddress: 'อโศก / สยาม',
+    hospitalName: 'MiraCare Beauty Clinic',
+    id: 'demo-product-hydra-glow',
+    includes: ['ประเมินสภาพผิว', 'มาส์กไฮยา', 'นวดหน้า', 'ลงเซรั่ม'],
+    imageUrl: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=800&q=70',
+    priceAmount: 1990,
+    ragEmbeddingStatus: 'embedded',
+    ragStatus: 'published',
+    requiresAppointment: true,
+    reviewStatus: 'approved',
+    status: 'active',
+    tags: ['ผิวหน้า', 'ความชุ่มชื้น'],
+    tenantId: 'demo-tenant',
+    title: 'ทรีตเมนต์ผิวหน้า Hydra Glow',
+  },
+  {
+    branchIds: ['demo-branch-asoke'],
+    branches: [showcaseDemoBranches[0]],
+    catalogKey: 'laser-underarm-6',
+    category: 'laser',
+    commissionRate: 0.05,
+    createdAt: '2026-06-02T09:00:00.000Z',
+    description: 'คอร์สเลเซอร์กำจัดขนรักแร้ 6 ครั้ง ลดปัญหาขนคุดและรอยดำ พร้อมปรึกษาก่อนเริ่มคอร์ส',
+    hospitalAddress: 'สาขาอโศก',
+    hospitalName: 'MiraCare Beauty Clinic',
+    id: 'demo-product-laser-underarm',
+    includes: ['ปรึกษาแพทย์ผิวหนัง', 'เลเซอร์กำจัดขน 6 ครั้ง'],
+    imageUrl: 'https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?auto=format&fit=crop&w=800&q=70',
+    priceAmount: 4500,
+    ragEmbeddingStatus: 'embedded',
+    ragStatus: 'published',
+    requiresAppointment: true,
+    reviewStatus: 'approved',
+    status: 'active',
+    tags: ['เลเซอร์', 'กำจัดขน'],
+    tenantId: 'demo-tenant',
+    title: 'เลเซอร์กำจัดขนรักแร้ 6 ครั้ง',
+  },
+];
+
+export function demoCatalogForVertical(vertical: string): {
+  branches: BranchSummary[];
+  categories: ProductCategoryOption[];
+  products: HospitalProduct[];
+} {
+  if (vertical === 'beauty_clinic') {
+    return { branches: showcaseDemoBranches, categories: showcaseBeautyDemoCategories, products: showcaseBeautyDemoProducts };
+  }
+
+  return { branches: showcaseDemoBranches, categories: showcaseDemoCategories, products: showcaseDemoProducts };
+}
 
 export const showcaseDemoOrders: OrderStatusInfo[] = [
   {

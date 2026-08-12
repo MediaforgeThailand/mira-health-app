@@ -729,7 +729,7 @@ function ProductsPanel({
       <View style={styles.searchRow}>
         <TextInput
           onChangeText={onQueryChange}
-          placeholder="ค้นหาสินค้า โรงพยาบาล หรือหมวดหมู่"
+          placeholder="ค้นหาสินค้า ผู้ให้บริการ หรือหมวดหมู่"
           placeholderTextColor={brand.muted}
           style={styles.searchInput}
           value={query}

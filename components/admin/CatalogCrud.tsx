@@ -4,6 +4,7 @@ import type { ComponentProps, ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
+import { AdminHeader, SummaryChips } from '@/components/admin/adminUi';
 import { MiraDesign, softShadow } from '@/constants/Design';
 import { useAuthSession } from '@/lib/auth/useAuthSession';
 import {
@@ -32,13 +33,15 @@ import {
   type ProductCategoryOption,
   type TenantMemberContext,
 } from '@/lib/marketplace/hospitalProducts';
-import { showcaseDemoBranches, showcaseDemoCategories, showcaseDemoProducts, showcaseDemoTenantContext } from '@/lib/showcase/demoFixtures';
+import { demoCatalogForVertical, showcaseDemoTenantContext } from '@/lib/showcase/demoFixtures';
 import { supabaseConfigStatus } from '@/lib/supabase';
+import { useTenantConfig } from '@/lib/tenant/useTenantConfig';
+import { catalogScreenCopy } from '@/lib/tenant/vocabulary';
 
 const emptyDraft: HospitalProductDraft = {
   branchInfo: '',
   branchIds: [],
-  category: 'checkup',
+  category: 'general',
   description: '',
   hospitalAddress: '',
   hospitalMapQuery: '',
@@ -143,9 +146,12 @@ function stripeFilterLabel(filter: StripeFilter) {
   return 'ทั้งหมด';
 }
 
-export function CatalogCrud({ title = 'จัดการสินค้าโรงพยาบาล' }: { title?: string }) {
+export function CatalogCrud({ title }: { title?: string }) {
   const auth = useAuthSession();
   const { tour } = useLocalSearchParams<{ tour?: string }>();
+  const { config: tenantConfig } = useTenantConfig();
+  const vocab = tenantConfig.vocabulary;
+  const copy = catalogScreenCopy(vocab);
   const { width } = useWindowDimensions();
   const webViewportWidth = typeof window !== 'undefined' ? window.innerWidth : 0;
   const viewportWidth = width > 0 ? width : webViewportWidth;
@@ -264,6 +270,7 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
     categoryFilter !== 'all' ||
     ragFilter !== 'all' ||
     stripeFilter !== 'all';
+  const activeFilterCount = [statusFilter !== 'all', categoryFilter !== 'all', ragFilter !== 'all', stripeFilter !== 'all'].filter(Boolean).length;
   const disabledActionHint = !canEditCatalog
     ? isDemoMode
       ? 'โหมดตัวอย่าง: ปุ่มนี้จะไม่ส่งข้อมูลจริง'
@@ -272,11 +279,12 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
   const lastRefreshedText = lastRefreshedAt ? `รีเฟรชล่าสุด ${formatShortDateTime(lastRefreshedAt)}` : 'รอข้อมูลล่าสุด';
 
   function loadDemoCatalog(reason: string | null = null) {
+    const demo = demoCatalogForVertical(tenantConfig.vertical);
     setDemoFallbackReason(reason);
     setTenantContext(showcaseDemoTenantContext);
-    setProducts(showcaseDemoProducts);
-    setBranches(showcaseDemoBranches);
-    setCategories(showcaseDemoCategories);
+    setProducts(demo.products);
+    setBranches(demo.branches);
+    setCategories(demo.categories);
     setLastRefreshedAt(new Date().toISOString());
   }
 
@@ -606,7 +614,7 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
   function openNewProduct() {
     setEditingProduct(null);
     setIsEditorOpen(true);
-    setDraft(emptyDraft);
+    setDraft({ ...emptyDraft, category: activeCategoryOptions[0]?.key ?? emptyDraft.category });
     setMessage(null);
     setError(null);
   }
@@ -630,128 +638,68 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <View style={[styles.headerCard, !isWide ? styles.headerCardStack : null]}>
-          <View style={styles.titleGroup}>
-            <Text style={styles.eyebrow}>หลังบ้านโรงพยาบาล / สินค้าคงคลัง</Text>
-            <Text style={styles.title}>{title || 'จัดการสินค้าโรงพยาบาล'}</Text>
-            <Text style={styles.subtitle}>
-              จัดการสินค้าที่ใช้ใน mobile catalog, chat checkout, RAG answers, Stripe/payment sync และ workflow ของ Referral
-            </Text>
-            <View style={styles.statusPillRow}>
-              <StatusBadge label={isDemoMode ? 'โหมดตัวอย่าง' : 'Live mode'} tone={isDemoMode ? 'warning' : 'success'} />
-              <StatusBadge
-                label={tenantContext ? tenantContext.display_name : isLoading ? 'กำลังตรวจ tenant' : 'ยังไม่เชื่อม tenant'}
-                tone={tenantContext ? 'info' : 'muted'}
-              />
-              {!canEditCatalog ? <StatusBadge label={isDemoMode ? 'read-only demo' : 'อ่านอย่างเดียว'} tone="muted" /> : null}
-              <StatusBadge label={lastRefreshedText} tone="muted" />
-            </View>
-          </View>
-          <View style={styles.topActions}>
-            <Pressable disabled={isLoading} onPress={refreshProducts} style={[styles.secondaryButton, isLoading ? styles.disabled : null]}>
-              <SymbolView name={{ android: 'refresh', ios: 'arrow.clockwise', web: 'refresh' }} size={18} tintColor={MiraDesign.color.showcaseBlue} />
-              <Text style={styles.secondaryButtonText}>{isLoading ? 'กำลังรีเฟรช' : 'รีเฟรช'}</Text>
-            </Pressable>
-            {canEditCatalog ? (
+        <AdminHeader
+          actions={
+            <>
               <Pressable
-                disabled={isBulkSyncing || busyProductId !== null || stripeSyncTargets.length === 0}
-                onPress={syncMissingStripeProducts}
-                style={[styles.secondaryButton, isBulkSyncing || busyProductId !== null || stripeSyncTargets.length === 0 ? styles.disabled : null]}
+                accessibilityLabel="รีเฟรช"
+                accessibilityRole="button"
+                disabled={isLoading}
+                onPress={refreshProducts}
+                style={[styles.headerBtn, isLoading ? styles.disabled : null]}
               >
-                <Text style={styles.secondaryButtonText}>
-                  {isBulkSyncing ? 'กำลังซิงก์ Stripe' : `ซิงก์ Stripe (${stripeSyncTargets.length})`}
-                </Text>
+                <SymbolView name={{ android: 'refresh', ios: 'arrow.clockwise', web: 'refresh' }} size={16} tintColor={MiraDesign.color.primaryDeep} />
+                <Text style={styles.headerBtnText}>{isLoading ? 'กำลังรีเฟรช' : 'รีเฟรช'}</Text>
               </Pressable>
-            ) : null}
-            <Link href={{ pathname: '/package-detail', params: { tour: 'admin' } }} asChild>
-              <Pressable style={styles.secondaryButton}>
-                <SymbolView name={{ android: 'phone_iphone', ios: 'iphone', web: 'phone_iphone' }} size={18} tintColor={MiraDesign.color.showcaseNavySoft} />
-                <Text style={styles.secondaryButtonText}>เปิด mobile catalog</Text>
+              {canEditCatalog ? (
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={isBulkSyncing || busyProductId !== null || stripeSyncTargets.length === 0}
+                  onPress={syncMissingStripeProducts}
+                  style={[styles.headerBtn, isBulkSyncing || busyProductId !== null || stripeSyncTargets.length === 0 ? styles.disabled : null]}
+                >
+                  <Text style={styles.headerBtnText}>{isBulkSyncing ? 'กำลังซิงก์ Stripe' : `ซิงก์ Stripe (${stripeSyncTargets.length})`}</Text>
+                </Pressable>
+              ) : null}
+              <Link href={{ pathname: '/package-detail', params: { tour: 'admin' } }} asChild>
+                <Pressable accessibilityRole="link" style={styles.headerBtn}>
+                  <SymbolView name={{ android: 'phone_iphone', ios: 'iphone', web: 'phone_iphone' }} size={16} tintColor={MiraDesign.color.primaryDeep} />
+                  <Text style={styles.headerBtnText}>mobile</Text>
+                </Pressable>
+              </Link>
+              <Pressable accessibilityRole="button" onPress={openNewProduct} style={styles.headerBtnPrimary}>
+                <SymbolView name={{ android: 'add', ios: 'plus', web: 'add' }} size={18} tintColor="#FFFFFF" />
+                <Text style={styles.headerBtnPrimaryText}>{copy.addProduct}</Text>
               </Pressable>
-            </Link>
-            <Pressable onPress={openNewProduct} style={styles.primaryButton}>
-              <SymbolView name={{ android: 'add', ios: 'plus', web: 'add' }} size={20} tintColor="#FFFFFF" />
-              <Text style={styles.primaryButtonText}>เพิ่มสินค้า</Text>
-            </Pressable>
-          </View>
-        </View>
+            </>
+          }
+          eyebrow={copy.eyebrow}
+          metaText={`${tenantContext ? tenantContext.display_name : isLoading ? 'กำลังตรวจ tenant' : 'ยังไม่เชื่อม tenant'} · ${lastRefreshedText}`}
+          modeLabel={isDemoMode ? 'โหมดตัวอย่าง' : 'ใช้งานจริง'}
+          modeTone={isDemoMode ? 'amber' : 'primary'}
+          note={
+            isDemoMode
+              ? 'โหมดตัวอย่าง: ปุ่มบันทึก อัปโหลด และ archive จะถูกปิดไว้'
+              : auth.session && !tenantContext && !isLoading
+                ? 'บัญชีที่อยู่ใน tenant_members เท่านั้นที่จะใช้หน้าแอดมินนี้ได้'
+                : tenantContext && !canEditCatalog
+                  ? 'เฉพาะ tenant_admin หรือ superadmin เท่านั้นที่สร้าง อัปโหลด archive หรือ restore สินค้าได้'
+                  : null
+          }
+          title={title || copy.title}
+        />
 
-        {isDemoMode ? (
-          <View style={styles.noticeCompact}>
-            <SymbolView name={{ android: 'info', ios: 'info.circle', web: 'info' }} size={18} tintColor="#7A5A05" />
-            <Text style={styles.noticeCompactText}>
-              {demoFallbackReason
-                ? `โหมดตัวอย่าง: กำลังแสดงข้อมูลตัวอย่าง เพราะ ${demoFallbackReason} ปุ่มบันทึก อัปโหลด และ archive จะถูกปิดไว้`
-                : 'โหมดตัวอย่าง: เปิดดู catalog ได้ทันทีโดยไม่ต้องล็อกอิน ปุ่มบันทึก อัปโหลด และ archive จะถูกปิดไว้'}
-            </Text>
-          </View>
-        ) : null}
-
-        {auth.session && !isDemoMode && !tenantContext && !isLoading ? (
-          <View style={styles.notice}>
-            <Text style={styles.noticeTitle}>ต้องมีสิทธิ์ใน tenant</Text>
-            <Text style={styles.noticeBody}>บัญชีที่อยู่ใน tenant_members เท่านั้นที่จะใช้หน้าแอดมินนี้ได้</Text>
-          </View>
-        ) : null}
-
-        {tenantContext && !isDemoMode && !canEditCatalog ? (
-          <View style={styles.notice}>
-            <Text style={styles.noticeTitle}>สิทธิ์อ่านอย่างเดียว</Text>
-            <Text style={styles.noticeBody}>เฉพาะ tenant_admin หรือ superadmin เท่านั้นที่สร้าง อัปโหลด archive หรือ restore สินค้าได้</Text>
-          </View>
-        ) : null}
-
-        <View style={styles.statsGrid}>
-          <StatCard
-            detail="ครอบคลุมทุกสถานะ"
-            icon={{ android: 'deployed_code', ios: 'cube', web: 'deployed_code' }}
-            label="สินค้าทั้งหมด"
-            tone="blue"
-            value={`${summary.total}`}
-          />
-          <StatCard
-            detail="พร้อมขายใน catalog"
-            icon={{ android: 'check_circle', ios: 'checkmark.circle', web: 'check_circle' }}
-            label="เปิดขาย"
-            tone="mint"
-            value={`${summary.active}`}
-          />
-          <StatCard
-            detail="รวม draft / รอตรวจ / ไม่ผ่าน"
-            icon={{ android: 'hourglass_empty', ios: 'hourglass', web: 'hourglass_empty' }}
-            label="รอตรวจข้อมูล"
-            tone="orange"
-            value={`${summary.draft}`}
-          />
-          <StatCard
-            detail="ซ่อนจาก catalog"
-            icon={{ android: 'inventory_2', ios: 'archivebox', web: 'inventory_2' }}
-            label="เก็บถาวร"
-            tone="violet"
-            value={`${summary.archived}`}
-          />
-          <StatCard
-            detail="published + embedded"
-            icon={{ android: 'sensors', ios: 'dot.radiowaves.left.and.right', web: 'sensors' }}
-            label="พร้อมใช้กับ RAG"
-            tone="mint"
-            value={`${summary.ragLive}`}
-          />
-          <StatCard
-            detail="ต้องซิงก์ก่อนใช้ Stripe"
-            icon={{ android: 'payments', ios: 'creditcard', web: 'payments' }}
-            label="รอซิงก์ Stripe"
-            tone="orange"
-            value={`${summary.stripeMissing}`}
-          />
-          <StatCard
-            detail="รอ publish หรือ embedding"
-            icon={{ android: 'cloud_sync', ios: 'icloud.and.arrow.up', web: 'cloud_sync' }}
-            label="รอ RAG/Embedding"
-            tone="blue"
-            value={`${summary.ragWaiting}`}
-          />
-        </View>
+        <SummaryChips
+          items={[
+            { key: 'total', label: copy.totalLabel, value: summary.total },
+            { key: 'active', label: 'เปิดขาย', value: summary.active },
+            { key: 'draft', label: 'รอตรวจ', value: summary.draft },
+            { key: 'archived', label: 'เก็บถาวร', value: summary.archived },
+            { key: 'rag', label: 'RAG พร้อม', value: summary.ragLive },
+            { key: 'stripe', label: 'รอซิงก์ Stripe', value: summary.stripeMissing },
+            { key: 'embed', label: 'รอ embedding', value: summary.ragWaiting },
+          ]}
+        />
 
         <View style={[styles.workspace, !isWide ? styles.workspaceStack : null]}>
           {isWide ? (
@@ -760,7 +708,7 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
               <View style={styles.editorPanel}>
             <View style={styles.panelHeader}>
               <View>
-                <Text style={styles.panelTitle}>{editingProduct ? 'แก้ไขสินค้า' : 'เพิ่มสินค้า'}</Text>
+                <Text style={styles.panelTitle}>{editingProduct ? copy.editProduct : copy.addProduct}</Text>
                 <Text style={styles.panelMeta}>{editingProduct ? `Key: ${editingProduct.catalogKey}` : 'สร้าง catalog key ตอนบันทึก'}</Text>
               </View>
               {editingProduct ? (
@@ -770,17 +718,17 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
               ) : null}
             </View>
 
-            <Field label="ชื่อสินค้า" onChangeText={(value) => updateDraft('title', value)} value={draft.title} />
+            <Field label={copy.nameField} onChangeText={(value) => updateDraft('title', value)} value={draft.title} />
             <Field label="รายละเอียด" multiline onChangeText={(value) => updateDraft('description', value)} value={draft.description} />
             <View style={styles.twoColumn}>
               <Field label="ราคา THB" onChangeText={(value) => updateDraft('priceAmount', value)} value={draft.priceAmount} />
               <View style={styles.imageField}>
-                <Text style={styles.fieldLabel}>รูปสินค้า</Text>
+                <Text style={styles.fieldLabel}>{copy.imageField}</Text>
                 <View style={styles.imageInputRow}>
                   <TextInput
                     onChangeText={(value) => updateDraft('imageUrl', value)}
-                    placeholder="Public URL หรือรูปสินค้าที่อัปโหลดแล้ว"
-                    placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+                    placeholder={`Public URL หรือรูป${vocab.productTerm}ที่อัปโหลดแล้ว`}
+                    placeholderTextColor={MiraDesign.color.inkSoft}
                     style={[styles.input, styles.imageUrlInput]}
                     value={draft.imageUrl ?? ''}
                   />
@@ -835,21 +783,21 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
                   <TextInput
                     onChangeText={(value) => setCategoryDraft((current) => ({ ...current, key: value }))}
                     placeholder="key"
-                    placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+                    placeholderTextColor={MiraDesign.color.inkSoft}
                     style={[styles.input, styles.compactInput]}
                     value={categoryDraft.key}
                   />
                   <TextInput
                     onChangeText={(value) => setCategoryDraft((current) => ({ ...current, labelTh: value }))}
                     placeholder="label_th"
-                    placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+                    placeholderTextColor={MiraDesign.color.inkSoft}
                     style={[styles.input, styles.compactInput]}
                     value={categoryDraft.labelTh}
                   />
                   <TextInput
                     onChangeText={(value) => setCategoryDraft((current) => ({ ...current, icon: value }))}
                     placeholder="icon"
-                    placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+                    placeholderTextColor={MiraDesign.color.inkSoft}
                     style={[styles.input, styles.iconInput]}
                     value={categoryDraft.icon ?? ''}
                   />
@@ -919,11 +867,25 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
             {message ? <Text style={styles.successText}>{message}</Text> : null}
 
             <Pressable disabled={!canSave || isSaving} onPress={saveDraft} style={[styles.saveButton, !canSave || isSaving ? styles.disabled : null]}>
-              <Text style={styles.saveButtonText}>{isSaving ? 'กำลังบันทึก' : editingProduct ? 'บันทึกสินค้า' : 'สร้างสินค้า'}</Text>
+              <Text style={styles.saveButtonText}>{isSaving ? 'กำลังบันทึก' : editingProduct ? copy.saveProduct : copy.createProduct}</Text>
             </Pressable>
+            {editingProduct ? (
+              <ProductEditorActions
+                disabled={Boolean(busyProductId) || isBulkSyncing || !canEditCatalog}
+                isBusy={busyProductId === editingProduct.id}
+                onArchive={() => changeStatus(editingProduct, 'archived')}
+                onRestore={() => changeStatus(editingProduct, 'active')}
+                onSyncStripe={() => syncStripeProduct(editingProduct)}
+                product={editingProduct}
+              />
+            ) : null}
               </View>
             ) : (
-              <ReferralWorkspaceCard tenantName={tenantContext?.display_name ?? defaultTenantSlug} />
+              <ReferralWorkspaceCard
+                productTerm={vocab.productTerm}
+                providerTerm={vocab.providerTerm}
+                tenantName={tenantContext?.display_name ?? defaultTenantSlug}
+              />
             )}
             </View>
           ) : null}
@@ -931,7 +893,7 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
           <View style={styles.listPane}>
             <View style={[styles.inventoryHeader, !isWide ? styles.inventoryHeaderStack : null]}>
               <View>
-                <Text style={styles.inventoryTitle}>รายการสินค้า</Text>
+                <Text style={styles.inventoryTitle}>{copy.inventoryTitle}</Text>
                 <Text style={styles.inventoryMeta}>
                   {isLoading ? 'กำลังโหลดสินค้า' : `แสดง ${filteredProducts.length.toLocaleString('th-TH')} จาก ${products.length.toLocaleString('th-TH')} รายการ`}
                 </Text>
@@ -939,12 +901,12 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
               <View style={styles.inventoryActions}>
                 <Link href="/admin/referrers" asChild>
                   <Pressable style={styles.secondaryButton}>
-                    <SymbolView name={{ android: 'person_add', ios: 'person.badge.plus', web: 'person_add' }} size={18} tintColor={MiraDesign.color.showcaseBlue} />
+                    <SymbolView name={{ android: 'person_add', ios: 'person.badge.plus', web: 'person_add' }} size={18} tintColor={MiraDesign.color.primary} />
                     <Text style={styles.secondaryButtonText}>พื้นที่ Referral</Text>
                   </Pressable>
                 </Link>
                 <Pressable onPress={refreshProducts} style={styles.secondaryButton}>
-                  <SymbolView name={{ android: 'database', ios: 'cylinder.split.1x2', web: 'database' }} size={18} tintColor={MiraDesign.color.showcaseNavySoft} />
+                  <SymbolView name={{ android: 'database', ios: 'cylinder.split.1x2', web: 'database' }} size={18} tintColor={MiraDesign.color.inkSoft} />
                   <Text style={styles.secondaryButtonText}>รีเฟรชข้อมูล</Text>
                 </Pressable>
               </View>
@@ -952,11 +914,12 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
 
             <ProductToolbar
               activeCategory={categoryFilter}
+              activeFilterCount={activeFilterCount}
               activeRag={ragFilter}
               activeStatus={statusFilter}
               activeStripe={stripeFilter}
               categories={visibleCategoryOptions}
-              filtersOpen={!isMobile || filtersOpen}
+              filtersOpen={filtersOpen}
               hasActiveFilters={hasActiveFilters}
               isMobile={isMobile}
               onCategoryChange={setCategoryFilter}
@@ -966,6 +929,7 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
               onStripeChange={setStripeFilter}
               onToggleFilters={() => setFiltersOpen((current) => !current)}
               query={query}
+              searchPlaceholder={copy.searchPlaceholder}
               statusOptions={visibleStatusFilters}
               onQueryChange={setQuery}
             />
@@ -976,25 +940,27 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
             {isLoading && products.length === 0 ? (
               <ProductSkeleton />
             ) : products.length === 0 ? (
-              <ProductEmptyState canCreate={canEditCatalog} onCreate={openNewProduct} />
+              <ProductEmptyState
+                addLabel={copy.addProduct}
+                body={copy.emptyBody}
+                canCreate={canEditCatalog}
+                onCreate={openNewProduct}
+                title={copy.emptyTitle}
+              />
             ) : filteredProducts.length === 0 ? (
-              <ProductNoResultsState onClear={clearFilters} />
+              <ProductNoResultsState onClear={clearFilters} productTerm={vocab.productTerm} />
             ) : (
-              filteredProducts.map((product) => (
-                <ProductRow
-                  key={product.id}
-                  disabled={Boolean(busyProductId) || isBulkSyncing || !canEditCatalog}
-                  isBusy={busyProductId === product.id}
-                  onArchive={() => changeStatus(product, 'archived')}
-                  onEdit={() => editProduct(product)}
-                  onRestore={() => changeStatus(product, 'active')}
-                  onSyncStripe={() => syncStripeProduct(product)}
-                  product={product}
-                  productCategoryLabel={categoryOptions.find((category) => category.key === product.category)?.labelTh ?? getProductCategoryLabel(product.category)}
-                  selected={editingProduct?.id === product.id}
-                  disabledReason={disabledActionHint}
-                />
-              ))
+              <View style={styles.productGrid}>
+                {filteredProducts.map((product) => (
+                  <ProductRow
+                    key={product.id}
+                    onEdit={() => editProduct(product)}
+                    product={product}
+                    productCategoryLabel={categoryOptions.find((category) => category.key === product.category)?.labelTh ?? getProductCategoryLabel(product.category)}
+                    selected={editingProduct?.id === product.id}
+                  />
+                ))}
+              </View>
             )}
           </View>
 
@@ -1004,7 +970,7 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
                 <View style={styles.editorPanel}>
                   <View style={styles.panelHeader}>
                     <View>
-                      <Text style={styles.panelTitle}>{editingProduct ? 'แก้ไขสินค้า' : 'เพิ่มสินค้า'}</Text>
+                      <Text style={styles.panelTitle}>{editingProduct ? copy.editProduct : copy.addProduct}</Text>
                       <Text style={styles.panelMeta}>{editingProduct ? `Key: ${editingProduct.catalogKey}` : 'สร้าง catalog key ตอนบันทึก'}</Text>
                     </View>
                     {editingProduct ? (
@@ -1014,17 +980,17 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
                     ) : null}
                   </View>
 
-                  <Field label="ชื่อสินค้า" onChangeText={(value) => updateDraft('title', value)} value={draft.title} />
+                  <Field label={copy.nameField} onChangeText={(value) => updateDraft('title', value)} value={draft.title} />
                   <Field label="รายละเอียด" multiline onChangeText={(value) => updateDraft('description', value)} value={draft.description} />
                   <View style={styles.twoColumn}>
                     <Field label="ราคา THB" onChangeText={(value) => updateDraft('priceAmount', value)} value={draft.priceAmount} />
                     <View style={styles.imageField}>
-                      <Text style={styles.fieldLabel}>รูปสินค้า</Text>
+                      <Text style={styles.fieldLabel}>{copy.imageField}</Text>
                       <View style={styles.imageInputRow}>
                         <TextInput
                           onChangeText={(value) => updateDraft('imageUrl', value)}
-                          placeholder="Public URL หรือรูปสินค้าที่อัปโหลดแล้ว"
-                          placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+                          placeholder={`Public URL หรือรูป${vocab.productTerm}ที่อัปโหลดแล้ว`}
+                          placeholderTextColor={MiraDesign.color.inkSoft}
                           style={[styles.input, styles.imageUrlInput]}
                           value={draft.imageUrl ?? ''}
                         />
@@ -1079,21 +1045,21 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
                         <TextInput
                           onChangeText={(value) => setCategoryDraft((current) => ({ ...current, key: value }))}
                           placeholder="key"
-                          placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+                          placeholderTextColor={MiraDesign.color.inkSoft}
                           style={[styles.input, styles.compactInput]}
                           value={categoryDraft.key}
                         />
                         <TextInput
                           onChangeText={(value) => setCategoryDraft((current) => ({ ...current, labelTh: value }))}
                           placeholder="label_th"
-                          placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+                          placeholderTextColor={MiraDesign.color.inkSoft}
                           style={[styles.input, styles.compactInput]}
                           value={categoryDraft.labelTh}
                         />
                         <TextInput
                           onChangeText={(value) => setCategoryDraft((current) => ({ ...current, icon: value }))}
                           placeholder="icon"
-                          placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+                          placeholderTextColor={MiraDesign.color.inkSoft}
                           style={[styles.input, styles.iconInput]}
                           value={categoryDraft.icon ?? ''}
                         />
@@ -1163,16 +1129,48 @@ export function CatalogCrud({ title = 'จัดการสินค้าโ�
                   {message ? <Text style={styles.successText}>{message}</Text> : null}
 
                   <Pressable disabled={!canSave || isSaving} onPress={saveDraft} style={[styles.saveButton, !canSave || isSaving ? styles.disabled : null]}>
-                    <Text style={styles.saveButtonText}>{isSaving ? 'กำลังบันทึก' : editingProduct ? 'บันทึกสินค้า' : 'สร้างสินค้า'}</Text>
+                    <Text style={styles.saveButtonText}>{isSaving ? 'กำลังบันทึก' : editingProduct ? copy.saveProduct : copy.createProduct}</Text>
                   </Pressable>
+                  {editingProduct ? (
+                    <ProductEditorActions
+                      disabled={Boolean(busyProductId) || isBulkSyncing || !canEditCatalog}
+                      isBusy={busyProductId === editingProduct.id}
+                      onArchive={() => changeStatus(editingProduct, 'archived')}
+                      onRestore={() => changeStatus(editingProduct, 'active')}
+                      onSyncStripe={() => syncStripeProduct(editingProduct)}
+                      product={editingProduct}
+                    />
+                  ) : null}
                 </View>
               ) : (
-                <ReferralWorkspaceCard tenantName={tenantContext?.display_name ?? defaultTenantSlug} />
+                <ReferralWorkspaceCard
+                productTerm={vocab.productTerm}
+                providerTerm={vocab.providerTerm}
+                tenantName={tenantContext?.display_name ?? defaultTenantSlug}
+              />
               )}
             </View>
           ) : null}
         </View>
       </ScrollView>
+
+      {filtersOpen ? (
+        <CatalogFilterPanel
+          activeCategory={categoryFilter}
+          activeRag={ragFilter}
+          activeStatus={statusFilter}
+          activeStripe={stripeFilter}
+          categories={visibleCategoryOptions}
+          isMobile={isMobile}
+          onCategoryChange={setCategoryFilter}
+          onClear={clearFilters}
+          onClose={() => setFiltersOpen(false)}
+          onRagChange={setRagFilter}
+          onStatusChange={setStatusFilter}
+          onStripeChange={setStripeFilter}
+          statusOptions={visibleStatusFilters}
+        />
+      ) : null}
     </View>
   );
 }
@@ -1199,7 +1197,7 @@ function StatCard({
     violet: styles.statIconViolet,
   }[tone];
   const iconColor = {
-    blue: MiraDesign.color.showcaseBlue,
+    blue: MiraDesign.color.primary,
     mint: '#0F9F72',
     orange: '#F97316',
     violet: '#6D28D9',
@@ -1220,7 +1218,7 @@ function StatCard({
   );
 }
 
-function ReferralWorkspaceCard({ tenantName }: { tenantName: string }) {
+function ReferralWorkspaceCard({ productTerm, providerTerm, tenantName }: { productTerm: string; providerTerm: string; tenantName: string }) {
   return (
     <View style={styles.referralPanel}>
       <View style={styles.referralHeader}>
@@ -1228,13 +1226,13 @@ function ReferralWorkspaceCard({ tenantName }: { tenantName: string }) {
           <Text style={styles.referralTitle}>พื้นที่ Referral</Text>
           <Text style={styles.referralLink}>{tenantName}</Text>
         </View>
-        <Text style={styles.waitingBadge}>พร้อมเลือกสินค้า</Text>
+        <Text style={styles.waitingBadge}>{`พร้อมเลือก${productTerm}`}</Text>
       </View>
       <View style={styles.referralCallout}>
-        <SymbolView name={{ android: 'person_add', ios: 'person.badge.plus', web: 'person_add' }} size={26} tintColor={MiraDesign.color.showcaseBlue} />
+        <SymbolView name={{ android: 'person_add', ios: 'person.badge.plus', web: 'person_add' }} size={26} tintColor={MiraDesign.color.primary} />
         <View style={styles.referralCopy}>
-          <Text style={styles.referralCalloutTitle}>เลือกสินค้าจากรายการเพื่อสร้าง referral code</Text>
-          <Text style={styles.referralBody}>ใช้กับพาร์ทเนอร์ของโรงพยาบาลโดยไม่เปลี่ยนข้อมูล catalog หรือสถานะสินค้า</Text>
+          <Text style={styles.referralCalloutTitle}>{`เลือก${productTerm}จากรายการเพื่อสร้าง referral code`}</Text>
+          <Text style={styles.referralBody}>{`ใช้กับพาร์ทเนอร์ของ${providerTerm}โดยไม่เปลี่ยนข้อมูล catalog หรือสถานะ${productTerm}`}</Text>
         </View>
       </View>
     </View>
@@ -1259,6 +1257,7 @@ function draftFromProduct(product: HospitalProduct): HospitalProductDraft {
 
 function ProductToolbar({
   activeCategory,
+  activeFilterCount,
   activeRag,
   activeStatus,
   activeStripe,
@@ -1274,9 +1273,11 @@ function ProductToolbar({
   onStripeChange,
   onToggleFilters,
   query,
+  searchPlaceholder,
   statusOptions,
 }: {
   activeCategory: ProductCategory | 'all';
+  activeFilterCount: number;
   activeRag: RagFilter;
   activeStatus: StatusFilter;
   activeStripe: StripeFilter;
@@ -1292,36 +1293,87 @@ function ProductToolbar({
   onStripeChange: (filter: StripeFilter) => void;
   onToggleFilters: () => void;
   query: string;
+  searchPlaceholder: string;
   statusOptions: StatusFilter[];
 }) {
   return (
     <View style={styles.toolbar}>
       <View style={styles.toolbarTopRow}>
         <View style={styles.searchBox}>
-          <SymbolView name={{ android: 'search', ios: 'magnifyingglass', web: 'search' }} size={18} tintColor={MiraDesign.color.showcaseNavySoft} />
+          <SymbolView name={{ android: 'search', ios: 'magnifyingglass', web: 'search' }} size={18} tintColor={MiraDesign.color.inkSoft} />
           <TextInput
             onChangeText={onQueryChange}
-            placeholder="ค้นหาชื่อสินค้า โรงพยาบาล หมวดหมู่ สาขา หรือ tag"
-            placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+            placeholder={searchPlaceholder}
+            placeholderTextColor={MiraDesign.color.inkSoft}
             style={styles.searchInput}
             value={query}
           />
         </View>
-        {isMobile ? (
-          <Pressable onPress={onToggleFilters} style={styles.filterToggle}>
-            <SymbolView name={{ android: 'tune', ios: 'slider.horizontal.3', web: 'tune' }} size={17} tintColor={MiraDesign.color.showcaseBlueDeep} />
-            <Text style={styles.filterToggleText}>ตัวกรอง</Text>
-          </Pressable>
-        ) : null}
+        <Pressable
+          accessibilityLabel="ตัวกรอง"
+          accessibilityRole="button"
+          onPress={onToggleFilters}
+          style={[styles.filterToggle, filtersOpen || activeFilterCount > 0 ? styles.filterToggleActive : null]}
+        >
+          <SymbolView
+            name={{ android: 'tune', ios: 'slider.horizontal.3', web: 'tune' }}
+            size={17}
+            tintColor={filtersOpen || activeFilterCount > 0 ? MiraDesign.color.primaryDeep : MiraDesign.color.inkSoft}
+          />
+          <Text style={[styles.filterToggleText, filtersOpen || activeFilterCount > 0 ? styles.filterToggleTextActive : null]}>
+            {activeFilterCount > 0 ? `ตัวกรอง · ${activeFilterCount}` : 'ตัวกรอง'}
+          </Text>
+        </Pressable>
         {hasActiveFilters ? (
           <Pressable onPress={onClear} style={styles.clearButton}>
             <Text style={styles.clearButtonText}>ล้างตัวกรอง</Text>
           </Pressable>
         ) : null}
       </View>
+    </View>
+  );
+}
 
-      {filtersOpen ? (
-        <View style={styles.filterGrid}>
+function CatalogFilterPanel({
+  activeCategory,
+  activeRag,
+  activeStatus,
+  activeStripe,
+  categories,
+  isMobile,
+  onCategoryChange,
+  onClear,
+  onClose,
+  onRagChange,
+  onStatusChange,
+  onStripeChange,
+  statusOptions,
+}: {
+  activeCategory: ProductCategory | 'all';
+  activeRag: RagFilter;
+  activeStatus: StatusFilter;
+  activeStripe: StripeFilter;
+  categories: ProductCategoryOption[];
+  isMobile: boolean;
+  onCategoryChange: (category: ProductCategory | 'all') => void;
+  onClear: () => void;
+  onClose: () => void;
+  onRagChange: (filter: RagFilter) => void;
+  onStatusChange: (status: StatusFilter) => void;
+  onStripeChange: (filter: StripeFilter) => void;
+  statusOptions: StatusFilter[];
+}) {
+  return (
+    <View style={styles.filterOverlay}>
+      <Pressable accessibilityLabel="ปิดตัวกรอง" onPress={onClose} style={styles.filterBackdrop} />
+      <View style={[styles.filterPanel, isMobile ? styles.filterPanelSheet : styles.filterPanelDesktop]}>
+        <View style={styles.filterPanelHeader}>
+          <Text style={styles.filterPanelTitle}>ตัวกรอง</Text>
+          <Pressable accessibilityLabel="ปิด" accessibilityRole="button" onPress={onClose} style={styles.filterCloseBtn}>
+            <SymbolView name={{ android: 'close', ios: 'xmark', web: 'close' }} size={18} tintColor={MiraDesign.color.inkSoft} />
+          </Pressable>
+        </View>
+        <View style={styles.filterPanelBody}>
           <FilterGroup label="สถานะ">
             {statusOptions.map((status) => (
               <FilterChip
@@ -1364,7 +1416,15 @@ function ProductToolbar({
             ))}
           </FilterGroup>
         </View>
-      ) : null}
+        <View style={styles.filterPanelFooter}>
+          <Pressable accessibilityRole="button" onPress={onClear} style={styles.filterClearBtn}>
+            <Text style={styles.filterClearBtnText}>ล้างค่า</Text>
+          </Pressable>
+          <Pressable accessibilityRole="button" onPress={onClose} style={styles.filterApplyBtn}>
+            <Text style={styles.filterApplyBtnText}>เสร็จสิ้น</Text>
+          </Pressable>
+        </View>
+      </View>
     </View>
   );
 }
@@ -1387,131 +1447,79 @@ function FilterChip({ active, label, onPress }: { active: boolean; label: string
 }
 
 function ProductRow({
-  disabled,
-  disabledReason,
-  isBusy,
-  onArchive,
   onEdit,
-  onRestore,
-  onSyncStripe,
   product,
   productCategoryLabel,
   selected,
 }: {
-  disabled: boolean;
-  disabledReason: string | null;
-  isBusy: boolean;
-  onArchive: () => void;
   onEdit: () => void;
-  onRestore: () => void;
-  onSyncStripe: () => void;
   product: HospitalProduct;
   productCategoryLabel: string;
   selected: boolean;
 }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      onPress={onEdit}
+      style={[styles.gridCard, selected ? styles.gridCardSelected : null, product.status === 'archived' ? styles.gridCardArchived : null]}
+    >
+      <View style={styles.gridThumb}>
+        {product.imageUrl ? (
+          <Image resizeMode="cover" source={{ uri: product.imageUrl }} style={styles.gridImage} />
+        ) : (
+          <View style={styles.gridImagePlaceholder}>
+            <SymbolView name={categoryIcon(product.category)} size={38} tintColor={MiraDesign.color.primary} />
+          </View>
+        )}
+        <View style={styles.gridStatusWrap}>
+          <StatusBadge label={productStatusLabel(product.status)} tone={getProductStatusTone(product.status)} />
+        </View>
+      </View>
+      <View style={styles.gridInfo}>
+        <Text numberOfLines={2} style={styles.gridTitle}>
+          {product.title}
+        </Text>
+        <Text numberOfLines={1} style={styles.gridCategory}>
+          {productCategoryLabel}
+        </Text>
+        <Text style={styles.gridPrice}>฿{product.priceAmount.toLocaleString('th-TH')}</Text>
+      </View>
+    </Pressable>
+  );
+}
+
+function ProductEditorActions({
+  disabled,
+  isBusy,
+  onArchive,
+  onRestore,
+  onSyncStripe,
+  product,
+}: {
+  disabled: boolean;
+  isBusy: boolean;
+  onArchive: () => void;
+  onRestore: () => void;
+  onSyncStripe: () => void;
+  product: HospitalProduct;
+}) {
   const isActive = product.status === 'active';
-  const branchNames = product.branches.map((branch) => branch.name);
-  const stripeStatus = getStripeStatus(product);
-  const ragStatus = getRagReadiness(product);
-  const embeddingStatus = getEmbeddingStatus(product);
-  const tags = (product.tags.length > 0 ? product.tags : product.includes).slice(0, 3);
-  const nextAction = getNextCatalogAction(product);
-  const createdOrUpdatedAt = getProductTimestamp(product);
-  const stripeActionLabel = isBusy
-    ? 'กำลังซิงก์'
-    : product.stripeProductId && product.stripePriceId
-      ? 'ซิงก์ Stripe อีกครั้ง'
-      : 'ซิงก์ Stripe';
 
   return (
-    <View style={[styles.productCard, selected ? styles.productCardSelected : null, product.status === 'archived' ? styles.productCardArchived : null]}>
-      {selected ? <View style={styles.selectedRail} /> : null}
-      <View style={styles.productCardTop}>
-        <ProductVisual product={product} />
-        <View style={styles.productMain}>
-          <View style={styles.productHead}>
-            <View style={styles.productTitleGroup}>
-              <Text numberOfLines={2} style={styles.productTitle}>{product.title}</Text>
-              <Text numberOfLines={1} style={styles.productKey}>
-                {product.hospitalName || 'Mira Partner Hospital'} · {product.catalogKey}
-              </Text>
-            </View>
-            <View style={styles.rowPills}>
-              <StatusBadge label={productStatusLabel(product.status)} tone={getProductStatusTone(product.status)} />
-              <StatusBadge label={productCategoryLabel} tone="muted" />
-            </View>
-          </View>
-          <Text numberOfLines={2} style={styles.productDescription}>
-            {product.description}
-          </Text>
-          <View style={styles.tagRow}>
-            {tags.map((tag) => (
-              <Text key={tag} numberOfLines={1} style={styles.tagPill}>
-                {tag}
-              </Text>
-            ))}
-            <Text numberOfLines={1} style={styles.timestampPill}>{createdOrUpdatedAt}</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.productFactRow}>
-        <ProductFact label="ราคา" value={`${product.priceAmount.toLocaleString('th-TH')} บาท`} />
-        <ProductFact label="ค่าคอมมิชชัน" value={formatCommissionPercent(product.commissionRate)} />
-        <ProductFact label="สาขา" value={branchNames.length > 0 ? `${branchNames.length} สาขา` : 'ยังไม่ผูกสาขา'} />
-        <ProductFact label="การจอง" value={product.requiresAppointment ? 'ต้องนัดหมาย' : 'Walk-in ได้'} />
-      </View>
-
-      <View style={styles.branchRow}>
-        {branchNames.length > 0 ? (
-          branchNames.slice(0, 4).map((branchName) => (
-            <Text key={branchName} numberOfLines={1} style={styles.branchChip}>{branchName}</Text>
-          ))
-        ) : (
-          <Text style={styles.branchPlaceholder}>{product.hospitalAddress || 'ยังไม่ผูกสาขา'}</Text>
-        )}
-      </View>
-
-      <View style={styles.readinessCluster}>
-        <ReadinessBadge label="สถานะ" value={productStatusLabel(product.status)} tone={getProductStatusTone(product.status)} />
-        <ReadinessBadge label="RAG" value={ragStatus.label} tone={ragStatus.tone} />
-        <ReadinessBadge label="Stripe" value={stripeStatus.label} tone={stripeStatus.tone} />
-        <ReadinessBadge label="Embedding" value={embeddingStatus.label} tone={embeddingStatus.tone} />
-      </View>
-
-      <View style={styles.nextActionRow}>
-        <View style={styles.nextActionCopy}>
-          <Text style={styles.nextActionLabel}>งานถัดไป</Text>
-          <Text style={styles.nextActionText}>{nextAction}</Text>
-        </View>
-        <View style={styles.productFooter}>
-          <Pressable onPress={onEdit} style={styles.editButton}>
-            <SymbolView name={{ android: 'edit', ios: 'pencil', web: 'edit' }} size={17} tintColor={MiraDesign.color.showcaseBlue} />
-            <Text style={styles.editButtonText}>แก้ไข</Text>
-          </Pressable>
-          <Pressable disabled={disabled} onPress={onSyncStripe} style={[styles.stripeButton, disabled ? styles.disabled : null]}>
-            <SymbolView name={{ android: 'database', ios: 'cylinder.split.1x2', web: 'database' }} size={17} tintColor={MiraDesign.color.showcaseNavySoft} />
-            <Text style={styles.stripeButtonText}>{stripeActionLabel}</Text>
-          </Pressable>
-          <Link href="/admin/referrers" asChild>
-            <Pressable style={styles.referralButton}>
-              <SymbolView name={{ android: 'person_add', ios: 'person.badge.plus', web: 'person_add' }} size={17} tintColor={MiraDesign.color.showcaseBlueDeep} />
-              <Text style={styles.referralButtonText}>สร้าง Referral</Text>
-            </Pressable>
-          </Link>
-          {isActive ? (
-            <Pressable disabled={disabled} onPress={onArchive} style={[styles.dangerButton, disabled ? styles.disabled : null]}>
-              <Text style={styles.dangerButtonText}>{isBusy ? 'กำลังเก็บ' : 'เก็บถาวร'}</Text>
-            </Pressable>
-          ) : (
-            <Pressable disabled={disabled} onPress={onRestore} style={[styles.restoreButton, disabled ? styles.disabled : null]}>
-              <Text style={styles.restoreButtonText}>{isBusy ? 'กำลังกู้คืน' : 'กู้คืน'}</Text>
-            </Pressable>
-          )}
-        </View>
-      </View>
-
-      {disabledReason ? <Text style={styles.disabledHint}>{disabledReason}</Text> : null}
+    <View style={styles.editorActions}>
+      <Pressable accessibilityRole="button" disabled={disabled} onPress={onSyncStripe} style={[styles.editorActionBtn, disabled ? styles.disabled : null]}>
+        <Text style={styles.editorActionText}>{isBusy ? 'กำลังซิงก์' : 'ซิงก์ Stripe'}</Text>
+      </Pressable>
+      {isActive ? (
+        <Pressable accessibilityRole="button" disabled={disabled} onPress={onArchive} style={[styles.editorActionDanger, disabled ? styles.disabled : null]}>
+          <Text style={styles.editorActionDangerText}>{isBusy ? 'กำลังเก็บ' : 'เก็บถาวร'}</Text>
+        </Pressable>
+      ) : (
+        <Pressable accessibilityRole="button" disabled={disabled} onPress={onRestore} style={[styles.editorActionBtn, disabled ? styles.disabled : null]}>
+          <Text style={styles.editorActionText}>{isBusy ? 'กำลังกู้คืน' : 'กู้คืน'}</Text>
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -1523,7 +1531,7 @@ function ProductVisual({ product }: { product: HospitalProduct }) {
 
   return (
     <View style={styles.productIconBox}>
-      <SymbolView name={categoryIcon(product.category)} size={46} tintColor={MiraDesign.color.showcaseBlue} />
+      <SymbolView name={categoryIcon(product.category)} size={46} tintColor={MiraDesign.color.primary} />
     </View>
   );
 }
@@ -1571,27 +1579,37 @@ function ProductSkeleton() {
   );
 }
 
-function ProductEmptyState({ canCreate, onCreate }: { canCreate: boolean; onCreate: () => void }) {
+function ProductEmptyState({
+  addLabel,
+  body,
+  canCreate,
+  onCreate,
+  title,
+}: {
+  addLabel: string;
+  body: string;
+  canCreate: boolean;
+  onCreate: () => void;
+  title: string;
+}) {
   return (
     <View style={styles.emptyState}>
-      <Text style={styles.emptyTitle}>ยังไม่มีสินค้าใน catalog</Text>
-      <Text style={styles.emptyBody}>
-        เพิ่มสินค้าโรงพยาบาลเพื่อใช้ใน mobile catalog, chat checkout, RAG answers และ referral workflow
-      </Text>
+      <Text style={styles.emptyTitle}>{title}</Text>
+      <Text style={styles.emptyBody}>{body}</Text>
       {canCreate ? (
         <Pressable onPress={onCreate} style={styles.emptyAction}>
-          <Text style={styles.emptyActionText}>เพิ่มสินค้า</Text>
+          <Text style={styles.emptyActionText}>{addLabel}</Text>
         </Pressable>
       ) : null}
     </View>
   );
 }
 
-function ProductNoResultsState({ onClear }: { onClear: () => void }) {
+function ProductNoResultsState({ onClear, productTerm }: { onClear: () => void; productTerm: string }) {
   return (
     <View style={styles.emptyState}>
-      <Text style={styles.emptyTitle}>ไม่พบสินค้าที่ตรงกับตัวกรอง</Text>
-      <Text style={styles.emptyBody}>ลองล้างตัวกรองหรือค้นหาด้วยชื่อสินค้า หมวดหมู่ หรือสาขาอื่น</Text>
+      <Text style={styles.emptyTitle}>{`ไม่พบ${productTerm}ที่ตรงกับตัวกรอง`}</Text>
+      <Text style={styles.emptyBody}>{`ลองล้างตัวกรองหรือค้นหาด้วยชื่อ${productTerm} หมวดหมู่ หรือสาขาอื่น`}</Text>
       <Pressable onPress={onClear} style={styles.emptySecondaryAction}>
         <Text style={styles.emptySecondaryActionText}>ล้างตัวกรอง</Text>
       </Pressable>
@@ -1887,7 +1905,7 @@ function Field({
       <TextInput
         multiline={multiline}
         onChangeText={onChangeText}
-        placeholderTextColor={MiraDesign.color.showcaseNavySoft}
+        placeholderTextColor={MiraDesign.color.inkSoft}
         style={[styles.input, multiline ? styles.multilineInput : null]}
         textAlignVertical={multiline ? 'top' : 'center'}
         value={value}
@@ -1908,7 +1926,7 @@ function Metric({ label, value }: { label: string; value: string }) {
 function Meta({ icon, label, value }: { icon: SymbolName; label: string; value: string }) {
   return (
     <View style={styles.metaCell}>
-      <SymbolView name={icon} size={23} tintColor={MiraDesign.color.showcaseBlue} />
+      <SymbolView name={icon} size={23} tintColor={MiraDesign.color.primary} />
       <View style={styles.metaCopy}>
         <Text style={styles.metaLabel}>{label}</Text>
         <Text numberOfLines={1} style={styles.metaValue}>
@@ -1921,13 +1939,45 @@ function Meta({ icon, label, value }: { icon: SymbolName; label: string; value: 
 
 const styles = StyleSheet.create({
   screen: {
-    backgroundColor: '#F3F7FB',
+    backgroundColor: MiraDesign.color.canvas,
     flex: 1,
   },
   container: {
     gap: 12,
-    padding: 18,
-    paddingBottom: 48,
+    padding: 16,
+    paddingBottom: 40,
+  },
+  headerBtn: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
+    borderRadius: 8,
+    borderWidth: 1,
+    cursor: 'pointer',
+    flexDirection: 'row',
+    gap: 6,
+    height: 38,
+    paddingHorizontal: 12,
+  },
+  headerBtnText: {
+    color: MiraDesign.color.primaryDeep,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  headerBtnPrimary: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.primary,
+    borderRadius: 8,
+    cursor: 'pointer',
+    flexDirection: 'row',
+    gap: 6,
+    height: 38,
+    paddingHorizontal: 14,
+  },
+  headerBtnPrimaryText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
   },
   headerCard: {
     alignItems: 'flex-start',
@@ -1960,18 +2010,18 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   eyebrow: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
     fontSize: 12,
     fontWeight: '800',
   },
   title: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 24,
     fontWeight: '800',
     lineHeight: 30,
   },
   subtitle: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 14,
     lineHeight: 21,
     maxWidth: 760,
@@ -1987,7 +2037,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     alignItems: 'center',
-    backgroundColor: MiraDesign.color.showcaseBlue,
+    backgroundColor: MiraDesign.color.primary,
     borderRadius: 8,
     flexDirection: 'row',
     flexShrink: 1,
@@ -2015,7 +2065,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   secondaryButtonText: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
     fontSize: 13,
     fontWeight: '900',
   },
@@ -2111,18 +2161,18 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   statLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '800',
   },
   statValue: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 22,
     fontWeight: '800',
     lineHeight: 25,
   },
   statDetail: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '700',
   },
@@ -2132,7 +2182,7 @@ const styles = StyleSheet.create({
   statAction: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -2141,7 +2191,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   statActionText: {
-    color: MiraDesign.color.showcaseBlue,
+    color: MiraDesign.color.primary,
     fontSize: 12,
     fontWeight: '900',
   },
@@ -2158,36 +2208,30 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
     width: 328,
   },
-  filterPanel: {
-    backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.showcaseLine,
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 12,
-    padding: 14,
-    ...softShadow,
-  },
   sideTitle: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 16,
     fontWeight: '900',
   },
   searchBox: {
     alignItems: 'center',
-    backgroundColor: '#F8FBFD',
-    borderColor: '#D8E4EE',
+    backgroundColor: '#FBFDFE',
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 240,
     flexDirection: 'row',
     gap: 10,
+    maxWidth: 440,
     minHeight: 40,
-    minWidth: 0,
+    minWidth: 160,
     paddingHorizontal: 12,
   },
   editorPanel: {
     backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     gap: 12,
@@ -2196,7 +2240,7 @@ const styles = StyleSheet.create({
   },
   referralPanel: {
     backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     gap: 12,
@@ -2210,12 +2254,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   referralTitle: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 13,
     fontWeight: '900',
   },
   referralLink: {
-    color: MiraDesign.color.showcaseBlue,
+    color: MiraDesign.color.primary,
     fontSize: 13,
     fontWeight: '900',
     marginTop: 8,
@@ -2232,7 +2276,7 @@ const styles = StyleSheet.create({
   },
   referralCallout: {
     alignItems: 'flex-start',
-    backgroundColor: MiraDesign.color.showcaseBlueSoft,
+    backgroundColor: MiraDesign.color.primarySoft,
     borderRadius: 8,
     flexDirection: 'row',
     gap: 12,
@@ -2243,18 +2287,18 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   referralCalloutTitle: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 15,
     fontWeight: '900',
   },
   referralBody: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 13,
     lineHeight: 20,
   },
   formPane: {
-    backgroundColor: MiraDesign.color.showcaseSurface,
-    borderColor: MiraDesign.color.showcaseLine,
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     flex: 0.8,
@@ -2264,6 +2308,7 @@ const styles = StyleSheet.create({
     ...softShadow,
   },
   listPane: {
+    alignSelf: 'stretch',
     backgroundColor: '#FFFFFF',
     borderColor: '#D8E4EE',
     borderRadius: 8,
@@ -2272,7 +2317,6 @@ const styles = StyleSheet.create({
     gap: 12,
     minWidth: 0,
     padding: 14,
-    width: '100%',
     ...softShadow,
   },
   panelHeader: {
@@ -2282,12 +2326,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   panelTitle: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 18,
     fontWeight: '900',
   },
   panelMeta: {
-    color: MiraDesign.color.showcaseBlue,
+    color: MiraDesign.color.primary,
     fontSize: 12,
     fontWeight: '900',
     marginTop: 3,
@@ -2305,13 +2349,13 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   inventoryTitle: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 20,
     fontWeight: '900',
     lineHeight: 25,
   },
   inventoryMeta: {
-    color: MiraDesign.color.showcaseBlue,
+    color: MiraDesign.color.primary,
     fontSize: 13,
     fontWeight: '900',
     marginTop: 6,
@@ -2325,13 +2369,13 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
   },
   textButton: {
-    backgroundColor: MiraDesign.color.showcaseBlueSoft,
+    backgroundColor: MiraDesign.color.primarySoft,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 9,
   },
   textButtonLabel: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
     fontSize: 12,
     fontWeight: '900',
   },
@@ -2341,17 +2385,17 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   fieldLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
     fontWeight: '900',
     textTransform: 'uppercase',
   },
   input: {
     backgroundColor: '#F7FBFA',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 14,
     minHeight: 46,
     paddingHorizontal: 12,
@@ -2383,7 +2427,7 @@ const styles = StyleSheet.create({
   uploadButton: {
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: MiraDesign.color.showcaseBlueDeep,
+    backgroundColor: MiraDesign.color.primaryDeep,
     borderRadius: 8,
     justifyContent: 'center',
     minHeight: 46,
@@ -2398,7 +2442,7 @@ const styles = StyleSheet.create({
   imagePreviewRow: {
     alignItems: 'center',
     backgroundColor: '#F7FBFA',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -2412,7 +2456,7 @@ const styles = StyleSheet.create({
     width: 70,
   },
   imagePreviewText: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     flex: 1,
     fontSize: 11,
     lineHeight: 15,
@@ -2436,21 +2480,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   segmentActive: {
-    backgroundColor: MiraDesign.color.showcaseSurface,
-    borderColor: MiraDesign.color.showcaseLine,
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
     borderWidth: 1,
   },
   segmentText: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
     fontWeight: '900',
   },
   segmentTextActive: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
   },
   inlineAdminPanel: {
     backgroundColor: '#F7FBFA',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     gap: 8,
@@ -2471,7 +2515,7 @@ const styles = StyleSheet.create({
   },
   inlineButton: {
     alignItems: 'center',
-    backgroundColor: MiraDesign.color.showcaseBlueDeep,
+    backgroundColor: MiraDesign.color.primaryDeep,
     borderRadius: 8,
     justifyContent: 'center',
     minHeight: 46,
@@ -2488,7 +2532,7 @@ const styles = StyleSheet.create({
   branchOption: {
     alignItems: 'center',
     backgroundColor: '#F7FBFA',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -2498,33 +2542,33 @@ const styles = StyleSheet.create({
   },
   branchOptionActive: {
     backgroundColor: '#E7F4ED',
-    borderColor: MiraDesign.color.showcaseBlue,
+    borderColor: MiraDesign.color.primary,
   },
   branchOptionInactive: {
     opacity: 0.65,
   },
   radioDot: {
-    borderColor: MiraDesign.color.showcaseNavySoft,
+    borderColor: MiraDesign.color.inkSoft,
     borderRadius: 8,
     borderWidth: 2,
     height: 16,
     width: 16,
   },
   radioDotActive: {
-    backgroundColor: MiraDesign.color.showcaseBlue,
-    borderColor: MiraDesign.color.showcaseBlue,
+    backgroundColor: MiraDesign.color.primary,
+    borderColor: MiraDesign.color.primary,
   },
   branchOptionCopy: {
     flex: 1,
     gap: 3,
   },
   branchOptionTitle: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 13,
     fontWeight: '900',
   },
   branchOptionMeta: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
     lineHeight: 17,
   },
@@ -2543,19 +2587,19 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   legacyBody: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 13,
     fontWeight: '800',
     lineHeight: 18,
   },
   helperText: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
     lineHeight: 17,
   },
   saveButton: {
     alignItems: 'center',
-    backgroundColor: MiraDesign.color.showcaseBlue,
+    backgroundColor: MiraDesign.color.primary,
     borderRadius: 8,
     justifyContent: 'center',
     minHeight: 46,
@@ -2574,7 +2618,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   successText: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
     fontSize: 13,
     fontWeight: '800',
   },
@@ -2586,20 +2630,20 @@ const styles = StyleSheet.create({
   },
   metric: {
     backgroundColor: '#F7FBFA',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     minWidth: 82,
     padding: 10,
   },
   metricLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 10,
     fontWeight: '900',
     textTransform: 'uppercase',
   },
   metricValue: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 17,
     fontWeight: '900',
     marginTop: 4,
@@ -2608,7 +2652,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   searchInput: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     flex: 1,
     fontSize: 14,
     fontWeight: '700',
@@ -2645,11 +2689,11 @@ const styles = StyleSheet.create({
   },
   statusBadgeInfo: {
     backgroundColor: '#EAF2FF',
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
   },
   statusBadgeMuted: {
     backgroundColor: '#EEF4F8',
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
   },
   toolbar: {
     backgroundColor: '#F8FBFD',
@@ -2667,20 +2711,28 @@ const styles = StyleSheet.create({
   },
   filterToggle: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: '#D8E4EE',
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
+    cursor: 'pointer',
     flexDirection: 'row',
     gap: 6,
     justifyContent: 'center',
     minHeight: 40,
     paddingHorizontal: 12,
   },
+  filterToggleActive: {
+    backgroundColor: MiraDesign.color.primarySoft,
+    borderColor: MiraDesign.color.primary,
+  },
   filterToggleText: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
     fontWeight: '800',
+  },
+  filterToggleTextActive: {
+    color: MiraDesign.color.primaryDeep,
   },
   clearButton: {
     alignItems: 'center',
@@ -2690,7 +2742,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   clearButtonText: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
     fontSize: 12,
     fontWeight: '800',
   },
@@ -2705,7 +2757,7 @@ const styles = StyleSheet.create({
     minWidth: 164,
   },
   filterGroupLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '800',
   },
@@ -2726,16 +2778,210 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   filterChipActive: {
-    backgroundColor: MiraDesign.color.showcaseBlue,
-    borderColor: MiraDesign.color.showcaseBlue,
+    backgroundColor: MiraDesign.color.primary,
+    borderColor: MiraDesign.color.primary,
   },
   filterChipText: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
     fontWeight: '900',
   },
   filterChipTextActive: {
     color: '#FFFFFF',
+  },
+  filterOverlay: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 50,
+  },
+  filterBackdrop: {
+    backgroundColor: 'rgba(15, 42, 46, 0.34)',
+    bottom: 0,
+    cursor: 'pointer',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  filterPanel: {
+    backgroundColor: MiraDesign.color.surface,
+    position: 'absolute',
+    ...softShadow,
+  },
+  filterPanelDesktop: {
+    borderColor: MiraDesign.color.line,
+    borderLeftWidth: 1,
+    bottom: 0,
+    right: 0,
+    top: 0,
+    width: 360,
+  },
+  filterPanelSheet: {
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    bottom: 0,
+    left: 0,
+    maxHeight: '84%',
+    right: 0,
+  },
+  filterPanelHeader: {
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderColor: MiraDesign.color.line,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+  },
+  filterPanelTitle: {
+    color: MiraDesign.color.ink,
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  filterCloseBtn: {
+    cursor: 'pointer',
+    padding: 4,
+  },
+  filterPanelBody: {
+    gap: 18,
+    padding: 18,
+  },
+  filterPanelFooter: {
+    borderColor: MiraDesign.color.line,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    padding: 16,
+  },
+  filterClearBtn: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.surfaceSoft,
+    borderRadius: 10,
+    cursor: 'pointer',
+    flex: 1,
+    paddingVertical: 11,
+  },
+  filterClearBtnText: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  filterApplyBtn: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.primary,
+    borderRadius: 10,
+    cursor: 'pointer',
+    flex: 1,
+    paddingVertical: 11,
+  },
+  filterApplyBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  productGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 14,
+  },
+  gridCard: {
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
+    borderRadius: 14,
+    borderWidth: 1,
+    cursor: 'pointer',
+    flexBasis: 210,
+    flexGrow: 1,
+    minWidth: 190,
+    overflow: 'hidden',
+    ...softShadow,
+  },
+  gridCardSelected: {
+    backgroundColor: MiraDesign.color.surfaceSoft,
+    borderColor: MiraDesign.color.primary,
+  },
+  gridCardArchived: {
+    opacity: 0.7,
+  },
+  gridThumb: {
+    backgroundColor: MiraDesign.color.surfaceSoft,
+    height: 148,
+    position: 'relative',
+    width: '100%',
+  },
+  gridImage: {
+    height: '100%',
+    width: '100%',
+  },
+  gridImagePlaceholder: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.primarySoft,
+    height: '100%',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  gridStatusWrap: {
+    left: 10,
+    position: 'absolute',
+    top: 10,
+  },
+  gridInfo: {
+    gap: 3,
+    padding: 12,
+  },
+  gridTitle: {
+    color: MiraDesign.color.ink,
+    fontSize: 14.5,
+    fontWeight: '800',
+    lineHeight: 19,
+  },
+  gridCategory: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  gridPrice: {
+    color: MiraDesign.color.primaryDeep,
+    fontSize: 15,
+    fontWeight: '900',
+    marginTop: 2,
+  },
+  editorActions: {
+    borderColor: MiraDesign.color.line,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+    paddingTop: 12,
+  },
+  editorActionBtn: {
+    alignItems: 'center',
+    backgroundColor: MiraDesign.color.surfaceSoft,
+    borderRadius: 8,
+    cursor: 'pointer',
+    flex: 1,
+    paddingVertical: 9,
+  },
+  editorActionText: {
+    color: MiraDesign.color.primaryDeep,
+    fontSize: 12.5,
+    fontWeight: '800',
+  },
+  editorActionDanger: {
+    alignItems: 'center',
+    backgroundColor: '#FCE7E7',
+    borderRadius: 8,
+    cursor: 'pointer',
+    flex: 1,
+    paddingVertical: 9,
+  },
+  editorActionDangerText: {
+    color: MiraDesign.color.danger,
+    fontSize: 12.5,
+    fontWeight: '800',
   },
   emptyState: {
     backgroundColor: '#F8FBFD',
@@ -2746,19 +2992,19 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   emptyTitle: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 15,
     fontWeight: '900',
   },
   emptyBody: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 13,
     lineHeight: 19,
   },
   emptyAction: {
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: MiraDesign.color.showcaseBlue,
+    backgroundColor: MiraDesign.color.primary,
     borderRadius: 8,
     justifyContent: 'center',
     minHeight: 38,
@@ -2781,7 +3027,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   emptySecondaryActionText: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
     fontSize: 12,
     fontWeight: '800',
   },
@@ -2832,25 +3078,79 @@ const styles = StyleSheet.create({
     width: 86,
   },
   productCard: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#D8E4EE',
+    backgroundColor: MiraDesign.color.surface,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
-    gap: 12,
     overflow: 'hidden',
     padding: 14,
     position: 'relative',
     ...softShadow,
   },
+  pCardBody: {
+    gap: 6,
+  },
+  pCardHead: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'space-between',
+  },
+  pCardTitle: {
+    color: MiraDesign.color.ink,
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  pCardMeta: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 12.5,
+    fontWeight: '600',
+  },
+  pCardStatusLine: {
+    color: MiraDesign.color.inkSoft,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  pCardActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 4,
+  },
+  pCardBtn: {
+    backgroundColor: MiraDesign.color.surfaceSoft,
+    borderRadius: 8,
+    cursor: 'pointer',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  pCardBtnText: {
+    color: MiraDesign.color.primaryDeep,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  pCardBtnDanger: {
+    backgroundColor: '#FCE7E7',
+    borderRadius: 8,
+    cursor: 'pointer',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  pCardBtnDangerText: {
+    color: MiraDesign.color.danger,
+    fontSize: 12,
+    fontWeight: '800',
+  },
   productCardSelected: {
-    backgroundColor: '#F3F8FF',
-    borderColor: '#AFCDF6',
+    backgroundColor: MiraDesign.color.surfaceSoft,
+    borderColor: MiraDesign.color.primary,
   },
   productCardArchived: {
     opacity: 0.78,
   },
   selectedRail: {
-    backgroundColor: MiraDesign.color.showcaseBlue,
+    backgroundColor: MiraDesign.color.primary,
     bottom: 0,
     left: 0,
     position: 'absolute',
@@ -2865,7 +3165,7 @@ const styles = StyleSheet.create({
   },
   productRow: {
     backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     gap: 12,
@@ -2873,7 +3173,7 @@ const styles = StyleSheet.create({
     ...softShadow,
   },
   productRowSelected: {
-    borderColor: MiraDesign.color.showcaseBlue,
+    borderColor: MiraDesign.color.primary,
   },
   productHead: {
     alignItems: 'flex-start',
@@ -2892,7 +3192,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   productImage: {
-    backgroundColor: MiraDesign.color.showcaseBlueSoft,
+    backgroundColor: MiraDesign.color.primarySoft,
     borderRadius: 8,
     height: 72,
     width: 72,
@@ -2911,13 +3211,13 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   productTitle: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 16,
     fontWeight: '800',
     lineHeight: 21,
   },
   productKey: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -2929,7 +3229,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   productDescription: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 13,
     lineHeight: 19,
   },
@@ -2941,7 +3241,7 @@ const styles = StyleSheet.create({
   tagPill: {
     backgroundColor: '#EEF4F8',
     borderRadius: 8,
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '700',
     maxWidth: 150,
@@ -2954,7 +3254,7 @@ const styles = StyleSheet.create({
     borderColor: '#D8E4EE',
     borderRadius: 8,
     borderWidth: 1,
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '700',
     overflow: 'hidden',
@@ -2976,12 +3276,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   productFactLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '700',
   },
   productFactValue: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 13,
     fontWeight: '800',
   },
@@ -2995,7 +3295,7 @@ const styles = StyleSheet.create({
     borderColor: '#D8E4EE',
     borderRadius: 999,
     borderWidth: 1,
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '700',
     maxWidth: 160,
@@ -3004,7 +3304,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   branchPlaceholder: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -3037,7 +3337,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#EEF4F8',
   },
   readinessLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 10,
     fontWeight: '800',
   },
@@ -3055,10 +3355,10 @@ const styles = StyleSheet.create({
     color: '#A23538',
   },
   readinessValueInfo: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
   },
   readinessValueMuted: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
   },
   productMetaGrid: {
     flexDirection: 'row',
@@ -3068,7 +3368,7 @@ const styles = StyleSheet.create({
   metaCell: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -3083,13 +3383,13 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   metaLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '900',
     textTransform: 'uppercase',
   },
   metaValue: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 13,
     fontWeight: '900',
     marginTop: 4,
@@ -3118,12 +3418,12 @@ const styles = StyleSheet.create({
     minWidth: 180,
   },
   nextActionLabel: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '800',
   },
   nextActionText: {
-    color: MiraDesign.color.showcaseNavy,
+    color: MiraDesign.color.ink,
     fontSize: 13,
     fontWeight: '700',
     lineHeight: 18,
@@ -3136,7 +3436,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   productLocation: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     flex: 1,
     fontSize: 12,
     fontWeight: '800',
@@ -3144,14 +3444,14 @@ const styles = StyleSheet.create({
   },
   stripePanel: {
     backgroundColor: '#F7FBFA',
-    borderColor: MiraDesign.color.showcaseLine,
+    borderColor: MiraDesign.color.line,
     borderRadius: 8,
     borderWidth: 1,
     gap: 6,
     padding: 10,
   },
   stripeId: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 11,
     fontWeight: '800',
   },
@@ -3169,7 +3469,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   stripeButtonText: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
     fontSize: 12,
     fontWeight: '900',
   },
@@ -3187,7 +3487,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   editButtonText: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
     fontSize: 12,
     fontWeight: '800',
   },
@@ -3205,12 +3505,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   referralButtonText: {
-    color: MiraDesign.color.showcaseBlueDeep,
+    color: MiraDesign.color.primaryDeep,
     fontSize: 12,
     fontWeight: '800',
   },
   disabledHint: {
-    color: MiraDesign.color.showcaseNavySoft,
+    color: MiraDesign.color.inkSoft,
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 17,
@@ -3233,7 +3533,7 @@ const styles = StyleSheet.create({
   },
   restoreButton: {
     alignItems: 'center',
-    backgroundColor: MiraDesign.color.showcaseBlue,
+    backgroundColor: MiraDesign.color.primary,
     borderRadius: 8,
     justifyContent: 'center',
     minHeight: 38,

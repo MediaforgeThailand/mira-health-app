@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { MiraDesign, softShadow } from '@/constants/Design';
 import { useAuthSession, useSignOut } from '@/lib/auth/useAuthSession';
+import { useTenantConfig } from '@/lib/tenant/useTenantConfig';
 
 const brandLogo = require('@/assets/images/mira-care-logo.png');
 
@@ -85,6 +86,7 @@ function isActiveItem(pathname: string, item: AdminNavItem) {
 
 export function AdminShell({ children }: { children: ReactNode }) {
   const auth = useAuthSession();
+  const tenantLogoUrl = useTenantConfig().config.branding.logoUrl;
   const pathname = usePathname();
   const params = useGlobalSearchParams<{ tour?: string }>();
   const signOut = useSignOut();
@@ -122,7 +124,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         <View style={[styles.sidebar, isCompact ? styles.sidebarCompact : null]}>
           <Link href={withTour('/admin-panel')} asChild>
             <Pressable style={styles.brandLink}>
-              <Image resizeMode="contain" source={brandLogo} style={styles.logo} />
+              <Image resizeMode="contain" source={tenantLogoUrl ? { uri: tenantLogoUrl } : brandLogo} style={styles.logo} />
             </Pressable>
           </Link>
 

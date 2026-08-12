@@ -217,17 +217,13 @@ type TenantRow = TenantSummary;
 
 export const defaultTenantSlug = process.env.EXPO_PUBLIC_MIRA_TENANT_SLUG?.trim() || 'demo-hospital';
 
+// Neutral fallback labels only. Real category labels are tenant-defined and
+// loaded from `product_categories` (see loadProductCategories); this map is just
+// a last-resort label for a key with no DB row. Do NOT add vertical-specific
+// (health/beauty/...) labels here — those belong to each tenant's catalog.
 const categoryLabels: Record<string, string> = {
-  checkup: 'ตรวจสุขภาพ',
   general: 'ทั่วไป',
-  health_checkup: 'ตรวจสุขภาพ',
-  imaging: 'เอกซเรย์/ภาพวินิจฉัย',
-  lab_test: 'ตรวจแล็บ/ตรวจเลือด',
   other: 'อื่นๆ',
-  procedure: 'หัตถการ',
-  specialty_consult: 'ปรึกษาแพทย์',
-  vaccine: 'วัคซีน',
-  wellness: 'สุขภาพและไลฟ์สไตล์',
 };
 
 const productCategories = Object.keys(categoryLabels);
@@ -296,21 +292,9 @@ function productSelectColumns() {
 }
 
 function inferCategory(draft: HospitalProductDraft): ProductCategory {
-  if (draft.category) {
-    return draft.category;
-  }
-
-  const searchText = `${draft.title} ${draft.description}`.toLowerCase();
-
-  if (searchText.includes('vaccine') || searchText.includes('vaccination')) {
-    return 'vaccine';
-  }
-
-  if (searchText.includes('checkup') || searchText.includes('screening') || searchText.includes('blood') || searchText.includes('lab')) {
-    return 'checkup';
-  }
-
-  return 'general';
+  // Vertical-neutral: trust the explicit category the admin picked, otherwise
+  // fall back to the generic bucket. No business-specific keyword guessing.
+  return draft.category?.trim() || 'general';
 }
 
 function deriveIncludes(description: string) {
